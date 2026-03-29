@@ -1,0 +1,37 @@
+/* =========================================
+   PillPath — Sinhala (සිංහල) Localisation
+   TODO: Complete translations with a native speaker.
+   ========================================= */
+
+// MARK: - General
+"app_name"              = "PillPath";
+"ok"                    = "හරි";
+"cancel"                = "අවලංගු කරන්න";
+"save"                  = "සුරකින්න";
+"delete"                = "මකන්න";
+"edit"                  = "සංස්කරණය";
+"done"                  = "කළා";
+"retry"                 = "නැවත උත්සාහ කරන්න";
+"loading"               = "පූරණය වෙමින්...";
+"error_generic"         = "දෝෂයක් ඇති විය. නැවත උත්සාහ කරන්න.";
+
+// MARK: - Navigation / Tabs
+"tab_home"              = "මුල් පිටුව";
+"tab_medications"       = "ඖෂධ";
+"tab_schedule"          = "කාලසටහන";
+"tab_scan"              = "ස්කෑන්";
+"tab_analytics"         = "විශ්ලේෂණ";
+"tab_settings"          = "සැකසීම්";
+
+// MARK: - Medications
+"med_title"             = "මගේ ඖෂධ";
+"med_add"               = "ඖෂධ එකතු කරන්න";
+"med_empty_title"       = "ඖෂධ නොමැත";
+"med_empty_subtitle"    = "ඔබේ පළමු ඖෂධය එකතු කරන්න.";
+
+// MARK: - Settings
+"settings_title"        = "සැකසීම්";
+"settings_appearance"   = "පෙනුම";
+"settings_text_size"    = "අකුරු ප්‍රමාණය";
+"settings_theme"        = "තේමාව";
+"settings_language"     = "භාෂාව";

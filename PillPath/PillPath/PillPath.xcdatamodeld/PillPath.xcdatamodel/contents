@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
+
+    <!-- ═══════════════════════════════════════════
+         MEDICATION
+    ═══════════════════════════════════════════ -->
+    <entity name="MedicationEntity" representedClassName="MedicationEntity" syncable="YES">
+        <attribute name="id"                    attributeType="UUID"       usesScalarValueType="NO"/>
+        <attribute name="name"                  attributeType="String"/>
+        <attribute name="genericName"           optional="YES" attributeType="String"/>
+        <attribute name="displayName"           optional="YES" attributeType="String"/>
+        <attribute name="form"                  attributeType="String"  defaultValueString="tablet"/>
+        <attribute name="dosageAmount"          attributeType="Double"  defaultValueString="1"  usesScalarValueType="YES"/>
+        <attribute name="dosageUnit"            attributeType="String"  defaultValueString="pills"/>
+        <attribute name="instructions"          optional="YES" attributeType="String"/>
+        <attribute name="notes"                 optional="YES" attributeType="String"/>
+        <attribute name="photoURL"              optional="YES" attributeType="String"/>
+        <attribute name="currentQuantity"       attributeType="Integer 32" defaultValueString="0"  usesScalarValueType="YES"/>
+        <attribute name="lowQuantityAlert"      attributeType="Boolean"   defaultValueString="NO"  usesScalarValueType="YES"/>
+        <attribute name="lowQuantityThreshold"  attributeType="Integer 32" defaultValueString="5"  usesScalarValueType="YES"/>
+        <attribute name="isActive"              attributeType="Boolean"   defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="addedAt"               attributeType="Date"      usesScalarValueType="NO"/>
+        <attribute name="sideEffectsJSON"       optional="YES" attributeType="String"/>
+        <attribute name="interactionsJSON"      optional="YES" attributeType="String"/>
+        <attribute name="statusInfoJSON"        optional="YES" attributeType="String"/>
+        <!-- Relationships -->
+        <relationship name="schedules" optional="YES" toMany="YES" deletionRule="Cascade"
+                      destinationEntity="ScheduleEntity"
+                      inverseName="medication" inverseEntity="MedicationEntity"/>
+        <relationship name="doseLogs" optional="YES" toMany="YES" deletionRule="Cascade"
+                      destinationEntity="DoseLogEntity"
+                      inverseName="medication" inverseEntity="MedicationEntity"/>
+    </entity>
+
+    <!-- ═══════════════════════════════════════════
+         SCHEDULE
+    ═══════════════════════════════════════════ -->
+    <entity name="ScheduleEntity" representedClassName="ScheduleEntity" syncable="YES">
+        <attribute name="id"                         attributeType="UUID"       usesScalarValueType="NO"/>
+        <attribute name="frequency"                  attributeType="String"  defaultValueString="daily"/>
+        <attribute name="intervalHours"              attributeType="Integer 32" defaultValueString="8"  usesScalarValueType="YES"/>
+        <attribute name="specificDaysJSON"           optional="YES" attributeType="String"/>
+        <attribute name="mealTiming"                 attributeType="String"  defaultValueString="none"/>
+        <attribute name="startDate"                  attributeType="Date"    usesScalarValueType="NO"/>
+        <attribute name="endDate"                    optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isOngoing"                  attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="doseReminders"              attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="notificationOffsetMinutes"  attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isActive"                   attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <!-- Relationships -->
+        <relationship name="medication" optional="YES" maxCount="1" deletionRule="Nullify"
+                      destinationEntity="MedicationEntity"
+                      inverseName="schedules" inverseEntity="MedicationEntity"/>
+        <relationship name="scheduleTimes" optional="YES" toMany="YES" deletionRule="Cascade"
+                      destinationEntity="ScheduleTimeEntity"
+                      inverseName="schedule" inverseEntity="ScheduleEntity"/>
+        <relationship name="doseLogs" optional="YES" toMany="YES" deletionRule="Cascade"
+                      destinationEntity="DoseLogEntity"
+                      inverseName="schedule" inverseEntity="ScheduleEntity"/>
+    </entity>
+
+    <!-- ═══════════════════════════════════════════
+         SCHEDULE TIME  (one per time-of-day slot)
+    ═══════════════════════════════════════════ -->
+    <entity name="ScheduleTimeEntity" representedClassName="ScheduleTimeEntity" syncable="YES">
+        <attribute name="id"     attributeType="UUID"       usesScalarValueType="NO"/>
+        <attribute name="hour"   attributeType="Integer 32" usesScalarValueType="YES"/>
+        <attribute name="minute" attributeType="Integer 32" usesScalarValueType="YES"/>
+        <attribute name="label"  attributeType="String"  defaultValueString="custom"/>
+        <!-- Relationships -->
+        <relationship name="schedule" optional="YES" maxCount="1" deletionRule="Nullify"
+                      destinationEntity="ScheduleEntity"
+                      inverseName="scheduleTimes" inverseEntity="ScheduleEntity"/>
+    </entity>
+
+    <!-- ═══════════════════════════════════════════
+         DOSE LOG  (records each dose event)
+    ═══════════════════════════════════════════ -->
+    <entity name="DoseLogEntity" representedClassName="DoseLogEntity" syncable="YES">
+        <attribute name="id"          attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="scheduledAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="takenAt"     optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="status"      attributeType="String" defaultValueString="pending"/>
+        <attribute name="notes"       optional="YES" attributeType="String"/>
+        <!-- Relationships -->
+        <relationship name="medication" optional="YES" maxCount="1" deletionRule="Nullify"
+                      destinationEntity="MedicationEntity"
+                      inverseName="doseLogs" inverseEntity="MedicationEntity"/>
+        <relationship name="schedule" optional="YES" maxCount="1" deletionRule="Nullify"
+                      destinationEntity="ScheduleEntity"
+                      inverseName="doseLogs" inverseEntity="ScheduleEntity"/>
+    </entity>
+
+    <!-- ═══════════════════════════════════════════
+         MEDICAL EVENT
+    ═══════════════════════════════════════════ -->
+    <entity name="MedicalEventEntity" representedClassName="MedicalEventEntity" syncable="YES">
+        <attribute name="id"               attributeType="UUID"   usesScalarValueType="NO"/>
+        <attribute name="title"            attributeType="String"/>
+        <attribute name="eventDescription" optional="YES" attributeType="String"/>
+        <attribute name="date"             attributeType="Date"   usesScalarValueType="NO"/>
+        <attribute name="type"             attributeType="String" defaultValueString="note"/>
+        <attribute name="createdAt"        attributeType="Date"   usesScalarValueType="NO"/>
+    </entity>
+
+    <!-- ═══════════════════════════════════════════
+         LAYOUT HINTS  (Xcode editor positioning)
+    ═══════════════════════════════════════════ -->
+    <elements>
+        <element name="MedicationEntity"   positionX="0"   positionY="0"   width="128" height="314"/>
+        <element name="ScheduleEntity"     positionX="200" positionY="0"   width="128" height="254"/>
+        <element name="ScheduleTimeEntity" positionX="400" positionY="0"   width="128" height="89"/>
+        <element name="DoseLogEntity"      positionX="200" positionY="300" width="128" height="134"/>
+        <element name="MedicalEventEntity" positionX="0"   positionY="340" width="128" height="134"/>
+    </elements>
+</model>

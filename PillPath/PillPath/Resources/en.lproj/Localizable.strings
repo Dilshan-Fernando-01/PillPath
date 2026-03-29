@@ -1,0 +1,82 @@
+/* =========================================
+   PillPath — English Localisation
+   ========================================= */
+
+// MARK: - General
+"app_name"              = "PillPath";
+"ok"                    = "OK";
+"cancel"                = "Cancel";
+"save"                  = "Save";
+"delete"                = "Delete";
+"edit"                  = "Edit";
+"done"                  = "Done";
+"retry"                 = "Try Again";
+"loading"               = "Loading...";
+"error_generic"         = "Something went wrong. Please try again.";
+
+// MARK: - Navigation / Tabs
+"tab_home"              = "Home";
+"tab_medications"       = "Medications";
+"tab_schedule"          = "Schedule";
+"tab_scan"              = "Scan";
+"tab_analytics"         = "Analytics";
+"tab_settings"          = "Settings";
+
+// MARK: - Authentication
+"auth_sign_in"          = "Sign In";
+"auth_sign_out"         = "Sign Out";
+"auth_email"            = "Email";
+"auth_password"         = "Password";
+"auth_welcome"          = "Welcome to PillPath";
+
+// MARK: - Medications
+"med_title"             = "My Medications";
+"med_add"               = "Add Medication";
+"med_empty_title"       = "No Medications Yet";
+"med_empty_subtitle"    = "Add your first medication to get started.";
+"med_name"              = "Name";
+"med_dosage"            = "Dosage";
+"med_form"              = "Form";
+"med_instructions"      = "Instructions";
+"med_search_fda"        = "Search Drug Database";
+
+// MARK: - Scheduling
+"schedule_title"        = "Schedule";
+"schedule_add"          = "Add Schedule";
+"schedule_today"        = "Today's Doses";
+"schedule_mark_taken"   = "Mark as Taken";
+"schedule_mark_skipped" = "Skip";
+"schedule_missed"       = "Missed";
+"dose_taken"            = "Taken";
+"dose_pending"          = "Pending";
+
+// MARK: - OCR
+"ocr_title"             = "Scan Label";
+"ocr_scan"              = "Scan";
+"ocr_result"            = "Scan Result";
+"ocr_save_medication"   = "Save as Medication";
+"ocr_retake"            = "Retake";
+
+// MARK: - Analytics
+"analytics_title"       = "Analytics";
+"analytics_adherence"   = "Adherence Rate";
+"analytics_period_7d"   = "Last 7 Days";
+"analytics_period_30d"  = "Last 30 Days";
+"analytics_period_90d"  = "Last 90 Days";
+"analytics_grade_excellent" = "Excellent";
+"analytics_grade_good"  = "Good";
+"analytics_grade_fair"  = "Fair";
+"analytics_grade_poor"  = "Poor";
+
+// MARK: - Settings
+"settings_title"        = "Settings";
+"settings_appearance"   = "Appearance";
+"settings_text_size"    = "Text Size";
+"settings_theme"        = "Theme";
+"settings_language"     = "Language";
+"settings_small"        = "Small";
+"settings_medium"       = "Medium";
+"settings_large"        = "Large";
+"settings_light"        = "Light";
+"settings_dark"         = "Dark";
+"settings_system"       = "System Default";
