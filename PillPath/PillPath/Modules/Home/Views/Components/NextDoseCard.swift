@@ -14,60 +14,86 @@ struct NextDoseCard: View {
     var onMarkTaken: () -> Void = {}
 
     var body: some View {
-        HStack(spacing: AppSpacing.md) {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
 
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(Color.brandPrimaryLight)
-                    .frame(width: 48, height: 48)
-                Image(systemName: "pills.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.brandPrimary)
-            }
-
-            // Info
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Next Dose")
-                    .font(AppFont.caption())
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.textSecondary)
-                    .kerning(0.3)
-
-                Text(item.medicationName)
-                    .font(AppFont.headline())
-                    .foregroundStyle(Color.textPrimary)
-
-                Text("\(item.dosageDisplay) • \(item.scheduledAt.formatted(.dateTime.hour().minute()))")
-                    .font(AppFont.caption())
-                    .foregroundStyle(Color.textSecondary)
-            }
-
-            Spacer()
-
-            // Time chip + take button
-            VStack(spacing: AppSpacing.xs) {
-                Text(item.timeRemainingDisplay)
-                    .font(AppFont.caption())
-                    .fontWeight(.semibold)
+            // Header label
+            HStack(spacing: AppSpacing.xs) {
+                Image(systemName: "bell.badge.fill")
+                    .font(.system(size: 12))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.brandPrimary)
-                    .clipShape(Capsule())
-
-                Button("Take", action: onMarkTaken)
-                    .font(AppFont.caption())
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.brandPrimary)
+                Text("NEXT DOSE")
+                    .font(.system(size: 12, weight: .black))
+                    .foregroundStyle(.white)
+                    .kerning(0.5)
+                Spacer()
+                Text(item.timeRemainingDisplay)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
             }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, 6)
+            .background(Color.brandPrimary)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
+
+            HStack(spacing: AppSpacing.md) {
+
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.brandPrimaryLight)
+                        .frame(width: 56, height: 56)
+                    Image(systemName: "pills.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(Color.brandPrimary)
+                }
+
+                // Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(item.medicationName)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+
+                    HStack(spacing: AppSpacing.xs) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.textSecondary)
+                        Text(item.scheduledAt.formatted(.dateTime.hour().minute()))
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.textSecondary)
+                        Text("·")
+                            .foregroundStyle(Color.textSecondary)
+                        Text(item.dosageDisplay)
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                }
+
+                Spacer()
+
+                // Large "Take Now" button for elderly
+                Button(action: onMarkTaken) {
+                    VStack(spacing: 2) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 28))
+                        Text("Take Now")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(Color.brandPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.bottom, AppSpacing.md)
         }
-        .padding(AppSpacing.md)
         .background(Color.appSurface)
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
         .overlay(
             RoundedRectangle(cornerRadius: AppRadius.md)
-                .stroke(Color.brandPrimary.opacity(0.25), lineWidth: 1)
+                .stroke(Color.brandPrimary.opacity(0.3), lineWidth: 1.5)
         )
         .appCardShadow()
     }

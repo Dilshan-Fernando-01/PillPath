@@ -255,6 +255,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "PillPath uses Calendar to add your medication schedule as daily reminders so you never miss a dose.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "PillPath uses Calendar to add your medication schedule as daily reminders so you never miss a dose.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "PillPath uses the camera to scan your prescription label so medications can be added automatically.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "PillPath accesses your photo library so you can upload a prescription image to scan.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -286,6 +290,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "PillPath uses Calendar to add your medication schedule as daily reminders so you never miss a dose.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "PillPath uses Calendar to add your medication schedule as daily reminders so you never miss a dose.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "PillPath uses the camera to scan your prescription label so medications can be added automatically.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "PillPath accesses your photo library so you can upload a prescription image to scan.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

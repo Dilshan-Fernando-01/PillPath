@@ -69,16 +69,11 @@ struct AddMedicationFlowView: View {
             // Success redirect
             .fullScreenCover(isPresented: $viewModel.didSave) {
                 if let med = viewModel.savedMedication {
-                    SuccessView(
-                        title: "Medication Added!",
-                        subtitle: "\(med.name) has been added to your medication list.",
-                        items: viewModel.reviewItems.map {
-                            SuccessItem(title: $0.label, subtitle: $0.value)
-                        },
-                        primaryActionLabel: "Done",
-                        secondaryActionLabel: "Add Another",
-                        onPrimary: { dismiss() },
-                        onSecondary: {
+                    MedicationSavedSuccessView(
+                        medication: med,
+                        reviewItems: viewModel.reviewItems,
+                        onDone: { dismiss() },
+                        onAddAnother: {
                             viewModel.didSave = false
                             viewModel.currentStep = 1
                         }

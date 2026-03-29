@@ -203,7 +203,18 @@ enum DoseTimeLabel: String, Codable, CaseIterable, Identifiable {
         case .noon:    return "11 AM – 4 PM"
         case .evening: return "4 PM – 9 PM"
         case .night:   return "9 PM – 6 AM"
-        case .custom:  return ""
+        case .custom:  return "Specific / Repeating"
+        }
+    }
+
+    /// Friendly label designed for elderly users
+    var elderlyDisplayName: String {
+        switch self {
+        case .morning: return "Morning Medications"
+        case .noon:    return "Afternoon Medications"
+        case .evening: return "Evening Medications"
+        case .night:   return "Night Medications"
+        case .custom:  return "Scheduled Medications"
         }
     }
 

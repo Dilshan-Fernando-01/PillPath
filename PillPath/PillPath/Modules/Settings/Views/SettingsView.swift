@@ -16,12 +16,9 @@ struct SettingsView: View {
     // Local editable copies of emergency contact
     @State private var contactName   = ""
     @State private var contactPhone  = ""
-    // Local editable copies of guardian contact
-    @State private var guardianName    = ""
-    @State private var guardianPhone   = ""
-    @State private var guardianNotifyMedTaken  = true
-    @State private var guardianNotifyMedMissed = true
-    @State private var guardianNotifyEvents    = true
+    // Local editable copies of guardian contacts (up to 3)
+    @State private var guardians: [GuardianContact] = [.empty(), .empty(), .empty()]
+    @State private var showGuardianHelp = false
     @State private var showSavedBanner = false
 
     var body: some View {
@@ -222,71 +219,136 @@ struct SettingsView: View {
     // MARK: - Guardian
 
     private var guardianSection: some View {
-        settingsSection(
-            title: "GUARDIAN",
-            trailingIcon: "shield.fill",
-            trailingIconColor: Color.brandPrimary
-        ) {
-            VStack(spacing: AppSpacing.sm) {
-                // Guardian Name
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Guardian Name")
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // Section header with help button
+            HStack(spacing: AppSpacing.xs) {
+                Text("GUARDIAN")
+                    .font(AppFont.label())
+                    .foregroundStyle(Color.textSecondary)
+                    .kerning(0.5)
+                Spacer()
+                Button {
+                    showGuardianHelp = true
+                } label: {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.brandPrimary)
+                }
+                .buttonStyle(.plain)
+                Image(systemName: "shield.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.brandPrimary)
+            }
+            .padding(.horizontal, AppSpacing.md)
+
+            // Help tip (shown inline when ? is tapped)
+            if showGuardianHelp {
+                HStack(alignment: .top, spacing: AppSpacing.sm) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.brandPrimary)
+                        .padding(.top, 1)
+                    Text("When you add a guardian, notifications will be sent to them when medication is taken or missed, and for activity reminders. Guardians are people who help you manage your health — such as a family member or carer.")
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
-                        .padding(.horizontal, AppSpacing.md)
-                    TextField("e.g. Jane Smith", text: $guardianName)
-                        .font(AppFont.body())
-                        .foregroundStyle(Color.textPrimary)
-                        .padding(AppSpacing.md)
-                        .background(Color.appBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-                        .padding(.horizontal, AppSpacing.md)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .padding(AppSpacing.md)
+                .background(Color.brandPrimaryLight)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+                .padding(.horizontal, AppSpacing.md)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
 
-                // Guardian Phone
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Phone Number")
-                        .font(AppFont.caption())
-                        .foregroundStyle(Color.textSecondary)
-                        .padding(.horizontal, AppSpacing.md)
-                    TextField("e.g. 0771234567", text: $guardianPhone)
-                        .font(AppFont.body())
-                        .foregroundStyle(Color.textPrimary)
-                        .keyboardType(.phonePad)
-                        .padding(AppSpacing.md)
-                        .background(Color.appBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-                        .padding(.horizontal, AppSpacing.md)
+            VStack(spacing: AppSpacing.md) {
+                ForEach(0..<maxGuardians, id: \.self) { idx in
+                    guardianEntry(index: idx)
                 }
+            }
+            .padding(AppSpacing.md)
+            .background(Color.appSurface)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+            .appCardShadow()
+            .padding(.horizontal, AppSpacing.md)
+        }
+        .animation(.easeInOut(duration: 0.2), value: showGuardianHelp)
+    }
 
-                if !guardianName.isEmpty || !guardianPhone.isEmpty {
-                    VStack(spacing: 0) {
-                        settingsToggleRow(
-                            title: "Notify when medication taken",
-                            subtitle: nil,
-                            isOn: $guardianNotifyMedTaken
-                        )
-                        Divider().padding(.leading, AppSpacing.md)
-                        settingsToggleRow(
-                            title: "Notify when medication missed",
-                            subtitle: nil,
-                            isOn: $guardianNotifyMedMissed
-                        )
-                        Divider().padding(.leading, AppSpacing.md)
-                        settingsToggleRow(
-                            title: "Notify on event reminders",
-                            subtitle: nil,
-                            isOn: $guardianNotifyEvents
-                        )
-                    }
+    private func guardianEntry(index: Int) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Guardian \(index + 1)")
+                .font(AppFont.caption())
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.brandPrimary)
+                .padding(.leading, 2)
+
+            // Name
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text("Name")
+                    .font(AppFont.caption())
+                    .foregroundStyle(Color.textSecondary)
+                TextField("e.g. Jane Smith", text: guardianNameBinding(index))
+                    .font(AppFont.body())
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(AppSpacing.md)
                     .background(Color.appBackground)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-                    .padding(.horizontal, AppSpacing.md)
-                }
+            }
 
-                Spacer().frame(height: AppSpacing.sm)
+            // Phone
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text("Phone Number")
+                    .font(AppFont.caption())
+                    .foregroundStyle(Color.textSecondary)
+                TextField("e.g. 0771234567", text: guardianPhoneBinding(index))
+                    .font(AppFont.body())
+                    .foregroundStyle(Color.textPrimary)
+                    .keyboardType(.phonePad)
+                    .padding(AppSpacing.md)
+                    .background(Color.appBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+            }
+
+            // Notification toggles — shown only when at least name is filled
+            if !guardians[index].name.trimmingCharacters(in: .whitespaces).isEmpty {
+                VStack(spacing: 0) {
+                    settingsToggleRow(title: "Notify when medication taken",   subtitle: nil, isOn: guardianNotifyBinding(index, \.notifyOnMedTaken))
+                    Divider().padding(.leading, AppSpacing.md)
+                    settingsToggleRow(title: "Notify when medication missed",  subtitle: nil, isOn: guardianNotifyBinding(index, \.notifyOnMedMissed))
+                    Divider().padding(.leading, AppSpacing.md)
+                    settingsToggleRow(title: "Notify on event reminders",      subtitle: nil, isOn: guardianNotifyBinding(index, \.notifyOnEvents))
+                }
+                .background(Color.appBackground)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+            }
+
+            if index < maxGuardians - 1 {
+                Divider()
             }
         }
+    }
+
+    // MARK: - Guardian bindings
+
+    private func guardianNameBinding(_ idx: Int) -> Binding<String> {
+        Binding(
+            get: { idx < guardians.count ? guardians[idx].name : "" },
+            set: { if idx < guardians.count { guardians[idx].name = $0 } }
+        )
+    }
+
+    private func guardianPhoneBinding(_ idx: Int) -> Binding<String> {
+        Binding(
+            get: { idx < guardians.count ? guardians[idx].phoneNumber : "" },
+            set: { if idx < guardians.count { guardians[idx].phoneNumber = $0 } }
+        )
+    }
+
+    private func guardianNotifyBinding(_ idx: Int, _ kp: WritableKeyPath<GuardianContact, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { idx < guardians.count ? guardians[idx][keyPath: kp] : true },
+            set: { if idx < guardians.count { guardians[idx][keyPath: kp] = $0 } }
+        )
     }
 
     // MARK: - Appearance
@@ -498,11 +560,11 @@ struct SettingsView: View {
     private func prefillContact() {
         contactName  = settings.emergencyContact?.name ?? ""
         contactPhone = settings.emergencyContact?.phoneNumber ?? ""
-        guardianName              = settings.guardianContact?.name ?? ""
-        guardianPhone             = settings.guardianContact?.phoneNumber ?? ""
-        guardianNotifyMedTaken    = settings.guardianContact?.notifyOnMedTaken  ?? true
-        guardianNotifyMedMissed   = settings.guardianContact?.notifyOnMedMissed ?? true
-        guardianNotifyEvents      = settings.guardianContact?.notifyOnEvents    ?? true
+
+        // Populate guardian slots from saved data, filling remaining with empties
+        var loaded = settings.guardianContacts
+        while loaded.count < maxGuardians { loaded.append(.empty()) }
+        guardians = Array(loaded.prefix(maxGuardians))
     }
 
     private func saveEmergencyContact() {
@@ -514,19 +576,8 @@ struct SettingsView: View {
             settings.emergencyContact = EmergencyContact(name: name, phoneNumber: phone)
         }
 
-        let gName  = guardianName.trimmingCharacters(in: .whitespaces)
-        let gPhone = guardianPhone.trimmingCharacters(in: .whitespaces)
-        if gName.isEmpty && gPhone.isEmpty {
-            settings.guardianContact = nil
-        } else {
-            settings.guardianContact = GuardianContact(
-                name: gName,
-                phoneNumber: gPhone,
-                notifyOnMedTaken: guardianNotifyMedTaken,
-                notifyOnMedMissed: guardianNotifyMedMissed,
-                notifyOnEvents: guardianNotifyEvents
-            )
-        }
+        // Save non-empty guardians only
+        settings.guardianContacts = guardians.filter { !$0.isEmpty }
     }
 }
 

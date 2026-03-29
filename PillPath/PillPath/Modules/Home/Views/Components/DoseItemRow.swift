@@ -23,26 +23,61 @@ struct DoseItemRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+
+            // "TAKE NOW" banner — shown only for pending items in the current time window
+            if item.effectiveStatus == .pending && currentTimeLabel == item.timeLabel {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 11))
+                    Text("Time to take this medication")
+                        .font(AppFont.caption())
+                        .fontWeight(.semibold)
+                }
+                .foregroundStyle(Color.brandPrimary)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, 10)
+                .padding(.bottom, 2)
+            }
+
             HStack(spacing: AppSpacing.md) {
 
                 // Pill icon
                 pillIcon
 
-                // Name + subtitle
-                VStack(alignment: .leading, spacing: 2) {
+                // Name + subtitle + time
+                VStack(alignment: .leading, spacing: 3) {
                     Text(item.medicationName)
-                        .font(AppFont.body())
+                        .font(AppFont.headline())   // larger for elderly
                         .fontWeight(.semibold)
                         .foregroundStyle(labelColor)
 
-                    Text(rowSubtitle)
-                        .font(AppFont.caption())
-                        .foregroundStyle(Color.textSecondary)
+                    // Scheduled time + dosage
+                    HStack(spacing: AppSpacing.xs) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.textSecondary)
+                        Text(scheduledTimeDisplay)
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.textSecondary)
+                        if !item.dosageDisplay.isEmpty {
+                            Text("·")
+                                .foregroundStyle(Color.textSecondary)
+                            Text(item.dosageDisplay)
+                                .font(AppFont.body())
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                    }
+
+                    if let cat = item.medicationCategory, !cat.isEmpty {
+                        Text(cat)
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.textSecondary.opacity(0.7))
+                    }
                 }
 
                 Spacer()
 
-                // Status control
+                // Status control — larger tap target
                 statusControl
             }
 
@@ -50,19 +85,20 @@ struct DoseItemRow: View {
             if let note = item.usageNote, !note.isEmpty {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "info.circle.fill")
-                        .font(.system(size: 10))
+                        .font(.system(size: 12))
                         .foregroundStyle(Color.semanticWarning)
                     Text(note)
-                        .font(AppFont.caption())
+                        .font(AppFont.body())
                         .foregroundStyle(Color.semanticWarning)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.leading, 56) // align with text column
+                .padding(.leading, 60) // align with text column
                 .padding(.top, 4)
+                .padding(.bottom, 4)
             }
         }
         .padding(.horizontal, AppSpacing.md)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .confirmationDialog(
             "Undo taken for \(item.medicationName)?",
             isPresented: $showUndoConfirm,
@@ -89,9 +125,9 @@ struct DoseItemRow: View {
         ZStack {
             Circle()
                 .fill(iconBackground)
-                .frame(width: 44, height: 44)
+                .frame(width: 50, height: 50)
             Image(systemName: iconName)
-                .font(.system(size: 18))
+                .font(.system(size: 22))
                 .foregroundStyle(iconForeground)
         }
     }
@@ -101,21 +137,36 @@ struct DoseItemRow: View {
             switch item.effectiveStatus {
             case .taken:
                 Button { showUndoConfirm = true } label: {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundStyle(Color.semanticSuccess)
+                    VStack(spacing: 3) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 34))
+                            .foregroundStyle(Color.semanticSuccess)
+                        Text("Taken")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.semanticSuccess)
+                    }
                 }
                 .buttonStyle(.plain)
 
             case .missed:
-                Image(systemName: "exclamationmark.circle.fill")
-                    .font(.system(size: 26))
-                    .foregroundStyle(Color.semanticError)
+                VStack(spacing: 3) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 34))
+                        .foregroundStyle(Color.semanticError)
+                    Text("Missed")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color.semanticError)
+                }
 
             case .skipped:
-                Image(systemName: "minus.circle.fill")
-                    .font(.system(size: 26))
-                    .foregroundStyle(Color.textSecondary)
+                VStack(spacing: 3) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 34))
+                        .foregroundStyle(Color.textSecondary)
+                    Text("Skipped")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                }
 
             case .pending:
                 Button {
@@ -125,23 +176,32 @@ struct DoseItemRow: View {
                         onMarkTaken()
                     }
                 } label: {
-                    Circle()
-                        .stroke(Color.appBorder, lineWidth: 2)
-                        .frame(width: 26, height: 26)
+                    VStack(spacing: 3) {
+                        ZStack {
+                            Circle()
+                                .stroke(Color.brandPrimary, lineWidth: 2.5)
+                                .frame(width: 34, height: 34)
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(Color.brandPrimary.opacity(0.4))
+                        }
+                        Text("Take")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.brandPrimary)
+                    }
                 }
                 .buttonStyle(.plain)
             }
         }
+        .frame(minWidth: 52)
     }
 
     // MARK: - Computed helpers
 
-    private var rowSubtitle: String {
-        var parts = [item.dosageDisplay]
-        if let cat = item.medicationCategory, !cat.isEmpty {
-            parts.append(cat)
-        }
-        return parts.joined(separator: " • ")
+    private var scheduledTimeDisplay: String {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f.string(from: item.scheduledAt)
     }
 
     private var labelColor: Color {

@@ -70,7 +70,8 @@ final class HomeViewModel: ObservableObject {
             var items: [DoseDisplayItem] = []
 
             for schedule in schedules {
-                guard let med = medMap[schedule.medicationId] else { continue }
+                guard let med = medMap[schedule.medicationId],
+                      med.isActive else { continue }
 
                 let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 1)
                     .filter { calendar.isDate($0, inSameDayAs: date) }

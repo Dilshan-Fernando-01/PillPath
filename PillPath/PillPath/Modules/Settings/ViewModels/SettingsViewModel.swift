@@ -61,17 +61,18 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Guardian
+    // MARK: - Guardians (up to 3)
 
-    @Published var guardianContact: GuardianContact? {
+    @Published var guardianContacts: [GuardianContact] {
         didSet {
-            if let g = guardianContact, let data = try? JSONEncoder().encode(g) {
-                UserDefaults.standard.set(data, forKey: Keys.guardianContact)
-            } else {
-                UserDefaults.standard.removeObject(forKey: Keys.guardianContact)
+            if let data = try? JSONEncoder().encode(guardianContacts) {
+                UserDefaults.standard.set(data, forKey: Keys.guardianContacts)
             }
         }
     }
+
+    /// Convenience: first guardian (backward-compat helper)
+    var guardianContact: GuardianContact? { guardianContacts.first(where: { !$0.isEmpty }) }
 
     // MARK: - General
 
@@ -106,9 +107,17 @@ final class SettingsViewModel: ObservableObject {
             self.emergencyContact = contact
         }
 
-        if let data    = d.data(forKey: Keys.guardianContact),
-           let guardian = try? JSONDecoder().decode(GuardianContact.self, from: data) {
-            self.guardianContact = guardian
+        // Migrate old single guardian → array; then load array
+        if let arrayData = d.data(forKey: Keys.guardianContacts),
+           let contacts = try? JSONDecoder().decode([GuardianContact].self, from: arrayData) {
+            self.guardianContacts = contacts
+        } else if let legacyData = d.data(forKey: Keys.guardianContact),
+                  let legacy = try? JSONDecoder().decode(GuardianContact.self, from: legacyData) {
+            // One-time migration from old single-contact key
+            self.guardianContacts = [legacy]
+            d.removeObject(forKey: Keys.guardianContact)
+        } else {
+            self.guardianContacts = []
         }
 
         // Seed globals so AppFont / contrast colours are correct on first render
@@ -128,7 +137,8 @@ final class SettingsViewModel: ObservableObject {
         static let highContrast         = "pp_high_contrast"
         static let language             = "pp_language"
         static let colorScheme          = "pp_color_scheme"
-        static let guardianContact      = "pp_guardian_contact"
+        static let guardianContact      = "pp_guardian_contact"    // legacy key, kept for migration
+        static let guardianContacts     = "pp_guardian_contacts"
     }
 }
 

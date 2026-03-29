@@ -65,7 +65,16 @@ struct GuardianContact: Codable, Equatable {
         let digits = phoneNumber.filter(\.isNumber)
         return URL(string: "tel://\(digits)")
     }
+
+    var isEmpty: Bool { name.trimmingCharacters(in: .whitespaces).isEmpty && phoneNumber.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    static func empty() -> GuardianContact {
+        GuardianContact(name: "", phoneNumber: "", notifyOnMedTaken: true, notifyOnMedMissed: true, notifyOnEvents: true)
+    }
 }
+
+/// Maximum number of guardian contacts allowed.
+let maxGuardians = 3
 
 /// Preferred colour scheme.
 enum AppColorScheme: String, CaseIterable, Identifiable {

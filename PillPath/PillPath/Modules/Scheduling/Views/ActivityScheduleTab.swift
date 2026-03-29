@@ -13,7 +13,7 @@ struct ActivityScheduleTab: View {
 
     @ObservedObject var viewModel: ActivityViewModel
     @State private var showAddFlow = false
-    @State private var showHistory = false
+    @State var showHistory = false
 
     var body: some View {
         ScrollView {
@@ -23,12 +23,9 @@ struct ActivityScheduleTab: View {
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, AppSpacing.md)
 
-                // Search bar + history button row
-                HStack(spacing: AppSpacing.sm) {
-                    searchBar
-                    historyButton
-                }
-                .padding(.horizontal, AppSpacing.md)
+                // Search bar only — history moved to Quick Actions panel
+                searchBar
+                    .padding(.horizontal, AppSpacing.md)
 
                 // Filter chips
                 filterChips
@@ -47,21 +44,6 @@ struct ActivityScheduleTab: View {
         .sheet(isPresented: $showHistory) {
             DoseHistoryView(viewModel: viewModel)
         }
-    }
-
-    private var historyButton: some View {
-        Button {
-            showHistory = true
-        } label: {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.brandPrimary)
-                .frame(width: 44, height: 44)
-                .background(Color.appSurface)
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
-                .overlay(RoundedRectangle(cornerRadius: AppRadius.md).stroke(Color.appBorder, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Search Bar

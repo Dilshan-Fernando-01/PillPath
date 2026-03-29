@@ -6,13 +6,14 @@
 import SwiftUI
 
 enum QuickAction: CaseIterable {
-    case settings, analytics, lookup, help
+    case settings, analytics, lookup, history, help
 
     var label: String {
         switch self {
         case .settings:  return "Settings"
         case .analytics: return "Analytics"
         case .lookup:    return "Lookup"
+        case .history:   return "Dose History"
         case .help:      return "Help"
         }
     }
@@ -22,6 +23,7 @@ enum QuickAction: CaseIterable {
         case .settings:  return "gearshape"
         case .analytics: return "chart.bar"
         case .lookup:    return "magnifyingglass"
+        case .history:   return "clock.arrow.circlepath"
         case .help:      return "questionmark.circle"
         }
     }
@@ -82,6 +84,7 @@ struct MainTabContainer: View {
     @State private var showLookup = false
     @State private var showSettings = false
     @State private var showInsights = false
+    @State private var showDoseHistory = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -140,6 +143,9 @@ struct MainTabContainer: View {
         .sheet(isPresented: $showInsights) {
             InsightsView()
         }
+        .sheet(isPresented: $showDoseHistory) {
+            DoseHistoryQuickAccess()
+        }
     }
 
     // MARK: - Tab content
@@ -159,8 +165,19 @@ struct MainTabContainer: View {
         case .settings:  showSettings = true
         case .analytics: showInsights = true
         case .lookup:    showLookup = true
+        case .history:   showDoseHistory = true
         case .help:      break
         }
+    }
+}
+
+// MARK: - Dose History Quick-Access wrapper
+
+private struct DoseHistoryQuickAccess: View {
+    // @StateObject keeps the VM alive for the sheet's lifetime
+    @StateObject private var vm = ActivityViewModel()
+    var body: some View {
+        DoseHistoryView(viewModel: vm)
     }
 }
 

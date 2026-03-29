@@ -54,8 +54,9 @@ struct ScheduleView: View {
                         Button {
                             showAddEvent = true
                         } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 22))
+                            Label("Add Event", systemImage: "plus.circle.fill")
+                                .font(AppFont.body())
+                                .fontWeight(.semibold)
                                 .foregroundStyle(Color.brandPrimary)
                         }
                     }
