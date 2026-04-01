@@ -23,12 +23,20 @@ struct OCRScanView: View {
             switch viewModel.step {
             case .camera:
                 cameraLandingScreen
+            case .crop:
+                if let img = viewModel.rawImage {
+                    CropImageView(image: img) { cropped in
+                        viewModel.processFromCrop(cropped)
+                    } onSkip: {
+                        viewModel.processFromCrop(img)
+                    }
+                }
             case .analyzing:
                 PrescriptionAnalyzingView()
             case .review:
-                NavigationStack { PrescriptionReviewView(viewModel: viewModel) }
+                PrescriptionReviewView(viewModel: viewModel)
             case .done:
-                NavigationStack { prescriptionSuccessView }
+                prescriptionSuccessView
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.step == .camera)
@@ -36,7 +44,7 @@ struct OCRScanView: View {
         .fullScreenCover(isPresented: $showCamera) {
             ImagePickerView(source: .camera) { image in
                 showCamera = false
-                viewModel.processImage(image)
+                viewModel.presentCrop(image)
             } onCancel: {
                 showCamera = false
             }
@@ -46,7 +54,7 @@ struct OCRScanView: View {
         .sheet(isPresented: $showGallery) {
             ImagePickerView(source: .photoLibrary) { image in
                 showGallery = false
-                viewModel.processImage(image)
+                viewModel.presentCrop(image)
             } onCancel: {
                 showGallery = false
             }

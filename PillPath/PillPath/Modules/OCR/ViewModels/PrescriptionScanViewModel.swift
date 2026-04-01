@@ -16,14 +16,16 @@ final class PrescriptionScanViewModel: ObservableObject {
 
     enum ScanStep {
         case camera       // Step 1: capture image
-        case analyzing    // Step 2: OCR + FDA validation
-        case review       // Step 3: user reviews/edits list
+        case crop         // Step 2: user crops the image
+        case analyzing    // Step 3: OCR + FDA validation
+        case review       // Step 4: user reviews/edits list
         case done         // Step 5: success
     }
 
     @Published var step: ScanStep = .camera
     @Published var scannedItems: [ScannedMedicationItem] = []
     @Published var capturedImage: UIImage?
+    @Published var rawImage: UIImage?      // full uncropped image, shown in crop step
     @Published var errorMessage: String?
     @Published var isImporting = false
     @Published var savedMedications: [Medication] = []
@@ -54,6 +56,19 @@ final class PrescriptionScanViewModel: ObservableObject {
         self.extractionService = extractionService ?? MedicationExtractionService()
         self.validationService = validationService ?? PrescriptionValidationService()
         self.importService     = importService     ?? BulkImportService()
+    }
+
+    // MARK: - Crop step
+
+    /// Shows the crop screen with the raw captured image.
+    func presentCrop(_ image: UIImage) {
+        rawImage = image
+        step = .crop
+    }
+
+    /// Called when user confirms a crop (or skips with the original).
+    func processFromCrop(_ image: UIImage) {
+        processImage(image)
     }
 
     // MARK: - Pipeline
@@ -175,6 +190,7 @@ final class PrescriptionScanViewModel: ObservableObject {
 
     func scanAnother() {
         capturedImage = nil
+        rawImage = nil
         scannedItems = []
         savedMedications = []
         errorMessage = nil
