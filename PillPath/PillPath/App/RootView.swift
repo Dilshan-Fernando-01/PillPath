@@ -2,10 +2,7 @@
 //  RootView.swift
 //  PillPath
 //
-//  Phase 3 – Part 1: Authentication is bypassed.
-//  App launches directly into the Home Dashboard.
-//  Re-enable the auth gate in a later phase by switching the flag below.
-//
+
 
 import SwiftUI
 
@@ -13,19 +10,12 @@ struct RootView: View {
 
     @EnvironmentObject private var settings: SettingsViewModel
 
-    /// Flip to `true` when the Auth flow is ready to be wired up.
-    private let authEnabled = false
-
     var body: some View {
-        if authEnabled {
-            AuthGateView()
-        } else {
-            MainTabContainer()
-        }
+        AuthGateView()
     }
 }
 
-// MARK: - Auth Gate (placeholder, used when authEnabled = true)
+
 
 private struct AuthGateView: View {
     @StateObject private var authViewModel = AuthViewModel()
@@ -34,11 +24,14 @@ private struct AuthGateView: View {
         Group {
             if authViewModel.isAuthenticated {
                 MainTabContainer()
+                    .transition(.opacity)
             } else {
-                LoginView()
+                WelcomeView()
+                    .transition(.opacity)
             }
         }
         .environmentObject(authViewModel)
+        .animation(.easeInOut(duration: 0.3), value: authViewModel.isAuthenticated)
     }
 }
 

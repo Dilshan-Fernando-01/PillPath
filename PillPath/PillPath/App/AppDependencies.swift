@@ -13,16 +13,12 @@ struct AppDependencies {
     static func register() {
         let c = DIContainer.shared
 
-        // ── Storage ──────────────────────────────────────────
         c.registerSingleton(CoreDataStack.self)       { CoreDataStack.shared }
 
-        // ── Network ──────────────────────────────────────────
         c.registerSingleton(NetworkClientProtocol.self) { NetworkClient.shared }
 
-        // ── Notifications ────────────────────────────────────
         c.registerSingleton(NotificationServiceProtocol.self) { NotificationService() }
 
-        // ── Medications ───────────────────────────────────────
         c.registerSingleton(MedicationServiceProtocol.self) {
             MedicationService(
                 coreData: c.resolve(CoreDataStack.self),
@@ -33,7 +29,6 @@ struct AppDependencies {
             FDAService(network: c.resolve(NetworkClientProtocol.self))
         }
 
-        // ── Scheduling ────────────────────────────────────────
         c.registerSingleton(ScheduleServiceProtocol.self) {
             ScheduleService(
                 coreData:            c.resolve(CoreDataStack.self),
@@ -52,12 +47,11 @@ struct AppDependencies {
             AnalyticsService(coreData: c.resolve(CoreDataStack.self))
         }
 
-        // ── Auth ──────────────────────────────────────────────
         c.registerSingleton(AuthServiceProtocol.self)       { AuthService() }
         c.registerSingleton(BiometricAuthServiceProtocol.self) { BiometricAuthService() }
         c.registerSingleton(GoogleSSOServiceProtocol.self)   { GoogleSSOService() }
 
-        // ── OCR / Prescription Import ──────────────────────────
+
         c.registerSingleton(OCRServiceProtocol.self) { OCRService() }
         c.registerSingleton(MedicationExtractionServiceProtocol.self) { MedicationExtractionService() }
         c.registerSingleton(PrescriptionValidationServiceProtocol.self) {
