@@ -15,6 +15,7 @@ struct PillPathApp: App {
 
     init() {
         AppDependencies.register()
+        DataSeeder.seedIfNeeded()
     }
 
     var body: some Scene {

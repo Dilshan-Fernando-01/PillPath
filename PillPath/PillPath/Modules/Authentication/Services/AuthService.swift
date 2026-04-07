@@ -27,7 +27,7 @@ final class AuthService: AuthServiceProtocol {
     }
 
     func restoreSession() async throws -> User {
-       
+        guard let user = loadCachedUser() else {
             throw AuthError.sessionExpired
         }
         currentUser = user

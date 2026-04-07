@@ -75,10 +75,11 @@ struct QuickActionsPanel: View {
     }
 }
 
-// MARK: - Main Tab Container
+
 
 struct MainTabContainer: View {
 
+    @EnvironmentObject private var settings: SettingsViewModel
     @State private var selectedTab: AppTab = .home
     @State private var isQuickActionsOpen = false
     @State private var showLookup = false
@@ -89,11 +90,11 @@ struct MainTabContainer: View {
     var body: some View {
         ZStack(alignment: .bottom) {
 
-            // Page content — fills the screen; safeAreaInset below reserves space for nav
+          
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Dim overlay when quick actions open
+       
             if isQuickActionsOpen {
                 Color.black.opacity(0.35)
                     .ignoresSafeArea()
@@ -105,8 +106,7 @@ struct MainTabContainer: View {
                     .transition(.opacity)
             }
         }
-        // safeAreaInset keeps nav bar flush at bottom edge with no gap,
-        // and ScrollViews in tab content automatically avoid it.
+
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 if isQuickActionsOpen {
@@ -138,7 +138,7 @@ struct MainTabContainer: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
-                .environmentObject(SettingsViewModel())
+                .environmentObject(settings)
         }
         .sheet(isPresented: $showInsights) {
             InsightsView()
@@ -171,10 +171,10 @@ struct MainTabContainer: View {
     }
 }
 
-// MARK: - Dose History Quick-Access wrapper
+
 
 private struct DoseHistoryQuickAccess: View {
-    // @StateObject keeps the VM alive for the sheet's lifetime
+
     @StateObject private var vm = ActivityViewModel()
     var body: some View {
         DoseHistoryView(viewModel: vm)

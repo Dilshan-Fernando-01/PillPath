@@ -12,6 +12,7 @@ struct SettingsView: View {
 
     @EnvironmentObject private var settings: SettingsViewModel
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
 
     // Local editable copies of emergency contact
     @State private var contactName   = ""
@@ -41,8 +42,9 @@ struct SettingsView: View {
                         PrimaryButton(title: "Save Settings") {
                             saveEmergencyContact()
                             withAnimation { showSavedBanner = true }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                                 withAnimation { showSavedBanner = false }
+                                dismiss()
                             }
                         }
                         .padding(.horizontal, AppSpacing.md)
