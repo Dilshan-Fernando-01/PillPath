@@ -14,8 +14,9 @@ struct DoseItemRow: View {
     var onMarkTaken: () -> Void = {}
     var onUndoTaken: () -> Void = {}
 
-    @State private var showUndoConfirm = false
-    @State private var showTimingConfirm = false
+    @State private var showUndoConfirm    = false
+    @State private var showTimingConfirm  = false
+    @State private var showLateConfirm    = false
 
     private var currentTimeLabel: DoseTimeLabel {
         DoseTimeLabel.from(hour: Calendar.current.component(.hour, from: .now))
@@ -24,14 +25,12 @@ struct DoseItemRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
-            // "TAKE NOW" banner — shown only for pending items in the current time window
-            if item.effectiveStatus == .pending && currentTimeLabel == item.timeLabel {
+           
+            if item.effectiveStatus == .pending && !item.isLate && currentTimeLabel == item.timeLabel {
                 HStack(spacing: AppSpacing.xs) {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 11))
+                    Image(systemName: "bell.fill").font(.system(size: 11))
                     Text("Time to take this medication")
-                        .font(AppFont.caption())
-                        .fontWeight(.semibold)
+                        .font(AppFont.caption()).fontWeight(.semibold)
                 }
                 .foregroundStyle(Color.brandPrimary)
                 .padding(.horizontal, AppSpacing.md)
@@ -39,29 +38,37 @@ struct DoseItemRow: View {
                 .padding(.bottom, 2)
             }
 
-            HStack(spacing: AppSpacing.md) {
+          
+            if item.isLate {
+                HStack(spacing: AppSpacing.xs) {
+                    Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 11))
+                    Text("Dose time has passed — scheduled \(scheduledTimeDisplay)")
+                        .font(AppFont.caption()).fontWeight(.semibold)
+                }
+                .foregroundStyle(Color.semanticWarning)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, 10)
+                .padding(.bottom, 2)
+            }
 
-                // Pill icon
+            HStack(spacing: AppSpacing.md) {
                 pillIcon
 
-                // Name + subtitle + time
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.medicationName)
-                        .font(AppFont.headline())   // larger for elderly
+                        .font(AppFont.headline())
                         .fontWeight(.semibold)
                         .foregroundStyle(labelColor)
 
-                    // Scheduled time + dosage
                     HStack(spacing: AppSpacing.xs) {
                         Image(systemName: "clock")
                             .font(.system(size: 11))
                             .foregroundStyle(Color.textSecondary)
                         Text(scheduledTimeDisplay)
                             .font(AppFont.body())
-                            .foregroundStyle(Color.textSecondary)
+                            .foregroundStyle(item.isLate ? Color.semanticWarning : Color.textSecondary)
                         if !item.dosageDisplay.isEmpty {
-                            Text("·")
-                                .foregroundStyle(Color.textSecondary)
+                            Text("·").foregroundStyle(Color.textSecondary)
                             Text(item.dosageDisplay)
                                 .font(AppFont.body())
                                 .foregroundStyle(Color.textSecondary)
@@ -76,12 +83,9 @@ struct DoseItemRow: View {
                 }
 
                 Spacer()
-
-                // Status control — larger tap target
                 statusControl
             }
 
-            // Usage note (e.g. "Only take if you have pain")
             if let note = item.usageNote, !note.isEmpty {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "info.circle.fill")
@@ -92,13 +96,15 @@ struct DoseItemRow: View {
                         .foregroundStyle(Color.semanticWarning)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.leading, 60) // align with text column
+                .padding(.leading, 60)
                 .padding(.top, 4)
                 .padding(.bottom, 4)
             }
         }
         .padding(.horizontal, AppSpacing.md)
         .padding(.vertical, 14)
+        
+        .background(item.isLate ? Color.semanticWarning.opacity(0.05) : Color.clear)
         .confirmationDialog(
             "Undo taken for \(item.medicationName)?",
             isPresented: $showUndoConfirm,
@@ -117,9 +123,19 @@ struct DoseItemRow: View {
         } message: {
             Text("\(item.medicationName) is scheduled for \(item.timeLabel.displayName). You're confirming it during \(currentTimeLabel.displayName). This will be logged with the actual time.")
         }
+        .confirmationDialog(
+            "Dose time has passed",
+            isPresented: $showLateConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Take Anyway") { onMarkTaken() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(item.medicationName) was scheduled for \(scheduledTimeDisplay). You're taking it late. Are you sure you want to log this dose?")
+        }
     }
 
-    // MARK: - Sub-views
+
 
     private var pillIcon: some View {
         ZStack {
@@ -170,7 +186,11 @@ struct DoseItemRow: View {
 
             case .pending:
                 Button {
-                    if currentTimeLabel != item.timeLabel {
+                    if item.isLate {
+                        
+                        showLateConfirm = true
+                    } else if currentTimeLabel != item.timeLabel {
+                        
                         showTimingConfirm = true
                     } else {
                         onMarkTaken()
@@ -179,15 +199,15 @@ struct DoseItemRow: View {
                     VStack(spacing: 3) {
                         ZStack {
                             Circle()
-                                .stroke(Color.brandPrimary, lineWidth: 2.5)
+                                .stroke(pendingStrokeColor, lineWidth: 2.5)
                                 .frame(width: 34, height: 34)
                             Image(systemName: "checkmark")
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(Color.brandPrimary.opacity(0.4))
+                                .foregroundStyle(pendingStrokeColor.opacity(0.5))
                         }
                         Text("Take")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.brandPrimary)
+                            .foregroundStyle(pendingStrokeColor)
                     }
                 }
                 .buttonStyle(.plain)
@@ -196,7 +216,11 @@ struct DoseItemRow: View {
         .frame(minWidth: 52)
     }
 
-    // MARK: - Computed helpers
+
+
+    private var pendingStrokeColor: Color {
+        item.isLate ? Color.semanticWarning : Color.brandPrimary
+    }
 
     private var scheduledTimeDisplay: String {
         let f = DateFormatter()
@@ -205,6 +229,7 @@ struct DoseItemRow: View {
     }
 
     private var labelColor: Color {
+        if item.isLate { return Color.semanticWarning }
         switch item.effectiveStatus {
         case .missed:  return Color.semanticError
         case .taken:   return Color.textSecondary
@@ -213,6 +238,7 @@ struct DoseItemRow: View {
     }
 
     private var iconBackground: Color {
+        if item.isLate { return Color.semanticWarning.opacity(0.12) }
         switch item.effectiveStatus {
         case .taken:  return Color.semanticSuccess.opacity(0.12)
         case .missed: return Color.semanticError.opacity(0.12)
@@ -221,6 +247,7 @@ struct DoseItemRow: View {
     }
 
     private var iconForeground: Color {
+        if item.isLate { return Color.semanticWarning }
         switch item.effectiveStatus {
         case .taken:  return Color.semanticSuccess
         case .missed: return Color.semanticError
@@ -246,7 +273,7 @@ struct DoseItemRow: View {
     .background(Color.appSurface)
 }
 
-// MARK: - Preview helper
+
 extension DoseDisplayItem {
     static func preview(status: DoseStatus) -> DoseDisplayItem {
         DoseDisplayItem(

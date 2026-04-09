@@ -2,9 +2,7 @@
 //  NextDoseCard.swift
 //  PillPath — Home Module
 //
-//  "Next Dose" highlight card shown near the top of the home screen.
-//  Matches Figma pill icon + name + time remaining chip.
-//
+
 
 import SwiftUI
 
@@ -13,10 +11,20 @@ struct NextDoseCard: View {
     let item: DoseDisplayItem
     var onMarkTaken: () -> Void = {}
 
+    @State private var showWrongPeriodAlert = false
+
+    private var currentTimeLabel: DoseTimeLabel {
+        DoseTimeLabel.from(hour: Calendar.current.component(.hour, from: .now))
+    }
+
+    private var isCorrectTimePeriod: Bool {
+        currentTimeLabel == item.timeLabel
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
 
-            // Header label
+     
             HStack(spacing: AppSpacing.xs) {
                 Image(systemName: "bell.badge.fill")
                     .font(.system(size: 12))
@@ -37,7 +45,7 @@ struct NextDoseCard: View {
 
             HStack(spacing: AppSpacing.md) {
 
-                // Icon
+            
                 ZStack {
                     Circle()
                         .fill(Color.brandPrimaryLight)
@@ -47,7 +55,7 @@ struct NextDoseCard: View {
                         .foregroundStyle(Color.brandPrimary)
                 }
 
-                // Info
+          
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.medicationName)
                         .font(.system(size: 20, weight: .bold))
@@ -70,21 +78,32 @@ struct NextDoseCard: View {
 
                 Spacer()
 
-                // Large "Take Now" button for elderly
-                Button(action: onMarkTaken) {
+        
+                Button(action: {
+                    if isCorrectTimePeriod {
+                        onMarkTaken()
+                    } else {
+                        showWrongPeriodAlert = true
+                    }
+                }) {
                     VStack(spacing: 2) {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: isCorrectTimePeriod ? "checkmark.circle.fill" : "clock.badge.exclamationmark")
                             .font(.system(size: 28))
-                        Text("Take Now")
+                        Text(isCorrectTimePeriod ? "Take Now" : item.timeLabel.displayName)
                             .font(.system(size: 11, weight: .bold))
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(isCorrectTimePeriod ? .white : Color.brandPrimary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(Color.brandPrimary)
+                    .background(isCorrectTimePeriod ? Color.brandPrimary : Color.brandPrimaryLight)
                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
                 }
                 .buttonStyle(.plain)
+                .alert("Scheduled for \(item.timeLabel.displayName)", isPresented: $showWrongPeriodAlert) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("\(item.medicationName) is scheduled for \(item.timeLabel.displayName). You can take it when that time period begins.")
+                }
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.bottom, AppSpacing.md)
