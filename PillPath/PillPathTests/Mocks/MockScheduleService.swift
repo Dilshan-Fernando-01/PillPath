@@ -10,6 +10,7 @@ final class MockScheduleService: ScheduleServiceProtocol {
 
     var schedules: [MedicationSchedule] = []
     var shouldThrow = false
+    var saveCallCount = 0
 
     func fetchAll() throws -> [MedicationSchedule] {
         if shouldThrow { throw TestError.forced }
@@ -22,6 +23,7 @@ final class MockScheduleService: ScheduleServiceProtocol {
     }
 
     func save(_ schedule: MedicationSchedule, for medication: Medication) throws {
+        saveCallCount += 1
         if shouldThrow { throw TestError.forced }
         schedules.removeAll { $0.id == schedule.id }
         schedules.append(schedule)
