@@ -11,6 +11,7 @@ import SwiftUI
 struct SettingsView: View {
 
     @EnvironmentObject private var settings: SettingsViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
@@ -38,7 +39,26 @@ struct SettingsView: View {
                         appearanceSection
                         generalSection
 
-                        // Save button
+                        Button {
+                            authViewModel.signOut()
+                            dismiss()
+                        } label: {
+                            HStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .font(.system(size: 16))
+                                Text("Sign Out")
+                                    .font(AppFont.body()).fontWeight(.semibold)
+                            }
+                            .foregroundStyle(Color.semanticError)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.md)
+                            .background(Color.semanticError.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, AppSpacing.md)
+
+            
                         PrimaryButton(title: "Save Settings") {
                             saveEmergencyContact()
                             withAnimation { showSavedBanner = true }
@@ -54,7 +74,7 @@ struct SettingsView: View {
                     .padding(.top, AppSpacing.md)
                 }
 
-                // Saved banner
+            
                 if showSavedBanner {
                     VStack {
                         Spacer()
@@ -77,7 +97,7 @@ struct SettingsView: View {
         .onAppear { prefillContact() }
     }
 
-    // MARK: - Security
+   
 
     private var securitySection: some View {
         settingsSection(title: "SECURITY") {
@@ -91,7 +111,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Notifications
+    
 
     private var notificationsSection: some View {
         settingsSection(title: "NOTIFICATIONS") {
@@ -110,7 +130,7 @@ struct SettingsView: View {
                 )
                 Divider().padding(.leading, AppSpacing.md)
 
-                // Reminder Sound picker row
+              
                 Menu {
                     ForEach(ReminderSound.allCases) { sound in
                         Button {
@@ -148,7 +168,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Emergency Contact
+   
 
     private var emergencyContactSection: some View {
         settingsSection(
@@ -157,7 +177,7 @@ struct SettingsView: View {
             trailingIconColor: Color.semanticError
         ) {
             VStack(spacing: AppSpacing.sm) {
-                // Contact Name
+            
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Text("Contact Name")
                         .font(AppFont.caption())
@@ -172,7 +192,7 @@ struct SettingsView: View {
                         .padding(.horizontal, AppSpacing.md)
                 }
 
-                // Phone Number
+               
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Text("Phone Number")
                         .font(AppFont.caption())
@@ -188,7 +208,7 @@ struct SettingsView: View {
                         .padding(.horizontal, AppSpacing.md)
                 }
 
-                // Call button
+               
                 if !contactPhone.isEmpty {
                     Button {
                         let digits = contactPhone.filter(\.isNumber)
@@ -218,11 +238,11 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Guardian
+  
 
     private var guardianSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // Section header with help button
+            
             HStack(spacing: AppSpacing.xs) {
                 Text("GUARDIAN")
                     .font(AppFont.label())
@@ -243,7 +263,7 @@ struct SettingsView: View {
             }
             .padding(.horizontal, AppSpacing.md)
 
-            // Help tip (shown inline when ? is tapped)
+         
             if showGuardianHelp {
                 HStack(alignment: .top, spacing: AppSpacing.sm) {
                     Image(systemName: "info.circle.fill")
@@ -353,7 +373,7 @@ struct SettingsView: View {
         )
     }
 
-    // MARK: - Appearance
+  
 
     private var appearanceSection: some View {
         settingsSection(title: "APPEARANCE") {
@@ -395,7 +415,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Accessibility
+    
 
     private var accessibilitySection: some View {
         settingsSection(title: "ACCESSIBILITY") {
@@ -440,12 +460,12 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - General
+    
 
     private var generalSection: some View {
         settingsSection(title: "GENERAL") {
             VStack(spacing: 0) {
-                // Language
+             
                 Menu {
                     ForEach(AppLanguage.allCases) { lang in
                         Button {
@@ -499,7 +519,7 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Reusable Components
+   
 
     private func settingsSection<Content: View>(
         title: String,
@@ -557,8 +577,7 @@ struct SettingsView: View {
         .padding(.vertical, AppSpacing.md)
     }
 
-    // MARK: - Helpers
-
+  
     private func prefillContact() {
         contactName  = settings.emergencyContact?.name ?? ""
         contactPhone = settings.emergencyContact?.phoneNumber ?? ""
@@ -586,4 +605,5 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environmentObject(SettingsViewModel())
+        .environmentObject(AuthViewModel())
 }

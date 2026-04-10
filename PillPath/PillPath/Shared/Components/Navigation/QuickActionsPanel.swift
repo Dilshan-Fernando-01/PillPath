@@ -80,6 +80,7 @@ struct QuickActionsPanel: View {
 struct MainTabContainer: View {
 
     @EnvironmentObject private var settings: SettingsViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @State private var selectedTab: AppTab = .home
     @State private var isQuickActionsOpen = false
     @State private var showLookup = false
@@ -139,6 +140,7 @@ struct MainTabContainer: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
                 .environmentObject(settings)
+                .environmentObject(authViewModel)
         }
         .sheet(isPresented: $showInsights) {
             InsightsView()
