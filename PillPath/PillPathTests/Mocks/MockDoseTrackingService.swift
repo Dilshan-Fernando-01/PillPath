@@ -30,6 +30,11 @@ final class MockDoseTrackingService: DoseTrackingServiceProtocol {
         return logs.filter { Calendar.current.isDate($0.scheduledAt, inSameDayAs: date) }
     }
 
+    func fetchLogs(from startDate: Date, to endDate: Date) throws -> [DoseLog] {
+        if shouldThrow { throw TestError.forced }
+        return logs.filter { $0.scheduledAt >= startDate && $0.scheduledAt <= endDate }
+    }
+
     func markTaken(_ log: DoseLog, at time: Date) throws {
         markTakenCallCount += 1
         if shouldThrow { throw TestError.forced }
