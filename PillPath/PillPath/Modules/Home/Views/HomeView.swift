@@ -2,9 +2,6 @@
 //  HomeView.swift
 //  PillPath — Home Module
 //
-//  Landing page. Matches Figma "Medication Home Screen".
-//  No authentication — opens directly on launch.
-//
 
 import SwiftUI
 
@@ -22,24 +19,23 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: 0) {
 
-                // ── Top bar ──────────────────────────────────────
+              
                 topBar
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, AppSpacing.md)
                     .padding(.bottom, AppSpacing.sm)
 
-                // ── Date heading ─────────────────────────────────
+               
                 dateHeading
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.bottom, AppSpacing.md)
 
-                // ── Calendar strip ───────────────────────────────
                 CalendarStripView(selectedDate: $viewModel.selectedDate) { date in
                     viewModel.selectDate(date)
                 }
                 .padding(.bottom, AppSpacing.lg)
 
-                // ── Body ─────────────────────────────────────────
+
                 if viewModel.isLoading {
                     LoadingView(message: "Loading medications...")
                         .frame(height: 300)
@@ -113,40 +109,85 @@ struct HomeView: View {
         .refreshable  { viewModel.loadDoses(for: viewModel.selectedDate) }
     }
 
-    // MARK: - Top Bar
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: .now)
+        switch hour {
+        case 5..<12:  return "Good Morning"
+        case 12..<17: return "Good Afternoon"
+        case 17..<21: return "Good Evening"
+        default:      return "Good Night"
+        }
+    }
+
+    private var greetingIcon: String {
+        let hour = Calendar.current.component(.hour, from: .now)
+        switch hour {
+        case 5..<12:  return "sun.max.fill"
+        case 12..<17: return "sun.haze.fill"
+        case 17..<21: return "moon.stars.fill"
+        default:      return "moon.zzz.fill"
+        }
+    }
+
+    private var todayProgress: (taken: Int, total: Int) {
+        let all = viewModel.timeOfDayGroups.flatMap(\.allItems)
+        let taken = all.filter { $0.effectiveStatus == .taken }.count
+        return (taken, all.count)
+    }
 
     private var topBar: some View {
-        HStack {
-            // Date label
-            VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.selectedDate.formatted(.dateTime.weekday(.wide).month().day()))
-                    .font(AppFont.subheadline())
-                    .foregroundStyle(Color.textSecondary)
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Image(systemName: greetingIcon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.brandPrimary)
+                    Text(greeting)
+                        .font(AppFont.subheadline())
+                        .foregroundStyle(Color.textSecondary)
+                }
                 Text("Today's Meds")
                     .font(AppFont.largeTitle())
                     .foregroundStyle(Color.textPrimary)
+
+                if todayProgress.total > 0 {
+                    HStack(spacing: 5) {
+                        Image(systemName: "pills.fill")
+                            .font(.system(size: 11))
+                        Text("\(todayProgress.taken) of \(todayProgress.total) taken")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(todayProgress.taken == todayProgress.total ? Color.semanticSuccess : Color.brandPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        (todayProgress.taken == todayProgress.total ? Color.semanticSuccess : Color.brandPrimary)
+                            .opacity(0.1)
+                    )
+                    .clipShape(Capsule())
+                }
             }
 
             Spacer()
 
-            // Emergency contact button (only if set)
+ 
             if let contact = settings.emergencyContact {
                 emergencyCallButton(contact: contact)
             } else {
-                // Profile placeholder
-                Circle()
-                    .stroke(Color.appBorder, lineWidth: 1.5)
-                    .frame(width: 38, height: 38)
-                    .overlay(
-                        Image(systemName: "person.circle")
-                            .font(.system(size: 28))
-                            .foregroundStyle(Color.textSecondary)
-                    )
+                ZStack {
+                    Circle()
+                        .fill(Color.brandPrimaryLight)
+                        .frame(width: 42, height: 42)
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color.brandPrimary)
+                }
             }
         }
     }
 
-    // MARK: - Emergency Call Button
+ 
 
     private func emergencyCallButton(contact: EmergencyContact) -> some View {
         Button {
@@ -165,8 +206,6 @@ struct HomeView: View {
         .accessibilityLabel("Call \(contact.name)")
     }
 
-    // MARK: - Date Heading
-
     private var dateHeading: some View {
         Group {
             // Only show if not today — "Today" is already in the title
@@ -179,7 +218,6 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Schedule Header
 
     private var scheduleHeader: some View {
         HStack {
@@ -202,7 +240,6 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Empty State
 
     private var emptyState: some View {
         EmptyStateView(
