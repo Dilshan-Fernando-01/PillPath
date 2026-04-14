@@ -2,9 +2,7 @@
 //  CalendarStripView.swift
 //  PillPath — Home Module
 //
-//  Horizontal 5-day strip. Selected day has a blue gradient pill.
-//  Matches Figma: date number + short weekday, scrollable.
-//
+
 
 import SwiftUI
 
@@ -14,7 +12,6 @@ struct CalendarStripView: View {
     var onDateSelected: (Date) -> Void = { _ in }
 
     private let calendar = Calendar.current
-    // Show 30 days back and 30 days forward centred on today
     private let dates: [Date] = {
         let today = Calendar.current.startOfDay(for: .now)
         return (-30...30).compactMap {
@@ -41,7 +38,6 @@ struct CalendarStripView: View {
                 .padding(.vertical, AppSpacing.xs)
             }
             .onAppear {
-                // Scroll to today on first appear
                 let today = calendar.startOfDay(for: .now)
                 proxy.scrollTo(today, anchor: .center)
             }
@@ -54,7 +50,6 @@ struct CalendarStripView: View {
     }
 }
 
-// MARK: - Day Cell
 
 private struct DayCell: View {
 
@@ -77,23 +72,28 @@ private struct DayCell: View {
     }
 
     var body: some View {
-        VStack(spacing: 4) {
-            Text(dayNumber)
-                .font(.system(size: 20, weight: isSelected ? .bold : .regular))
-                .foregroundStyle(isSelected ? .white : Color.textPrimary)
-
+        VStack(spacing: 3) {
             Text(weekdayShort)
-                .font(AppFont.caption())
-                .foregroundStyle(isSelected ? .white.opacity(0.9) : Color.textSecondary)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(isSelected ? .white.opacity(0.85) : Color.textSecondary)
+
+            Text(dayNumber)
+                .font(.system(size: 22, weight: isSelected ? .bold : .medium))
+                .foregroundStyle(isSelected ? .white : (isToday ? Color.brandPrimary : Color.textPrimary))
+
+
+            Circle()
+                .fill(isSelected ? Color.white.opacity(0.6) : (isToday ? Color.brandPrimary : Color.clear))
+                .frame(width: 5, height: 5)
         }
-        .frame(width: 52, height: 68)
+        .frame(width: 50, height: 68)
         .background(
             Group {
                 if isSelected {
                     LinearGradient(
                         colors: [Color.gradientStart, Color.gradientEnd],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 } else {
                     Color.appSurface
@@ -103,7 +103,7 @@ private struct DayCell: View {
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
         .overlay(
             RoundedRectangle(cornerRadius: AppRadius.md)
-                .stroke(isToday && !isSelected ? Color.brandPrimary.opacity(0.4) : Color.clear, lineWidth: 1.5)
+                .stroke(isToday && !isSelected ? Color.brandPrimary.opacity(0.35) : Color.clear, lineWidth: 1.5)
         )
         .appCardShadow()
     }
