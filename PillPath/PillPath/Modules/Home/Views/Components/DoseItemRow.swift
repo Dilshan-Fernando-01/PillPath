@@ -23,88 +23,92 @@ struct DoseItemRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        HStack(spacing: 0) {
+            // Colored left accent bar
+            RoundedRectangle(cornerRadius: 2)
+                .fill(accentBarColor)
+                .frame(width: 4)
+                .padding(.vertical, 12)
 
-           
-            if item.effectiveStatus == .pending && !item.isLate && currentTimeLabel == item.timeLabel {
-                HStack(spacing: AppSpacing.xs) {
-                    Image(systemName: "bell.fill").font(.system(size: 11))
-                    Text("Time to take this medication")
-                        .font(AppFont.caption()).fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: 0) {
+
+                // Status banner (active time / late)
+                if item.effectiveStatus == .pending && !item.isLate && currentTimeLabel == item.timeLabel {
+                    HStack(spacing: 5) {
+                        Image(systemName: "bell.fill").font(.system(size: 10))
+                        Text("Time to take this medication")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.brandPrimary)
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.top, 8)
+                    .padding(.bottom, 2)
                 }
-                .foregroundStyle(Color.brandPrimary)
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.top, 10)
-                .padding(.bottom, 2)
-            }
 
-          
-            if item.isLate {
-                HStack(spacing: AppSpacing.xs) {
-                    Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 11))
-                    Text("Dose time has passed — scheduled \(scheduledTimeDisplay)")
-                        .font(AppFont.caption()).fontWeight(.semibold)
+                if item.isLate {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 10))
+                        Text("Dose time has passed — scheduled \(scheduledTimeDisplay)")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.semanticWarning)
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.top, 8)
+                    .padding(.bottom, 2)
                 }
-                .foregroundStyle(Color.semanticWarning)
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.top, 10)
-                .padding(.bottom, 2)
-            }
 
-            HStack(spacing: AppSpacing.md) {
-                pillIcon
+                HStack(spacing: 12) {
+                    pillIcon
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(item.medicationName)
-                        .font(AppFont.headline())
-                        .fontWeight(.semibold)
-                        .foregroundStyle(labelColor)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(item.medicationName)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(labelColor)
 
-                    HStack(spacing: AppSpacing.xs) {
-                        Image(systemName: "clock")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.textSecondary)
-                        Text(scheduledTimeDisplay)
-                            .font(AppFont.body())
-                            .foregroundStyle(item.isLate ? Color.semanticWarning : Color.textSecondary)
-                        if !item.dosageDisplay.isEmpty {
-                            Text("·").foregroundStyle(Color.textSecondary)
-                            Text(item.dosageDisplay)
-                                .font(AppFont.body())
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 10))
                                 .foregroundStyle(Color.textSecondary)
+                            Text(scheduledTimeDisplay)
+                                .font(.system(size: 12))
+                                .foregroundStyle(item.isLate ? Color.semanticWarning : Color.textSecondary)
+                            if !item.dosageDisplay.isEmpty {
+                                Text("·").foregroundStyle(Color.textSecondary.opacity(0.5))
+                                Text(item.dosageDisplay)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.textSecondary)
+                            }
+                        }
+
+                        if let cat = item.medicationCategory, !cat.isEmpty {
+                            Text(cat)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Color.textSecondary.opacity(0.6))
                         }
                     }
 
-                    if let cat = item.medicationCategory, !cat.isEmpty {
-                        Text(cat)
-                            .font(AppFont.caption())
-                            .foregroundStyle(Color.textSecondary.opacity(0.7))
+                    Spacer()
+                    statusControl
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, 12)
+
+                if let note = item.usageNote, !note.isEmpty {
+                    HStack(spacing: 5) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.semanticWarning)
+                        Text(note)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.semanticWarning)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .padding(.leading, AppSpacing.md)
+                    .padding(.bottom, 8)
                 }
-
-                Spacer()
-                statusControl
-            }
-
-            if let note = item.usageNote, !note.isEmpty {
-                HStack(spacing: AppSpacing.xs) {
-                    Image(systemName: "info.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.semanticWarning)
-                    Text(note)
-                        .font(AppFont.body())
-                        .foregroundStyle(Color.semanticWarning)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.leading, 60)
-                .padding(.top, 4)
-                .padding(.bottom, 4)
             }
         }
-        .padding(.horizontal, AppSpacing.md)
-        .padding(.vertical, 14)
-        
-        .background(item.isLate ? Color.semanticWarning.opacity(0.05) : Color.clear)
+        .background(rowBackground)
         .confirmationDialog(
             "Undo taken for \(item.medicationName)?",
             isPresented: $showUndoConfirm,
@@ -139,11 +143,11 @@ struct DoseItemRow: View {
 
     private var pillIcon: some View {
         ZStack {
-            Circle()
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(iconBackground)
-                .frame(width: 50, height: 50)
+                .frame(width: 46, height: 46)
             Image(systemName: iconName)
-                .font(.system(size: 22))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(iconForeground)
         }
     }
@@ -153,73 +157,96 @@ struct DoseItemRow: View {
             switch item.effectiveStatus {
             case .taken:
                 Button { showUndoConfirm = true } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 34))
-                            .foregroundStyle(Color.semanticSuccess)
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
                         Text("Taken")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(Color.semanticSuccess)
+                            .font(.system(size: 12, weight: .semibold))
                     }
+                    .foregroundStyle(Color.semanticSuccess)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color.semanticSuccess.opacity(0.12))
+                    .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
 
             case .missed:
-                VStack(spacing: 3) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 34))
-                        .foregroundStyle(Color.semanticError)
+                HStack(spacing: 5) {
+                    Image(systemName: "exclamationmark")
+                        .font(.system(size: 11, weight: .bold))
                     Text("Missed")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(Color.semanticError)
+                        .font(.system(size: 12, weight: .semibold))
                 }
+                .foregroundStyle(Color.semanticError)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(Color.semanticError.opacity(0.1))
+                .clipShape(Capsule())
 
             case .skipped:
-                VStack(spacing: 3) {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 34))
-                        .foregroundStyle(Color.textSecondary)
+                HStack(spacing: 5) {
+                    Image(systemName: "minus")
+                        .font(.system(size: 11, weight: .bold))
                     Text("Skipped")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(Color.textSecondary)
+                        .font(.system(size: 12, weight: .semibold))
                 }
+                .foregroundStyle(Color.textSecondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(Color.textSecondary.opacity(0.1))
+                .clipShape(Capsule())
 
             case .pending:
                 Button {
                     if item.isLate {
-                        
                         showLateConfirm = true
                     } else if currentTimeLabel != item.timeLabel {
-                        
                         showTimingConfirm = true
                     } else {
                         onMarkTaken()
                     }
                 } label: {
-                    VStack(spacing: 3) {
-                        ZStack {
-                            Circle()
-                                .stroke(pendingStrokeColor, lineWidth: 2.5)
-                                .frame(width: 34, height: 34)
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(pendingStrokeColor.opacity(0.5))
-                        }
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
                         Text("Take")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(pendingStrokeColor)
+                            .font(.system(size: 12, weight: .semibold))
                     }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(pendingStrokeColor)
+                    .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
             }
         }
-        .frame(minWidth: 52)
     }
 
 
 
     private var pendingStrokeColor: Color {
         item.isLate ? Color.semanticWarning : Color.brandPrimary
+    }
+
+    private var accentBarColor: Color {
+        if item.isLate { return Color.semanticWarning }
+        switch item.effectiveStatus {
+        case .taken:   return Color.semanticSuccess
+        case .missed:  return Color.semanticError
+        case .skipped: return Color.textSecondary.opacity(0.4)
+        case .pending: return currentTimeLabel == item.timeLabel ? Color.brandPrimary : Color.appBorder
+        }
+    }
+
+    private var rowBackground: Color {
+        if item.isLate { return Color.semanticWarning.opacity(0.04) }
+        switch item.effectiveStatus {
+        case .taken:  return Color.semanticSuccess.opacity(0.03)
+        case .missed: return Color.semanticError.opacity(0.04)
+        default:      return Color.clear
+        }
     }
 
     private var scheduledTimeDisplay: String {
