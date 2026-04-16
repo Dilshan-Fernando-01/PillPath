@@ -17,21 +17,28 @@ struct MealTimingSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
 
-            // Meal timing label
+
             if group.timing != .none {
-                Text(group.timing.displayName.uppercased())
-                    .font(AppFont.caption())
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.brandPrimary)
-                    .kerning(0.5)
-                    .padding(.horizontal, AppSpacing.md)
-                    .padding(.top, AppSpacing.md)
-                    .padding(.bottom, AppSpacing.sm)
+                HStack(spacing: 5) {
+                    Image(systemName: group.timing.systemIcon)
+                        .font(.system(size: 10, weight: .semibold))
+                    Text(group.timing.displayName.uppercased())
+                        .font(.system(size: 10, weight: .bold))
+                        .kerning(0.4)
+                }
+                .foregroundStyle(Color.brandPrimary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.brandPrimaryLight)
+                .clipShape(Capsule())
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
             }
 
             if group.isEmpty {
                 Text("No medications scheduled for this time")
-                    .font(AppFont.caption())
+                    .font(.system(size: 12))
                     .foregroundStyle(Color.textSecondary)
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.vertical, AppSpacing.md)
@@ -45,7 +52,8 @@ struct MealTimingSection: View {
 
                     if item.id != group.items.last?.id {
                         Divider()
-                            .padding(.leading, 72)
+                            .padding(.leading, 66)
+                            .opacity(0.5)
                     }
                 }
             }
