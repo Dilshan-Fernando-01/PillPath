@@ -63,47 +63,68 @@ struct TimeOfDayGroupSection: View {
 
     private var sectionHeader: some View {
         HStack(spacing: AppSpacing.sm) {
-            // Icon — larger for elderly
-            Image(systemName: group.label.systemIcon)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(headerColor)
-                .frame(width: 28)
+    
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(headerColor.opacity(isCurrentPeriod ? 0.15 : 0.1))
+                    .frame(width: 38, height: 38)
+                Image(systemName: group.label.systemIcon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(headerColor)
+            }
 
             VStack(alignment: .leading, spacing: 1) {
-                // Period name — larger text
                 Text(group.label.elderlyDisplayName)
-                    .font(AppFont.headline())
-                    .fontWeight(.bold)
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(headerColor)
-
-                // Time range hint
                 if !group.label.timeRange.isEmpty {
                     Text(group.label.timeRange)
-                        .font(AppFont.caption())
+                        .font(.system(size: 11))
                         .foregroundStyle(Color.textSecondary)
                 }
             }
 
             Spacer()
 
-            // NOW badge or All-done badge
+          
             if isCurrentPeriod && !group.allTaken && !group.isEmpty {
-                Text("NOW")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.brandPrimary)
-                    .clipShape(Capsule())
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 5, height: 5)
+                    Text("NOW")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(Color.brandPrimary)
+                .clipShape(Capsule())
             } else if group.allTaken {
-                Label("All done", systemImage: "checkmark.circle.fill")
-                    .font(AppFont.caption())
-                    .foregroundStyle(Color.semanticSuccess)
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 11))
+                    Text("All done")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundStyle(Color.semanticSuccess)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(Color.semanticSuccess.opacity(0.1))
+                .clipShape(Capsule())
             } else if group.hasMissed {
-                Label("\(group.allItems.filter { $0.effectiveStatus == .missed }.count) missed",
-                      systemImage: "exclamationmark.circle.fill")
-                    .font(AppFont.caption())
-                    .foregroundStyle(Color.semanticError)
+                let count = group.allItems.filter { $0.effectiveStatus == .missed }.count
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 11))
+                    Text("\(count) missed")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundStyle(Color.semanticError)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(Color.semanticError.opacity(0.1))
+                .clipShape(Capsule())
             }
         }
         .padding(.horizontal, AppSpacing.xs)
