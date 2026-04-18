@@ -33,16 +33,15 @@ struct DoseDisplayItem: Identifiable, Equatable {
         Date.now < scheduledAt
     }
 
-   
     var isLate: Bool {
         guard status == .pending else { return false }
-        return Date.now > scheduledAt && !shouldShowAsMissed
+        let lateThreshold = scheduledAt.addingTimeInterval(15 * 60)
+        return Date.now > lateThreshold && !shouldShowAsMissed
     }
 
-   
     var shouldShowAsMissed: Bool {
         guard status == .pending else { return false }
-        return Date.now > scheduledAt.addingTimeInterval(3600) 
+        return Date.now > scheduledAt.addingTimeInterval(3600)
     }
 
     var effectiveStatus: DoseStatus {
