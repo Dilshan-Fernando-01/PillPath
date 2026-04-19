@@ -100,6 +100,7 @@ struct BottomNavigationBar: View {
         }) {
             VStack(spacing: 4) {
                 Image(systemName: isSelected ? tab.selectedIcon : tab.icon)
+                    .symbolRenderingMode(.monochrome)
                     .font(.system(size: 20))
                     .foregroundStyle(isSelected ? Color.brandPrimary : Color.textSecondary)
                 Text(tab.label)
