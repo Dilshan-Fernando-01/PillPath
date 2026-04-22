@@ -51,7 +51,7 @@ struct DoseItemRow: View {
                         Text("Dose time has passed — scheduled \(scheduledTimeDisplay)")
                             .font(.system(size: 11, weight: .semibold))
                     }
-                    .foregroundStyle(Color.semanticWarning)
+                    .foregroundStyle(Color.semanticWarningText)
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, 8)
                     .padding(.bottom, 2)
@@ -71,7 +71,7 @@ struct DoseItemRow: View {
                                 .foregroundStyle(Color.textSecondary)
                             Text(scheduledTimeDisplay)
                                 .font(.system(size: 12))
-                                .foregroundStyle(item.isLate ? Color.semanticWarning : Color.textSecondary)
+                                .foregroundStyle(item.isLate ? Color.semanticWarningText : Color.textSecondary)
                             if !item.dosageDisplay.isEmpty {
                                 Text("·").foregroundStyle(Color.textSecondary.opacity(0.5))
                                 Text(item.dosageDisplay)
@@ -97,10 +97,10 @@ struct DoseItemRow: View {
                     HStack(spacing: 5) {
                         Image(systemName: "info.circle.fill")
                             .font(.system(size: 11))
-                            .foregroundStyle(Color.semanticWarning)
+                            .foregroundStyle(Color.semanticWarningText)
                         Text(note)
                             .font(.system(size: 12))
-                            .foregroundStyle(Color.semanticWarning)
+                            .foregroundStyle(Color.semanticWarningText)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.leading, AppSpacing.md)
@@ -227,7 +227,7 @@ struct DoseItemRow: View {
 
 
     private var pendingStrokeColor: Color {
-        item.isLate ? Color.semanticWarning : Color.brandPrimary
+        item.isLate ? Color.semanticWarningText : Color.brandPrimary
     }
 
     private var accentBarColor: Color {
@@ -241,7 +241,7 @@ struct DoseItemRow: View {
     }
 
     private var rowBackground: Color {
-        if item.isLate { return Color.semanticWarning.opacity(0.04) }
+        if item.isLate { return Color.semanticWarning.opacity(0.06) }
         switch item.effectiveStatus {
         case .taken:  return Color.semanticSuccess.opacity(0.03)
         case .missed: return Color.semanticError.opacity(0.04)
@@ -256,7 +256,7 @@ struct DoseItemRow: View {
     }
 
     private var labelColor: Color {
-        if item.isLate { return Color.semanticWarning }
+        if item.isLate { return Color.semanticWarningText }
         switch item.effectiveStatus {
         case .missed:  return Color.semanticError
         case .taken:   return Color.textSecondary
@@ -265,7 +265,7 @@ struct DoseItemRow: View {
     }
 
     private var iconBackground: Color {
-        if item.isLate { return Color.semanticWarning.opacity(0.12) }
+        if item.isLate { return Color.semanticWarning.opacity(0.15) }
         switch item.effectiveStatus {
         case .taken:  return Color.semanticSuccess.opacity(0.12)
         case .missed: return Color.semanticError.opacity(0.12)
@@ -274,7 +274,7 @@ struct DoseItemRow: View {
     }
 
     private var iconForeground: Color {
-        if item.isLate { return Color.semanticWarning }
+        if item.isLate { return Color.semanticWarningText }
         switch item.effectiveStatus {
         case .taken:  return Color.semanticSuccess
         case .missed: return Color.semanticError
