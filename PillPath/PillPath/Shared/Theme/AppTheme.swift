@@ -52,10 +52,11 @@ extension Color {
     static let textDisabled   = dynamic(light: "#C5CEE0", dark: "#4A4A7A")
 
     // Semantic (same in both modes — high visibility)
-    static let semanticSuccess  = Color(hex: "#28A745")
-    static let semanticWarning  = Color(hex: "#FFC107")
-    static let semanticError    = Color(hex: "#DC3545")
-    static let semanticInfo     = Color(hex: "#17A2B8")
+    static let semanticSuccess     = Color(hex: "#28A745")
+    static let semanticWarning     = Color(hex: "#FFC107")
+    static let semanticWarningText = dynamic(light: "#92400E", dark: "#FCD34D")
+    static let semanticError       = Color(hex: "#DC3545")
+    static let semanticInfo        = Color(hex: "#17A2B8")
 
     // Gradients
     static let gradientStart  = Color(hex: "#2B5CE6")
