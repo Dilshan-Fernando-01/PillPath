@@ -30,6 +30,16 @@ final class MockMedicationService: MedicationServiceProtocol {
         return medications
     }
 
+    func fetchActive() throws -> [Medication] {
+        if shouldThrowOnFetch { throw TestError.forced }
+        return medications.filter(\.isActive)
+    }
+
+    func fetch(id: UUID) throws -> Medication? {
+        if shouldThrowOnFetch { throw TestError.forced }
+        return medications.first { $0.id == id }
+    }
+
     func save(_ medication: Medication) throws {
         saveCallCount += 1
         if shouldThrowOnSave { throw TestError.forced }
