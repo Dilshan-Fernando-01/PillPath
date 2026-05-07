@@ -11,6 +11,7 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var hasCachedSession: Bool = false
+    @Published var registrationSuccess = false
 
     private let authService: AuthServiceProtocol
     private let biometricService: BiometricAuthServiceProtocol
@@ -27,9 +28,11 @@ final class AuthViewModel: ObservableObject {
 
     var isAuthenticated: Bool { currentUser != nil }
 
-    /// True only when the device has biometrics AND a prior session can be restored.
+   
     var isBiometryAvailable: Bool {
-        biometricService.isBiometryAvailable() && hasCachedSession
+        biometricService.isBiometryAvailable()
+            && UserDefaults.standard.data(forKey: "pp_cachedUser") != nil
+            && UserDefaults.standard.bool(forKey: "pp_biometric_lock")
     }
 
     var biometryType: LABiometryType { biometricService.biometryType }
@@ -67,11 +70,12 @@ final class AuthViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         do {
-            currentUser = try await authService.signUp(
+            _ = try await authService.signUp(
                 name: name.trimmingCharacters(in: .whitespaces),
                 email: email.trimmingCharacters(in: .whitespaces),
                 password: password
             )
+            registrationSuccess = true
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -133,5 +137,6 @@ final class AuthViewModel: ObservableObject {
         currentUser = nil
         hasCachedSession = false
         errorMessage = nil
+        registrationSuccess = false
     }
 }
