@@ -6,16 +6,34 @@
 //
 
 import SwiftUI
+import UserNotifications
+
+
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .badge])
+    }
+}
 
 @main
 struct PillPathApp: App {
 
-    // Global settings — injected as EnvironmentObject so every view can read them
     @StateObject private var settings = SettingsViewModel()
+    private let notificationDelegate = NotificationDelegate()
 
     init() {
         AppDependencies.register()
         DataSeeder.seedIfNeeded()
+
+        let center = UNUserNotificationCenter.current()
+        center.delegate = notificationDelegate
+        Task {
+            try? await center.requestAuthorization(options: [.alert, .badge, .sound])
+        }
     }
 
     var body: some Scene {
@@ -24,9 +42,7 @@ struct PillPathApp: App {
                 .environmentObject(settings)
                 .environment(\.managedObjectContext, CoreDataStack.shared.viewContext)
                 .preferredColorScheme(settings.colorScheme.colorScheme)
-                .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
-                    // SwiftUI environment will re-render automatically via SettingsViewModel
-                }
+                .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in }
         }
     }
 }

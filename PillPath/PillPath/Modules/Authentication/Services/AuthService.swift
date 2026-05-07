@@ -23,7 +23,7 @@ final class AuthService: AuthServiceProtocol {
    
 
     func hasCachedSession() -> Bool {
-        return loadCachedUser() != nil
+        return loadCachedUser() != nil && UserDefaults.standard.bool(forKey: "pp_session_active")
     }
 
     func restoreSession() async throws -> User {
@@ -37,78 +37,79 @@ final class AuthService: AuthServiceProtocol {
 
 
     func signIn(email: String, password: String) async throws -> User {
-       
-        let user = User(name: email.components(separatedBy: "@").first ?? "User", email: email)
+        let creds = loadCredentials()
+        guard let stored = creds[email.lowercased()] else {
+            throw AuthError.invalidCredentials
+        }
+        guard stored["password"] == password else {
+            throw AuthError.invalidCredentials
+        }
+        let name = stored["name"] ?? email.components(separatedBy: "@").first ?? "User"
+        let user = User(name: name, email: email.lowercased())
         currentUser = user
         persistUser(user)
         return user
     }
 
     func signUp(name: String, email: String, password: String) async throws -> User {
-        // TODO (Firebase):
-        //   let result = try await Auth.auth().createUser(withEmail: email, password: password)
-        //   let changeRequest = result.user.createProfileChangeRequest()
-        //   changeRequest.displayName = name
-        //   try await changeRequest.commitChanges()
-        //   return User(id: UUID(), name: name, email: email)
-        let user = User(name: name, email: email)
+        var creds = loadCredentials()
+        if creds[email.lowercased()] != nil {
+            throw AuthError.userAlreadyExists
+        }
+        creds[email.lowercased()] = ["name": name, "password": password]
+        saveCredentials(creds)
+        let user = User(name: name, email: email.lowercased())
         currentUser = user
         persistUser(user)
         return user
     }
 
-    // MARK: Apple Sign In
+    
 
     func signInWithAppleCredential(idToken: String, nonce: String, fullName: PersonNameComponents?) async throws -> User {
-        // TODO (Firebase):
-        //   let credential = OAuthProvider.appleCredential(withIDToken: idToken,
-        //                                                   rawNonce: nonce,
-        //                                                   fullName: fullName)
-        //   let result = try await Auth.auth().signIn(with: credential)
-        //   let name = [fullName?.givenName, fullName?.familyName]
-        //       .compactMap { $0 }.joined(separator: " ")
-        //   return User(id: UUID(), name: name.isEmpty ? "Apple User" : name,
-        //               email: result.user.email ?? "")
+    
         throw AuthError.notImplemented
     }
 
-    // MARK: Google Sign In
+  
 
     func signInWithGoogle() async throws -> User {
-        // TODO (Firebase + GoogleSignIn SDK):
-        //   1. Add GoogleSignIn package: https://github.com/google/GoogleSignIn-iOS
-        //   2. guard let clientID = FirebaseApp.app()?.options.clientID else { throw AuthError.notImplemented }
-        //   3. let config = GIDConfiguration(clientID: clientID)
-        //   4. GIDSignIn.sharedInstance.configuration = config
-        //   5. let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
-        //   6. guard let idToken = result.user.idToken?.tokenString else { throw AuthError.notImplemented }
-        //   7. let credential = GoogleAuthProvider.credential(withIDToken: idToken,
-        //                                                      accessToken: result.user.accessToken.tokenString)
-        //   8. let firebaseResult = try await Auth.auth().signIn(with: credential)
-        //   9. return User(id: UUID(), name: firebaseResult.user.displayName ?? "",
-        //                  email: firebaseResult.user.email ?? "")
+
         throw AuthError.notImplemented
     }
 
-    // MARK: Sign Out
+
 
     func signOut() {
-        // TODO (Firebase): try? Auth.auth().signOut()
+      
         currentUser = nil
-        clearPersistedUser()
+        UserDefaults.standard.set(false, forKey: "pp_session_active")
+     
     }
 
     func isAuthenticated() -> Bool { currentUser != nil }
 
-    // MARK: - Session persistence (stub — replace with Keychain in production)
-    //
-    // Firebase automatically manages token persistence.
-    // These methods are only used by the local stub above.
+
+
+    private func loadCredentials() -> [String: [String: String]] {
+        guard let data = UserDefaults.standard.data(forKey: "pp_credentials"),
+              let creds = try? JSONDecoder().decode([String: [String: String]].self, from: data) else {
+            return [:]
+        }
+        return creds
+    }
+
+    private func saveCredentials(_ creds: [String: [String: String]]) {
+        if let data = try? JSONEncoder().encode(creds) {
+            UserDefaults.standard.set(data, forKey: "pp_credentials")
+        }
+    }
 
     private func persistUser(_ user: User) {
         if let data = try? JSONEncoder().encode(user) {
             UserDefaults.standard.set(data, forKey: "pp_cachedUser")
         }
+        UserDefaults.standard.set(true, forKey: "pp_session_active")
     }
 
     private func loadCachedUser() -> User? {
@@ -121,7 +122,7 @@ final class AuthService: AuthServiceProtocol {
     }
 }
 
-// MARK: - Auth Errors
+
 
 enum AuthError: LocalizedError {
     case notImplemented

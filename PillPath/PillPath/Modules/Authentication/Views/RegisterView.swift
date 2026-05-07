@@ -1,7 +1,4 @@
-//
-//  RegisterView.swift
-//  PillPath — Authentication Module
-//
+
 
 import SwiftUI
 
@@ -184,6 +181,12 @@ struct RegisterView: View {
         .background(Color.appBackground.ignoresSafeArea())
         .navigationTitle("Register")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: authViewModel.registrationSuccess) { _, success in
+            if success {
+                authViewModel.registrationSuccess = false
+                dismiss()
+            }
+        }
         .onDisappear {
             authViewModel.errorMessage = nil
         }

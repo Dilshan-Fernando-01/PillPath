@@ -1,10 +1,4 @@
-//
-//  AddMedicationViewModel.swift
-//  PillPath — Medications Module
-//
-//  State container for the 8-step Add Medication wizard.
-//  Injected services for full testability.
-//
+
 
 import Foundation
 import Combine
@@ -13,7 +7,7 @@ import Combine
 final class AddMedicationViewModel: ObservableObject, Identifiable {
     let id = UUID()
 
-    // MARK: - Navigation
+   
 
     @Published var currentStep: Int = 1
     @Published var isSaving: Bool = false
@@ -25,7 +19,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
 
     let totalSteps = 8
 
-    // MARK: - Step 1: Name + FDA Search
+   
 
     @Published var medicationName: String = ""
     @Published var fdaSearchResults: [MedicationSearchResult] = []
@@ -33,27 +27,38 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
     @Published var selectedFDAResult: MedicationSearchResult?
     private var searchTask: Task<Void, Never>?
 
-    // MARK: - Step 2: Medication Form
+  
 
-    @Published var selectedForm: MedicationForm = .tablet
+    @Published var selectedForm: MedicationForm = .tablet {
+        didSet {
+            switch selectedForm {
+            case .liquid, .injection:
+                if dosageUnit == .pills { dosageUnit = .ml }
+            case .patch, .inhaler:
+                if dosageUnit == .pills { dosageUnit = .mg }
+            default:
+                break
+            }
+        }
+    }
 
-    // MARK: - Step 3: Dosage
+
 
     @Published var dosageAmount: Double = 1.0
     @Published var dosageUnit: DosageUnit = .pills
 
-    // MARK: - Step 4: Schedule Frequency
+   
 
     @Published var frequency: ScheduleFrequency = .daily
-    // Every X hours
+   
     @Published var intervalHours: Int = 6
     @Published var intervalMinutes: Int = 0
-    // Specific days (0=Sun…6=Sat)
+   
     @Published var specificDays: Set<Int> = []
-    // Custom dates
+   
     @Published var customDates: [Date] = []
 
-    // MARK: - Step 5: Time of Day + Custom Times
+   
 
     @Published var selectedTimeLabels: Set<DoseTimeLabel> = []
     @Published var customTimes: [ScheduleTime] = []
@@ -61,11 +66,11 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
     @Published var customTimePickerHour: Int = 9
     @Published var customTimePickerMinute: Int = 0
 
-    // MARK: - Step 6: Meal Timing
+   
 
     @Published var mealTiming: MealTiming = .none
 
-    // MARK: - Step 7: Advanced Options
+  
 
     @Published var startDate: Date = .now
     @Published var endDate: Date = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
@@ -79,10 +84,10 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
     @Published var currentQuantity: String = ""
     @Published var lowQuantityAlert: Bool = false
     @Published var lowQuantityThreshold: String = "5"
-    // Photo
+   
     @Published var photoURL: String? = nil
 
-    // MARK: - Services
+   
 
     private let medicationService: MedicationServiceProtocol
     private let scheduleService: ScheduleServiceProtocol
@@ -104,21 +109,21 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         self.eventService       = eventService       ?? DIContainer.shared.resolve(EventServiceProtocol.self)
     }
 
-    /// Convenience factory for edit mode — pre-fills all state from an existing medication + schedule.
+   
     static func editing(medication: Medication, schedule: MedicationSchedule? = nil) -> AddMedicationViewModel {
         let vm = AddMedicationViewModel()
         vm.isEditing          = true
         vm.editingMedicationId = medication.id
-        vm.currentStep        = 8   // Jump straight to review
+        vm.currentStep        = 8   
 
-        // Step 1
+       
         vm.medicationName = medication.name
-        // Step 2
+       
         vm.selectedForm   = medication.form
-        // Step 3
+       
         vm.dosageAmount   = medication.dosageAmount
         vm.dosageUnit     = medication.dosageUnit
-        // Step 7
+      
         vm.displayName    = medication.displayName ?? ""
         vm.notes          = medication.notes ?? ""
         vm.currentQuantity = medication.currentQuantity > 0 ? String(medication.currentQuantity) : ""
@@ -136,7 +141,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             vm.notificationOffset = s.notificationOffsetMinutes
             if let end = s.endDate { vm.endDate = end }
 
-            // Rebuild time labels + custom times
+  
             for t in s.scheduleTimes {
                 if t.label == .custom { vm.customTimes.append(t) }
                 else { vm.selectedTimeLabels.insert(t.label) }
@@ -145,7 +150,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         return vm
     }
 
-    /// Pre-fill name + optional dosage hint (used from OCR import flow)
+   
     static func prefilled(name: String, form: MedicationForm = .tablet, dosage: Double = 1.0, unit: DosageUnit = .pills) -> AddMedicationViewModel {
         let vm = AddMedicationViewModel()
         vm.medicationName = name
@@ -156,15 +161,15 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         return vm
     }
 
-    // MARK: - Navigation
+   
 
     var canProceed: Bool {
         switch currentStep {
         case 1: return !medicationName.trimmingCharacters(in: .whitespaces).isEmpty
-        case 2: return true  // form always has a selection
+        case 2: return true
         case 3: return dosageAmount > 0
         case 4: return isStep4Valid
-        case 5: return !selectedTimeLabels.isEmpty || !customTimes.isEmpty
+        case 5: return frequency == .everyXHours || !selectedTimeLabels.isEmpty || !customTimes.isEmpty
         case 6: return true
         case 7: return true
         case 8: return true
@@ -176,11 +181,14 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         guard canProceed, currentStep < totalSteps else { return }
         if currentStep == 7 { loadEvents() }
         currentStep += 1
+      
+        if currentStep == 5 && frequency == .everyXHours { currentStep += 1 }
     }
 
     func previousStep() {
         guard currentStep > 1 else { return }
         currentStep -= 1
+        if currentStep == 5 && frequency == .everyXHours { currentStep -= 1 }
     }
 
     func goToStep(_ step: Int) {
@@ -188,7 +196,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         currentStep = step
     }
 
-    // MARK: - Step 4 Validation
+   
 
     private var isStep4Valid: Bool {
         switch frequency {
@@ -204,7 +212,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         intervalHours * 60 + intervalMinutes
     }
 
-    // MARK: - Step 1: FDA Search
+   
 
     func searchFDA(query: String) {
         searchTask?.cancel()
@@ -215,7 +223,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         searchTask = Task {
             isSearching = true
             do {
-                try await Task.sleep(nanoseconds: 400_000_000) // 400ms debounce
+                try await Task.sleep(nanoseconds: 400_000_000) 
                 guard !Task.isCancelled else { return }
                 let results = try await fdaService.search(query: query, limit: 8)
                 fdaSearchResults = results
@@ -235,7 +243,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         fdaSearchResults = []
     }
 
-    // MARK: - Step 5: Time Helpers
+
 
     func toggleTimeLabel(_ label: DoseTimeLabel) {
         if selectedTimeLabels.contains(label) {
@@ -255,7 +263,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         customTimes.removeAll { $0.id == time.id }
     }
 
-    // MARK: - Step 7: Load Events
+  
 
     func loadEvents() {
         Task {
@@ -267,9 +275,6 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         }
     }
 
-    // MARK: - Computed Schedule Times
-
-    /// Builds the final [ScheduleTime] array from selected labels + custom times.
     private var resolvedScheduleTimes: [ScheduleTime] {
         var times: [ScheduleTime] = []
         if selectedTimeLabels.contains(.morning) { times.append(.morning) }
@@ -280,14 +285,26 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         return times
     }
 
-    // MARK: - Save
+  
 
     func save() async {
         isSaving = true
         saveError = nil
 
+        
+        let existing = (try? medicationService.fetchAll()) ?? []
+        let trimmedName = medicationName.trimmingCharacters(in: .whitespaces).lowercased()
+        let isDuplicate = existing.contains {
+            $0.name.lowercased() == trimmedName && $0.id != editingMedicationId
+        }
+        if isDuplicate {
+            saveError = "A medication named \"\(medicationName.trimmingCharacters(in: .whitespaces))\" already exists."
+            isSaving = false
+            return
+        }
+
         do {
-            // 1. Build Medication domain model
+           
             let medication = Medication(
                 id: editingMedicationId ?? UUID(),
                 name: medicationName.trimmingCharacters(in: .whitespaces),
@@ -306,10 +323,10 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
                 interactions: selectedFDAResult?.interactions.map { [$0] } ?? []
             )
 
-            // 2. Persist medication
+            
             try medicationService.save(medication)
 
-            // 3. Build schedule
+           
             let schedule = MedicationSchedule(
                 medicationId: medication.id,
                 frequency: frequency,
@@ -324,10 +341,10 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
                 notificationOffsetMinutes: notificationOffset
             )
 
-            // 4. Persist schedule
+           
             try scheduleService.save(schedule, for: medication)
 
-            // 5. Pre-generate upcoming dose logs (7 days)
+           
             try await doseTrackingService.generateUpcomingLogs(for: schedule, days: 7)
 
             savedMedication = medication
@@ -339,7 +356,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         isSaving = false
     }
 
-    // MARK: - Review Summaries (used in Step 8)
+   
 
     var reviewItems: [ReviewItem] {
         var items: [ReviewItem] = [
@@ -370,6 +387,17 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         return "\(amt) \(dosageUnit.displayName)"
     }
 
+    var availableUnits: [DosageUnit] {
+        switch selectedForm {
+        case .liquid, .injection:
+            return [.ml, .mg]
+        case .patch, .inhaler:
+            return [.mg, .ml]
+        default:
+            return DosageUnit.allCases
+        }
+    }
+
     var timeSummary: String {
         let labels = selectedTimeLabels.sorted { $0.rawValue < $1.rawValue }.map(\.displayName)
         let custom = customTimes.map(\.displayString)
@@ -388,7 +416,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
     }
 }
 
-// MARK: - ReviewItem
+
 
 struct ReviewItem: Identifiable {
     let id = UUID()

@@ -1,7 +1,4 @@
-//
-//  HomeViewModel.swift
-//  PillPath — Home Module
-//
+
 
 import Foundation
 import Combine
@@ -9,7 +6,7 @@ import Combine
 @MainActor
 final class HomeViewModel: ObservableObject {
 
-    // MARK: - Published state
+    
 
     @Published var selectedDate: Date = Calendar.current.startOfDay(for: .now)
     @Published var timeOfDayGroups: [TimeOfDayGroup] = []
@@ -17,14 +14,14 @@ final class HomeViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    // MARK: - Dependencies
+   
 
     private let scheduleService: ScheduleServiceProtocol
     private let doseTrackingService: DoseTrackingServiceProtocol
     private let medicationService: MedicationServiceProtocol
     private var cancellables = Set<AnyCancellable>()
 
-    // MARK: - Init
+    
 
     init(
         scheduleService: ScheduleServiceProtocol? = nil,
@@ -35,7 +32,7 @@ final class HomeViewModel: ObservableObject {
         self.doseTrackingService = doseTrackingService ?? DIContainer.shared.resolve(DoseTrackingServiceProtocol.self)
         self.medicationService   = medicationService   ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
 
-        // Re-load whenever selectedDate changes
+        
         $selectedDate
             .removeDuplicates()
             .sink { [weak self] date in
@@ -44,28 +41,28 @@ final class HomeViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // MARK: - Public API
+    
 
     func loadDoses(for date: Date) {
         isLoading = true
         errorMessage = nil
 
         do {
-            // 1. Mark any pending past doses as missed before loading
+           
             try doseTrackingService.detectAndMarkMissed()
 
-            // 2. Fetch all active schedules
+           
             let schedules = try scheduleService.fetchAll().filter(\.isActive)
 
-            // 3. Fetch all medications (for display names/categories)
+            
             let medications = try medicationService.fetchAll()
             let medMap = Dictionary(uniqueKeysWithValues: medications.map { ($0.id, $0) })
 
-            // 4. Fetch existing dose logs for this date
+            
             let logs = try doseTrackingService.fetchLogs(on: date)
             let logMap = Dictionary(grouping: logs, by: { $0.scheduleId })
 
-            // 5. Compute all scheduled dose times for this date
+           
             let calendar = Calendar.current
             var items: [DoseDisplayItem] = []
 
@@ -73,14 +70,15 @@ final class HomeViewModel: ObservableObject {
                 guard let med = medMap[schedule.medicationId],
                       med.isActive else { continue }
 
-                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 1)
+                let daysAhead = max(2, (calendar.dateComponents([.day], from: calendar.startOfDay(for: .now), to: date).day ?? 0) + 2)
+                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: daysAhead)
                     .filter { calendar.isDate($0, inSameDayAs: date) }
 
                 for doseTime in doseTimes {
                     let hour = calendar.component(.hour, from: doseTime)
                     let timeLabel = DoseTimeLabel.from(hour: hour)
 
-                    // Match to an existing log (same schedule + same scheduled time within 1 min)
+                 
                     let matchedLog = logMap[schedule.id]?.first {
                         abs($0.scheduledAt.timeIntervalSince(doseTime)) < 60
                     }
@@ -112,10 +110,10 @@ final class HomeViewModel: ObservableObject {
                 }
             }
 
-            // 6. Group items
+
             timeOfDayGroups = buildGroups(from: items)
 
-            // 7. Find next upcoming dose (today only, pending/missed)
+           
             if calendar.isDateInToday(date) {
                 nextDose = items
                     .filter { $0.status == .pending && $0.scheduledAt > .now }
@@ -132,11 +130,11 @@ final class HomeViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Mark actions
+   
 
     func markTaken(_ item: DoseDisplayItem) {
         guard let logId = item.logId else {
-            // No log yet — generate one first, then mark
+           
             Task {
                 do {
                     let schedule = try scheduleService.fetchAll()
@@ -167,7 +165,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    /// Reverts a taken dose back to pending (undo accidental check-off).
+   
     func undoTaken(_ item: DoseDisplayItem) {
         guard let logId = item.logId else { return }
         do {
@@ -193,13 +191,13 @@ final class HomeViewModel: ObservableObject {
         for item in pending { markTaken(item) }
     }
 
-    // MARK: - Date navigation
+
 
     func selectDate(_ date: Date) {
         selectedDate = Calendar.current.startOfDay(for: date)
     }
 
-    // MARK: - Private: grouping
+
 
     private func buildGroups(from items: [DoseDisplayItem]) -> [TimeOfDayGroup] {
         let order: [DoseTimeLabel] = [.morning, .noon, .evening, .night]
@@ -216,7 +214,7 @@ final class HomeViewModel: ObservableObject {
                     items: slotItems.filter { $0.mealTiming == timing }
                 )
             }
-            // Only include meal groups that have items OR show "none" as fallback
+          
             let nonEmpty = mealGroups.filter { !$0.isEmpty }
             let displayed = nonEmpty.isEmpty ? mealGroups.filter { $0.timing == .none } : mealGroups
 
@@ -229,7 +227,7 @@ final class HomeViewModel: ObservableObject {
     }
 }
 
-// MARK: - Time remaining helper
+
 
 extension DoseDisplayItem {
     var timeRemainingDisplay: String {
