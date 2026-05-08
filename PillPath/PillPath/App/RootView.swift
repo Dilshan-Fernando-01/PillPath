@@ -1,7 +1,3 @@
-//
-//  RootView.swift
-//  PillPath
-//
 
 
 import SwiftUI

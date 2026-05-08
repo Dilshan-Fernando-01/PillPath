@@ -136,8 +136,9 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         vm.lowQuantityThreshold = String(medication.lowQuantityThreshold)
 
         if let s = schedule {
-            vm.frequency     = s.frequency
-            vm.intervalHours = s.intervalHours
+            vm.frequency        = s.frequency
+            vm.intervalHours    = s.intervalHours / 60
+            vm.intervalMinutes  = s.intervalHours % 60
             vm.specificDays  = Set(s.specificDays)
             vm.customDates   = s.customDates
             vm.mealTiming    = s.mealTiming
@@ -343,8 +344,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             try medicationService.save(medication)
 
            
-            // For custom frequency, derive start/end date from the selected custom dates
-            let resolvedStartDate: Date
+           let resolvedStartDate: Date
             let resolvedEndDate: Date?
             let resolvedIsOngoing: Bool
             if frequency == .custom && !customDates.isEmpty {
@@ -361,7 +361,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             let schedule = MedicationSchedule(
                 medicationId: medication.id,
                 frequency: frequency,
-                intervalHours: totalIntervalMinutes / 60,
+                intervalHours: totalIntervalMinutes,
                 specificDays: Array(specificDays).sorted(),
                 customDates: customDates.sorted(),
                 scheduleTimes: resolvedScheduleTimes,
@@ -379,7 +379,6 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
            
             try await doseTrackingService.generateUpcomingLogs(for: schedule, days: 7)
 
-            // Fire low quantity alert immediately if enabled and stock is already low
             if medication.lowQuantityAlert &&
                medication.currentQuantity > 0 &&
                medication.currentQuantity <= medication.lowQuantityThreshold {

@@ -1,13 +1,10 @@
-//
-//  DoseTrackingService.swift
-//  PillPath — Scheduling Module
-//
+
 
 import Foundation
 import CoreData
 
 protocol DoseTrackingServiceProtocol {
-    // Distinct external labels so the two UUID overloads don't collide
+   
     func fetchLogs(medicationId: UUID) throws -> [DoseLog]
     func fetchLogs(scheduleId: UUID) throws -> [DoseLog]
     func fetchLogs(on date: Date) throws -> [DoseLog]
@@ -27,7 +24,7 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
         self.coreData = coreData
     }
 
-    // MARK: - Fetch
+  
 
     func fetchLogs(medicationId: UUID) throws -> [DoseLog] {
         let request = DoseLogEntity.fetchRequest()
@@ -66,9 +63,6 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
         return try coreData.viewContext.fetch(request).compactMap { DoseLogMapper.toDomain($0) }
     }
 
-    // MARK: - Mark Status
-    // Inline the update logic directly — avoids Swift 6 typed-throws inference
-    // issues that arise when passing a non-throwing closure to a `throws` function.
 
     func markTaken(_ log: DoseLog, at time: Date = .now) throws {
         let request = DoseLogEntity.fetchRequest()
@@ -112,10 +106,10 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
         coreData.save()
     }
 
-    // MARK: - Generate Upcoming Logs
+
 
     func generateUpcomingLogs(for schedule: MedicationSchedule, days: Int = 7) throws {
-        let upcoming = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: days)
+        let upcoming = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: days, from: Calendar.current.startOfDay(for: .now))
 
         let schedRequest = ScheduleEntity.fetchRequest()
         schedRequest.predicate = NSPredicate(format: "id == %@", schedule.id as CVarArg)
@@ -124,7 +118,6 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
         guard let medicationEntity = scheduleEntity.medication else { return }
 
         for doseTime in upcoming {
-            // Skip duplicates using a separate do-catch — avoids Swift 6 try? inference issue
             let check = DoseLogEntity.fetchRequest()
             check.predicate = NSPredicate(
                 format: "schedule.id == %@ AND scheduledAt == %@",

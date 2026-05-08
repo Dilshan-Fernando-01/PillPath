@@ -1,14 +1,11 @@
-//
-//  ScheduleCalculatorTests.swift
-//  PillPathTests
-//
+
 
 import XCTest
 @testable import PillPath
 
 final class ScheduleCalculatorTests: XCTestCase {
 
-    // MARK: - Helpers
+   
 
     private func makeDailySchedule(times: [ScheduleTime] = [.morning, .evening]) -> MedicationSchedule {
         MedicationSchedule(
@@ -19,12 +16,13 @@ final class ScheduleCalculatorTests: XCTestCase {
         )
     }
 
-    // MARK: - upcomingDoseTimes
+  
 
     func test_daily_schedule_generates_doses_for_each_day() {
         let schedule = makeDailySchedule(times: [.morning, .evening])
-        let doses = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 3)
-        // 2 times × 3 days = 6 doses
+        let startOfToday = Calendar.current.startOfDay(for: .now)
+        let doses = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 3, from: startOfToday)
+      
         XCTAssertEqual(doses.count, 6)
     }
 
@@ -37,7 +35,8 @@ final class ScheduleCalculatorTests: XCTestCase {
 
     func test_doses_are_sorted_ascending() {
         let schedule = makeDailySchedule(times: [.night, .morning])
-        let doses = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 2)
+        let startOfToday = Calendar.current.startOfDay(for: .now)
+        let doses = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 2, from: startOfToday)
         for i in 0..<(doses.count - 1) {
             XCTAssertLessThanOrEqual(doses[i], doses[i + 1])
         }
@@ -51,7 +50,7 @@ final class ScheduleCalculatorTests: XCTestCase {
         }
     }
 
-    // MARK: - adherencePercentage
+   
 
     func test_adherence_100_percent() {
         let logs = makeLogs(taken: 5, missed: 0, skipped: 0)
@@ -72,14 +71,14 @@ final class ScheduleCalculatorTests: XCTestCase {
         XCTAssertEqual(ScheduleCalculator.adherencePercentage(logs: []), 0.0)
     }
 
-    // MARK: - isMissed
+   
 
     func test_missed_past_grace_period() {
         let log = DoseLog(
             id: UUID(),
             medicationId: UUID(),
             scheduleId: UUID(),
-            scheduledAt: Date.now.addingTimeInterval(-7200),  // 2 hours ago
+            scheduledAt: Date.now.addingTimeInterval(-7200), 
             status: .pending
         )
         XCTAssertTrue(ScheduleCalculator.isMissed(log, gracePeriodMinutes: 60))
@@ -90,7 +89,7 @@ final class ScheduleCalculatorTests: XCTestCase {
             id: UUID(),
             medicationId: UUID(),
             scheduleId: UUID(),
-            scheduledAt: Date.now.addingTimeInterval(-1800),  // 30 mins ago
+            scheduledAt: Date.now.addingTimeInterval(-1800),  
             status: .pending
         )
         XCTAssertFalse(ScheduleCalculator.isMissed(log, gracePeriodMinutes: 60))
@@ -107,7 +106,7 @@ final class ScheduleCalculatorTests: XCTestCase {
         XCTAssertFalse(ScheduleCalculator.isMissed(log))
     }
 
-    // MARK: - Private
+   
 
     private func makeLogs(taken: Int, missed: Int, skipped: Int, pending: Int = 0) -> [DoseLog] {
         let medId = UUID()

@@ -1,7 +1,4 @@
-//
-//  InsightsViewModelTests.swift
-//  PillPathTests — Insights Module
-//
+
 
 import XCTest
 @testable import PillPath
@@ -31,7 +28,7 @@ final class InsightsViewModelTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Initial State
+ 
 
     func test_initialState() {
         XCTAssertEqual(sut.period, .week)
@@ -46,7 +43,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.upcomingEvents.isEmpty)
     }
 
-    // MARK: - load()
+
 
     func test_load_withNoLogs_zerosStats() {
         doseService.logs = []
@@ -85,7 +82,9 @@ final class InsightsViewModelTests: XCTestCase {
     func test_load_producesDailyStatsForMonthPeriod() {
         sut.period = .month
         sut.load()
-        XCTAssertEqual(sut.dailyStats.count, 30)
+        let cal = Calendar.current
+        let expected = cal.range(of: .day, in: .month, for: sut.selectedMonth)?.count ?? 30
+        XCTAssertEqual(sut.dailyStats.count, expected)
     }
 
     func test_load_computesMedicationStats() {
@@ -115,15 +114,16 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.medicationStats.isEmpty)
     }
 
-    // MARK: - changePeriod
 
     func test_changePeriod_updatesAndReloads() {
         sut.changePeriod(.month)
         XCTAssertEqual(sut.period, .month)
-        XCTAssertEqual(sut.dailyStats.count, 30)
+        let cal = Calendar.current
+        let expected = cal.range(of: .day, in: .month, for: sut.selectedMonth)?.count ?? 30
+        XCTAssertEqual(sut.dailyStats.count, expected)
     }
 
-    // MARK: - Streak
+
 
     func test_streak_isZeroWithNoLogs() {
         doseService.logs = []
@@ -149,7 +149,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.currentStreak, 3)
     }
 
-    // MARK: - Upcoming Events
+
 
     func test_upcomingEvents_filtersToNext7Days() {
         let now = Date.now
@@ -158,8 +158,8 @@ final class InsightsViewModelTests: XCTestCase {
         let yesterday = now.addingTimeInterval(-86400)
 
         eventService.stubbedEvents = [
-            MedicalEvent(id: UUID(), title: "Checkup", date: tomorrow, type: .appointment),
-            MedicalEvent(id: UUID(), title: "Far future", date: inTenDays, type: .appointment),
+            MedicalEvent(id: UUID(), title: "Checkup", date: tomorrow, type: .doctorVisit),
+            MedicalEvent(id: UUID(), title: "Far future", date: inTenDays, type: .doctorVisit),
             MedicalEvent(id: UUID(), title: "Past event", date: yesterday, type: .note)
         ]
         sut.load()
@@ -178,7 +178,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.upcomingEvents.count, 5)
     }
 
-    // MARK: - Tips
+  
 
     func test_tips_returnsNoDataTipWhenEmpty() {
         doseService.logs = []
@@ -200,7 +200,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertFalse(successTips.isEmpty)
     }
 
-    // MARK: - InsightsPeriod
+   
 
     func test_periodDisplayNames() {
         XCTAssertEqual(InsightsPeriod.week.displayName, "This Week")
@@ -212,7 +212,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertEqual(InsightsPeriod.month.days, 30)
     }
 
-    // MARK: - DailyBarData
+  
 
     func test_dailyBarData_totalIsSum() {
         let bar = DailyBarData(day: .now, taken: 3, missed: 1, skipped: 2)
@@ -224,7 +224,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertEqual(bar.shortLabel.count, 3)
     }
 
-    // MARK: - MedicationStat adherenceRate
+  
 
     func test_medicationStat_adherenceRate_zeroWhenNoScheduled() {
         let stat = MedicationStat(medicationId: UUID(), name: "X", dosageDisplay: "1",
@@ -238,7 +238,7 @@ final class InsightsViewModelTests: XCTestCase {
         XCTAssertEqual(stat.adherenceRate, 0.75, accuracy: 0.001)
     }
 
-    // MARK: - Helpers
+ 
 
     private func makeMedication(id: UUID = UUID(), name: String = "Test Med") -> Medication {
         Medication(

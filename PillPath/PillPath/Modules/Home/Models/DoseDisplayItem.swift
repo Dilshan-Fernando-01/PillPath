@@ -1,28 +1,29 @@
-//
-//  DoseDisplayItem.swift
-//  PillPath — Home Module
-//
-//  Flat display model assembled by HomeViewModel.
-//  Combines schedule + medication + log data into one object the View consumes.
-//
+
 
 import Foundation
 
 
 
 struct DoseDisplayItem: Identifiable, Equatable {
-    let id: UUID                   
+    let id: UUID
     let medicationId: UUID
     let scheduleId: UUID
     let medicationName: String
-    let dosageDisplay: String       
-    let medicationCategory: String? 
-    let usageNote: String?         
+    let dosageDisplay: String
+    let medicationCategory: String?
+    let usageNote: String?
     let scheduledAt: Date
     let timeLabel: DoseTimeLabel
     let mealTiming: MealTiming
     var status: DoseStatus
-    var logId: UUID?               
+    var logId: UUID?
+    var dosageAmount: Double = 1.0
+    var currentQuantity: Int = 0
+    var photoURL: String? = nil
+
+    var hasInsufficientQuantity: Bool {
+        currentQuantity > 0 && Double(currentQuantity) < dosageAmount
+    }
 
     var isTaken:  Bool { status == .taken }
     var isMissed: Bool { status == .missed }

@@ -1,10 +1,4 @@
-//
-//  TimeOfDayGroupSection.swift
-//  PillPath — Home Module
-//
-//  Full Morning / Noon / Evening / Night section.
-//  Designed for elderly users: large header, time range, current-period highlight.
-//
+
 
 import SwiftUI
 
@@ -22,10 +16,9 @@ struct TimeOfDayGroupSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
 
-            // Section header — larger for elderly readability
-            sectionHeader
+         sectionHeader
 
-            // Missed warning banner
+       
             if group.hasMissed {
                 HStack(spacing: AppSpacing.sm) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -43,7 +36,6 @@ struct TimeOfDayGroupSection: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
             }
 
-            // Meal timing cards — skip empty sub-groups (no gap/placeholder text)
             VStack(spacing: 1) {
                 ForEach(group.mealGroups.filter { !$0.isEmpty }) { mealGroup in
                     MealTimingSection(group: mealGroup, onMarkTaken: onMarkTaken, onUndoTaken: onUndoTaken)
@@ -59,7 +51,7 @@ struct TimeOfDayGroupSection: View {
         }
     }
 
-    // MARK: - Section header
+    
 
     private var sectionHeader: some View {
         HStack(spacing: AppSpacing.sm) {

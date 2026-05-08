@@ -1,7 +1,4 @@
-//
-//  HomeView.swift
-//  PillPath — Home Module
-//
+
 
 import SwiftUI
 
@@ -46,7 +43,7 @@ struct HomeView: View {
                 } else {
                     VStack(spacing: AppSpacing.lg) {
 
-                        // Next dose highlight
+                    
                         if let next = viewModel.nextDose {
                             NextDoseCard(item: next) {
                                 viewModel.markTaken(next)
@@ -54,11 +51,11 @@ struct HomeView: View {
                             .padding(.horizontal, AppSpacing.md)
                         }
 
-                        // Today's schedule header
+                      
                         scheduleHeader
                             .padding(.horizontal, AppSpacing.md)
 
-                        // Grouped dose sections
+                      
                         LazyVStack(spacing: AppSpacing.lg) {
                             ForEach(viewModel.timeOfDayGroups.filter { !$0.isEmpty }) { group in
                                 TimeOfDayGroupSection(
@@ -70,7 +67,7 @@ struct HomeView: View {
                         }
                         .padding(.horizontal, AppSpacing.md)
 
-                        // View full schedule link
+                       
                         Button {
                             showFullSchedule = true
                         } label: {
@@ -85,7 +82,6 @@ struct HomeView: View {
                     }
                 }
 
-                // Bottom padding for the floating nav bar
                 Spacer().frame(height: 100)
             }
         }
@@ -208,8 +204,7 @@ struct HomeView: View {
 
     private var dateHeading: some View {
         Group {
-            // Only show if not today — "Today" is already in the title
-            if !calendar.isDateInToday(viewModel.selectedDate) {
+           if !calendar.isDateInToday(viewModel.selectedDate) {
                 Text(viewModel.selectedDate.formatted(.dateTime.weekday(.wide).month().day().year()))
                     .font(AppFont.headline())
                     .foregroundStyle(Color.textSecondary)

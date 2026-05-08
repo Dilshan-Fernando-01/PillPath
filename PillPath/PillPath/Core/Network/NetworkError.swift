@@ -1,7 +1,4 @@
-//
-//  NetworkError.swift
-//  PillPath
-//
+
 
 import Foundation
 

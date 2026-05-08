@@ -1,7 +1,4 @@
-//
-//  AnalyticsService.swift
-//  PillPath — Analytics Module
-//
+
 
 import Foundation
 import CoreData
@@ -20,10 +17,10 @@ final class AnalyticsService: AnalyticsServiceProtocol {
         self.coreData = coreData
     }
 
-    // MARK: - Adherence per Medication
+
 
     func adherenceRecords(for period: DateInterval) throws -> [AdherenceRecord] {
-        // Fetch all medications
+   
         let medRequest = MedicationEntity.fetchRequest()
         medRequest.predicate = NSPredicate(format: "isActive == YES")
         let medications = try coreData.viewContext.fetch(medRequest)
@@ -38,7 +35,7 @@ final class AnalyticsService: AnalyticsServiceProtocol {
             )
             guard let logs = try? coreData.viewContext.fetch(logRequest) else { return nil }
 
-            // Only count non-pending logs
+        
             let relevant = logs.filter { $0.status != DoseStatus.pending.rawValue }
             guard !relevant.isEmpty else { return nil }
 
@@ -55,7 +52,7 @@ final class AnalyticsService: AnalyticsServiceProtocol {
         }
     }
 
-    // MARK: - Overall Adherence
+  
 
     func overallAdherence(for period: DateInterval) throws -> Double {
         let records = try adherenceRecords(for: period)
@@ -63,8 +60,7 @@ final class AnalyticsService: AnalyticsServiceProtocol {
         return records.map(\.adherencePercentage).reduce(0, +) / Double(records.count)
     }
 
-    // MARK: - Streak (consecutive days with ≥ 1 dose taken)
-
+   
     func streakDays() throws -> Int {
         let calendar = Calendar.current
         var streak = 0
