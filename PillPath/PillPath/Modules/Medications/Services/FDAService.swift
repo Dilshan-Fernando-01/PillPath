@@ -80,9 +80,8 @@ struct OpenFDAInfo: Decodable {
     let generic_name: [String]?
     let manufacturer_name: [String]?
     let dosage_form: [String]?
-    let pharm_class_epc: [String]?   
-
-
+    let pharm_class_epc: [String]?
+}
 
 enum FDAMapper {
 

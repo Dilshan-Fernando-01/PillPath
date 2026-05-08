@@ -95,10 +95,11 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
 
 
     func detectAndMarkMissed() throws {
+        let cutoff = Date.now.addingTimeInterval(-3600) 
         let request = DoseLogEntity.fetchRequest()
         request.predicate = NSPredicate(
             format: "status == %@ AND scheduledAt < %@",
-            DoseStatus.pending.rawValue, Date.now as CVarArg
+            DoseStatus.pending.rawValue, cutoff as CVarArg
         )
         let entities = try coreData.viewContext.fetch(request)
         entities.forEach { $0.status = DoseStatus.missed.rawValue }
@@ -117,6 +118,8 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
         guard let medicationEntity = scheduleEntity.medication else { return }
 
         for doseTime in upcoming {
+            guard doseTime >= schedule.startDate else { continue }
+
             let check = DoseLogEntity.fetchRequest()
             check.predicate = NSPredicate(
                 format: "schedule.id == %@ AND scheduledAt == %@",

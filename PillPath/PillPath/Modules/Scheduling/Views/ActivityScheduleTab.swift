@@ -26,6 +26,7 @@ struct ActivityScheduleTab: View {
             }
         }
         .background(Color.appBackground)
+        .onAppear { viewModel.loadScheduleData() }
         .sheet(isPresented: $showAddFlow, onDismiss: { viewModel.loadScheduleData() }) {
             AddMedicationFlowView()
         }
@@ -108,6 +109,7 @@ struct ActivityScheduleTab: View {
         let status    = viewModel.dayStatuses[day] ?? .noData
 
         return Button {
+            viewModel.scheduleFilter = .today
             viewModel.selectDate(day)
         } label: {
             VStack(spacing: 6) {
@@ -186,11 +188,26 @@ struct ActivityScheduleTab: View {
 
 
     private var doseListSection: some View {
-        VStack(spacing: AppSpacing.sm) {
-            let doses = filteredDoses
+        let doses = filteredDoses
+        let isRangeView = viewModel.scheduleFilter != .today
 
+        return VStack(spacing: AppSpacing.sm) {
             if doses.isEmpty {
                 emptyDoseState
+            } else if isRangeView {
+                ForEach(groupedByDate(doses), id: \.date) { group in
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text(dateHeader(group.date))
+                            .font(AppFont.label())
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.textSecondary)
+                            .kerning(0.5)
+                            .padding(.top, AppSpacing.xs)
+                        ForEach(group.items) { item in
+                            ScheduleDoseRow(item: item)
+                        }
+                    }
+                }
             } else {
                 ForEach(doses) { item in
                     ScheduleDoseRow(item: item)
@@ -199,16 +216,41 @@ struct ActivityScheduleTab: View {
         }
     }
 
-    private var filteredDoses: [DoseDisplayItem] {
+    private func groupedByDate(_ items: [DoseDisplayItem]) -> [(date: Date, items: [DoseDisplayItem])] {
         let calendar = Calendar.current
-        let doses = viewModel.filteredSelectedDayDoses
+        var groups: [(date: Date, items: [DoseDisplayItem])] = []
+        var seen: [Date: Int] = [:]
+        for item in items {
+            let day = calendar.startOfDay(for: item.scheduledAt)
+            if let idx = seen[day] {
+                groups[idx].items.append(item)
+            } else {
+                seen[day] = groups.count
+                groups.append((date: day, items: [item]))
+            }
+        }
+        return groups.sorted { $0.date < $1.date }
+    }
+
+    private func dateHeader(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date)     { return "TODAY" }
+        if calendar.isDateInTomorrow(date)  { return "TOMORROW" }
+        let f = DateFormatter()
+        f.dateFormat = "EEEE, MMM d"
+        return f.string(from: date).uppercased()
+    }
+
+    private var filteredDoses: [DoseDisplayItem] {
         switch viewModel.scheduleFilter {
         case .today:
-            return doses.filter {
-                calendar.isDate($0.scheduledAt, inSameDayAs: viewModel.selectedDate)
-            }
+            return viewModel.filteredSelectedDayDoses
         case .thisWeek, .thisMonth:
-            return doses
+            let search = viewModel.scheduleSearch.trimmingCharacters(in: .whitespaces)
+            guard !search.isEmpty else { return viewModel.rangeDoses }
+            return viewModel.rangeDoses.filter {
+                $0.medicationName.localizedCaseInsensitiveContains(search)
+            }
         }
     }
 
@@ -255,12 +297,13 @@ struct ActivityScheduleTab: View {
     }
 
     private func applyFilter(_ filter: ActivityViewModel.ScheduleFilter) {
-        let calendar = Calendar.current
         switch filter {
         case .today:
-            viewModel.selectDate(calendar.startOfDay(for: .now))
-        case .thisWeek, .thisMonth:
-            viewModel.loadDosesForSelectedDate()
+            viewModel.selectDate(Calendar.current.startOfDay(for: .now))
+        case .thisWeek:
+            viewModel.loadDosesForDateRange(days: 7)
+        case .thisMonth:
+            viewModel.loadDosesForDateRange(days: 30)
         }
     }
 }

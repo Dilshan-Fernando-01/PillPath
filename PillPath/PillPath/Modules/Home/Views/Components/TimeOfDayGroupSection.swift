@@ -36,18 +36,11 @@ struct TimeOfDayGroupSection: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
             }
 
-            VStack(spacing: 1) {
+            VStack(spacing: AppSpacing.sm) {
                 ForEach(group.mealGroups.filter { !$0.isEmpty }) { mealGroup in
                     MealTimingSection(group: mealGroup, onMarkTaken: onMarkTaken, onUndoTaken: onUndoTaken)
                 }
             }
-            .background(isCurrentPeriod ? Color.brandPrimaryLight.opacity(0.3) : Color.appSurface)
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
-            .appCardShadow()
-            .overlay(
-                RoundedRectangle(cornerRadius: AppRadius.md)
-                    .stroke(isCurrentPeriod ? Color.brandPrimary.opacity(0.35) : Color.clear, lineWidth: 1.5)
-            )
         }
     }
 
@@ -123,9 +116,9 @@ struct TimeOfDayGroupSection: View {
     }
 
     private var headerColor: Color {
-        if group.hasMissed  { return Color.semanticError }
-        if isCurrentPeriod  { return Color.brandPrimary }
-        return Color.textSecondary
+        if group.hasMissed { return Color.semanticError }
+        if isCurrentPeriod { return Color.brandPrimary }
+        return Color.textSecondary.opacity(0.8)
     }
 }
 

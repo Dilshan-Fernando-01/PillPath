@@ -78,6 +78,8 @@ final class HomeViewModel: ObservableObject {
                     .filter { calendar.isDate($0, inSameDayAs: date) }
 
                 for doseTime in doseTimes {
+                    guard doseTime >= schedule.startDate else { continue }
+
                     let hour = calendar.component(.hour, from: doseTime)
                     let timeLabel = DoseTimeLabel.from(hour: hour)
 
@@ -139,13 +141,15 @@ final class HomeViewModel: ObservableObject {
 
     func markTaken(_ item: DoseDisplayItem) {
         guard let logId = item.logId else {
-           
             Task {
                 do {
-                    let schedule = try scheduleService.fetchAll()
-                        .first(where: { $0.id == item.scheduleId })
-                    if let schedule {
+                    if let schedule = try scheduleService.fetchAll().first(where: { $0.id == item.scheduleId }) {
                         try doseTrackingService.generateUpcomingLogs(for: schedule, days: 1)
+                        let logs = try doseTrackingService.fetchLogs(scheduleId: item.scheduleId)
+                        if let newLog = logs.first(where: { abs($0.scheduledAt.timeIntervalSince(item.scheduledAt)) < 60 }) {
+                            try doseTrackingService.markTaken(newLog, at: .now)
+                            applyQuantityDecrement(for: item)
+                        }
                     }
                     loadDoses(for: selectedDate)
                 } catch {
@@ -164,19 +168,20 @@ final class HomeViewModel: ObservableObject {
                 status: item.status
             )
             try doseTrackingService.markTaken(log, at: .now)
-
-            if var med = try? medicationService.fetchAll().first(where: { $0.id == item.medicationId }),
-               med.currentQuantity > 0 {
-                med.currentQuantity = max(0, med.currentQuantity - Int(med.dosageAmount))
-                try? medicationService.save(med)
-                if med.lowQuantityAlert && med.currentQuantity <= med.lowQuantityThreshold {
-                    notificationService.scheduleLowQuantityAlert(for: med)
-                }
-            }
-
+            applyQuantityDecrement(for: item)
             loadDoses(for: selectedDate)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func applyQuantityDecrement(for item: DoseDisplayItem) {
+        guard var med = try? medicationService.fetchAll().first(where: { $0.id == item.medicationId }),
+              med.currentQuantity > 0 else { return }
+        med.currentQuantity = max(0, med.currentQuantity - Int(med.dosageAmount))
+        try? medicationService.save(med)
+        if med.lowQuantityAlert && med.currentQuantity <= med.lowQuantityThreshold {
+            notificationService.scheduleLowQuantityAlert(for: med)
         }
     }
 

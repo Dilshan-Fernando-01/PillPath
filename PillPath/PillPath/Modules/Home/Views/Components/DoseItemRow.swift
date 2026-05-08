@@ -17,7 +17,7 @@ struct DoseItemRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-          
+
             RoundedRectangle(cornerRadius: 2)
                 .fill(accentBarColor)
                 .frame(width: 4)
@@ -113,7 +113,9 @@ struct DoseItemRow: View {
                 }
             }
         }
-        .background(rowBackground)
+        .background(Color.appSurface)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+        .appCardShadow()
         .confirmationDialog(
             "Undo taken for \(item.medicationName)?",
             isPresented: $showUndoConfirm,
@@ -272,15 +274,6 @@ struct DoseItemRow: View {
         }
     }
 
-    private var rowBackground: Color {
-        if item.isLate { return Color.semanticWarning.opacity(0.06) }
-        switch item.effectiveStatus {
-        case .taken:  return Color.semanticSuccess.opacity(0.03)
-        case .missed: return Color.semanticError.opacity(0.04)
-        default:      return Color.clear
-        }
-    }
-
     private var scheduledTimeDisplay: String {
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
@@ -292,7 +285,7 @@ struct DoseItemRow: View {
         switch item.effectiveStatus {
         case .missed:  return Color.semanticError
         case .taken:   return Color.textSecondary
-        default:       return Color.brandPrimary
+        default:       return Color.textPrimary
         }
     }
 

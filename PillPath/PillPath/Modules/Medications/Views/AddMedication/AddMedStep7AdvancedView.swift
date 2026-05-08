@@ -18,10 +18,12 @@ struct AddMedStep7AdvancedView: View {
                 subtitle: "All fields are optional — fill in as needed."
             )
 
-       
-            datesSection
 
-         
+            if viewModel.frequency != .custom {
+                datesSection
+            }
+
+
             remindersSection
 
          
