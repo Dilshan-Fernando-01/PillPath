@@ -1,7 +1,4 @@
-//
-//  ScheduleService.swift
-//  PillPath — Scheduling Module
-//
+
 
 import Foundation
 import CoreData
@@ -24,7 +21,6 @@ final class ScheduleService: ScheduleServiceProtocol {
         self.notificationService = notificationService
     }
 
-    // MARK: - Fetch
 
     func fetchAll() throws -> [MedicationSchedule] {
         let request = ScheduleEntity.fetchRequest()
@@ -40,28 +36,34 @@ final class ScheduleService: ScheduleServiceProtocol {
         return entities.compactMap { ScheduleMapper.toDomain($0) }
     }
 
-    // MARK: - Save
+  
 
     func save(_ schedule: MedicationSchedule, for medication: Medication) throws {
-        // Fetch or create the medication entity to set relationship
-        let medRequest = MedicationEntity.fetchRequest()
+         let medRequest = MedicationEntity.fetchRequest()
         medRequest.predicate = NSPredicate(format: "id == %@", medication.id as CVarArg)
         medRequest.fetchLimit = 1
         guard let medicationEntity = try coreData.viewContext.fetch(medRequest).first else {
             throw ScheduleError.medicationNotFound
         }
 
+      let existingRequest = ScheduleEntity.fetchRequest()
+        existingRequest.predicate = NSPredicate(format: "medication.id == %@", medication.id as CVarArg)
+        let existing = try coreData.viewContext.fetch(existingRequest)
+        for old in existing where old.id != schedule.id {
+            notificationService.cancelNotifications(for: old.id ?? UUID())
+            coreData.viewContext.delete(old)
+        }
+
         let entity = ScheduleMapper.toEntity(schedule, context: coreData.viewContext)
         entity.medication = medicationEntity
         coreData.save()
 
-        // Schedule notifications if reminders enabled
-        if schedule.doseReminders {
+       if schedule.doseReminders {
             notificationService.scheduleNotifications(for: schedule, medication: medication)
         }
     }
 
-    // MARK: - Delete
+    
 
     func delete(_ schedule: MedicationSchedule) throws {
         let request = ScheduleEntity.fetchRequest()

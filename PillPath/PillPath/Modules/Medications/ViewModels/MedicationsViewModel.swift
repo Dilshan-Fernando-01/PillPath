@@ -1,7 +1,4 @@
-//
-//  MedicationsViewModel.swift
-//  PillPath — Medications Module
-//
+
 
 import Foundation
 import Combine
@@ -15,9 +12,15 @@ final class MedicationsViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let service: MedicationServiceProtocol
+    private let scheduleService: ScheduleServiceProtocol
 
-    init(service: MedicationServiceProtocol? = nil) {
+    init(service: MedicationServiceProtocol? = nil, scheduleService: ScheduleServiceProtocol? = nil) {
         self.service = service ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
+        self.scheduleService = scheduleService ?? DIContainer.shared.resolve(ScheduleServiceProtocol.self)
+    }
+
+    func schedule(for medicationId: UUID) -> MedicationSchedule? {
+        (try? scheduleService.fetch(for: medicationId))?.first
     }
 
     func loadMedications() {

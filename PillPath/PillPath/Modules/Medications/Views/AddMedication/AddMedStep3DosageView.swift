@@ -1,10 +1,3 @@
-//
-//  AddMedStep3DosageView.swift
-//  PillPath — Medications Module
-//
-//  Step 3: Set dosage amount + unit.
-//  Uses the shared DosagePicker component + a custom amount entry.
-//
 
 import SwiftUI
 
@@ -23,11 +16,11 @@ struct AddMedStep3DosageView: View {
                 subtitle: "Enter the amount you take per dose."
             )
 
-            // Shared dosage picker (quick chips + unit toggle)
-            DosagePicker(amount: $viewModel.dosageAmount, unit: $viewModel.dosageUnit)
+           
+            DosagePicker(amount: $viewModel.dosageAmount, unit: $viewModel.dosageUnit, form: viewModel.selectedForm)
                 .padding(.vertical, AppSpacing.md)
 
-            // Custom amount entry
+           
             if showCustomEntry {
                 customAmountField
             } else {
@@ -51,7 +44,7 @@ struct AddMedStep3DosageView: View {
                 .buttonStyle(.plain)
             }
 
-            // Unit selector — all 3 units as pills
+          
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 SectionLabel(text: "Unit")
                 HStack(spacing: AppSpacing.sm) {
@@ -65,7 +58,7 @@ struct AddMedStep3DosageView: View {
         }
     }
 
-    // MARK: - Custom Amount Field
+
 
     private var customAmountField: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -109,7 +102,7 @@ struct AddMedStep3DosageView: View {
         .onAppear { customFocused = true }
     }
 
-    // MARK: - Unit Chip
+
 
     private func unitChip(_ unit: DosageUnit) -> some View {
         let isSelected = viewModel.dosageUnit == unit

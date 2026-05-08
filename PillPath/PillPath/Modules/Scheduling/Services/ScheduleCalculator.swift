@@ -1,19 +1,9 @@
-//
-//  ScheduleCalculator.swift
-//  PillPath — Scheduling Module
-//
-//  Pure business logic — no CoreData, no network.
-//  Given a MedicationSchedule, computes upcoming dose times.
-//  Fully unit-testable without any dependencies.
-//
+
 
 import Foundation
 
 enum ScheduleCalculator {
 
-    // MARK: - Upcoming Dose Times
-
-    /// Returns all scheduled dose Date values within the next `days` days.
     static func upcomingDoseTimes(for schedule: MedicationSchedule, days: Int = 7) -> [Date] {
         guard schedule.isActive else { return [] }
         let calendar = Calendar.current
@@ -34,22 +24,18 @@ enum ScheduleCalculator {
             return alternateDayDoses(schedule: schedule, from: now, to: end, calendar: calendar)
 
         case .custom:
-            // Custom is handled via manual dose times only
-            return dailyDoses(schedule: schedule, from: now, to: end, calendar: calendar)
+            return customDateDoses(schedule: schedule, from: now, to: end, calendar: calendar)
         }
     }
 
-    // MARK: - Today's Doses
+  
 
     static func todaysDoses(for schedule: MedicationSchedule) -> [Date] {
         upcomingDoseTimes(for: schedule, days: 1)
             .filter { Calendar.current.isDateInToday($0) }
     }
 
-    // MARK: - Adherence Calculation
-
-    /// Returns adherence percentage (0–100) given a list of dose logs.
-    static func adherencePercentage(logs: [DoseLog]) -> Double {
+   static func adherencePercentage(logs: [DoseLog]) -> Double {
         guard !logs.isEmpty else { return 0 }
         let relevant = logs.filter { $0.status != .pending }
         guard !relevant.isEmpty else { return 0 }
@@ -57,14 +43,13 @@ enum ScheduleCalculator {
         return Double(taken) / Double(relevant.count) * 100
     }
 
-    /// Detects whether a dose is missed: scheduled time has passed by more than the grace period.
-    static func isMissed(_ log: DoseLog, gracePeriodMinutes: Int = 60) -> Bool {
+   static func isMissed(_ log: DoseLog, gracePeriodMinutes: Int = 60) -> Bool {
         guard log.status == .pending else { return false }
         let cutoff = log.scheduledAt.addingTimeInterval(TimeInterval(gracePeriodMinutes * 60))
         return Date.now > cutoff
     }
 
-    // MARK: - Private Generators
+   
 
     private static func dailyDoses(
         schedule: MedicationSchedule,
@@ -97,11 +82,17 @@ enum ScheduleCalculator {
         to end: Date,
         calendar: Calendar
     ) -> [Date] {
+        guard schedule.intervalHours > 0 else { return [] }
         var results: [Date] = []
-        var current = schedule.startDate > start ? schedule.startDate : start
         let interval = TimeInterval(schedule.intervalHours * 3600)
+        var current = schedule.startDate
+        if current < start {
+            let elapsed = start.timeIntervalSince(current)
+            let periods = floor(elapsed / interval)
+            current = current.addingTimeInterval(periods * interval)
+        }
         while current <= end {
-            if isWithinScheduleRange(current, schedule: schedule, calendar: calendar) {
+            if current > start && isWithinScheduleRange(current, schedule: schedule, calendar: calendar) {
                 results.append(current)
             }
             current = current.addingTimeInterval(interval)
@@ -118,7 +109,7 @@ enum ScheduleCalculator {
         var results: [Date] = []
         var current = calendar.startOfDay(for: start)
         while current <= end {
-            let weekday = calendar.component(.weekday, from: current) - 1  // 0=Sun
+            let weekday = calendar.component(.weekday, from: current) - 1 
             if schedule.specificDays.contains(weekday) &&
                isWithinScheduleRange(current, schedule: schedule, calendar: calendar) {
                 for time in schedule.scheduleTimes {
@@ -158,6 +149,28 @@ enum ScheduleCalculator {
             }
             current = calendar.date(byAdding: .day, value: 1, to: current) ?? end
             dayOffset += 1
+        }
+        return results.sorted()
+    }
+
+    private static func customDateDoses(
+        schedule: MedicationSchedule,
+        from start: Date,
+        to end: Date,
+        calendar: Calendar
+    ) -> [Date] {
+        var results: [Date] = []
+        for customDate in schedule.customDates {
+            let dayStart = calendar.startOfDay(for: customDate)
+            guard dayStart >= calendar.startOfDay(for: start) && dayStart <= end else { continue }
+            let times = schedule.scheduleTimes.isEmpty ? [ScheduleTime.morning] : schedule.scheduleTimes
+            for time in times {
+                if let doseDate = calendar.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: customDate) {
+                    if doseDate > start && doseDate <= end {
+                        results.append(doseDate)
+                    }
+                }
+            }
         }
         return results.sorted()
     }

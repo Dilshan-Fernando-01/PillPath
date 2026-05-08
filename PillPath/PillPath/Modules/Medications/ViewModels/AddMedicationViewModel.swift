@@ -21,7 +21,9 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
 
    
 
-    @Published var medicationName: String = ""
+    @Published var medicationName: String = "" {
+        didSet { if saveError != nil { saveError = nil } }
+    }
     @Published var fdaSearchResults: [MedicationSearchResult] = []
     @Published var isSearching: Bool = false
     @Published var selectedFDAResult: MedicationSearchResult?
@@ -94,19 +96,22 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
     private let doseTrackingService: DoseTrackingServiceProtocol
     private let fdaService: FDAServiceProtocol
     private let eventService: EventServiceProtocol
+    private let notificationService: NotificationServiceProtocol
 
     init(
         medicationService: MedicationServiceProtocol? = nil,
         scheduleService: ScheduleServiceProtocol? = nil,
         doseTrackingService: DoseTrackingServiceProtocol? = nil,
         fdaService: FDAServiceProtocol? = nil,
-        eventService: EventServiceProtocol? = nil
+        eventService: EventServiceProtocol? = nil,
+        notificationService: NotificationServiceProtocol? = nil
     ) {
-        self.medicationService  = medicationService  ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
-        self.scheduleService    = scheduleService    ?? DIContainer.shared.resolve(ScheduleServiceProtocol.self)
+        self.medicationService   = medicationService   ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
+        self.scheduleService     = scheduleService     ?? DIContainer.shared.resolve(ScheduleServiceProtocol.self)
         self.doseTrackingService = doseTrackingService ?? DIContainer.shared.resolve(DoseTrackingServiceProtocol.self)
-        self.fdaService         = fdaService         ?? DIContainer.shared.resolve(FDAServiceProtocol.self)
-        self.eventService       = eventService       ?? DIContainer.shared.resolve(EventServiceProtocol.self)
+        self.fdaService          = fdaService          ?? DIContainer.shared.resolve(FDAServiceProtocol.self)
+        self.eventService        = eventService        ?? DIContainer.shared.resolve(EventServiceProtocol.self)
+        self.notificationService = notificationService ?? DIContainer.shared.resolve(NotificationServiceProtocol.self)
     }
 
    
@@ -134,6 +139,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             vm.frequency     = s.frequency
             vm.intervalHours = s.intervalHours
             vm.specificDays  = Set(s.specificDays)
+            vm.customDates   = s.customDates
             vm.mealTiming    = s.mealTiming
             vm.startDate     = s.startDate
             vm.isOngoing     = s.isOngoing
@@ -141,7 +147,6 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             vm.notificationOffset = s.notificationOffsetMinutes
             if let end = s.endDate { vm.endDate = end }
 
-  
             for t in s.scheduleTimes {
                 if t.label == .custom { vm.customTimes.append(t) }
                 else { vm.selectedTimeLabels.insert(t.label) }
@@ -179,9 +184,20 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
 
     func nextStep() {
         guard canProceed, currentStep < totalSteps else { return }
+        if currentStep == 1 {
+            let existing = (try? medicationService.fetchAll()) ?? []
+            let trimmed  = medicationName.trimmingCharacters(in: .whitespaces).lowercased()
+            let isDuplicate = existing.contains {
+                $0.name.lowercased() == trimmed && $0.id != editingMedicationId
+            }
+            if isDuplicate {
+                saveError = "A medication named \"\(medicationName.trimmingCharacters(in: .whitespaces))\" already exists."
+                return
+            }
+            saveError = nil
+        }
         if currentStep == 7 { loadEvents() }
         currentStep += 1
-      
         if currentStep == 5 && frequency == .everyXHours { currentStep += 1 }
     }
 
@@ -327,16 +343,32 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             try medicationService.save(medication)
 
            
+            // For custom frequency, derive start/end date from the selected custom dates
+            let resolvedStartDate: Date
+            let resolvedEndDate: Date?
+            let resolvedIsOngoing: Bool
+            if frequency == .custom && !customDates.isEmpty {
+                let sorted = customDates.sorted()
+                resolvedStartDate  = sorted.first!
+                resolvedEndDate    = sorted.last
+                resolvedIsOngoing  = false
+            } else {
+                resolvedStartDate  = startDate
+                resolvedEndDate    = isOngoing ? nil : endDate
+                resolvedIsOngoing  = isOngoing
+            }
+
             let schedule = MedicationSchedule(
                 medicationId: medication.id,
                 frequency: frequency,
                 intervalHours: totalIntervalMinutes / 60,
                 specificDays: Array(specificDays).sorted(),
+                customDates: customDates.sorted(),
                 scheduleTimes: resolvedScheduleTimes,
                 mealTiming: mealTiming,
-                startDate: startDate,
-                endDate: isOngoing ? nil : endDate,
-                isOngoing: isOngoing,
+                startDate: resolvedStartDate,
+                endDate: resolvedEndDate,
+                isOngoing: resolvedIsOngoing,
                 doseReminders: doseReminders,
                 notificationOffsetMinutes: notificationOffset
             )
@@ -346,6 +378,13 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
 
            
             try await doseTrackingService.generateUpcomingLogs(for: schedule, days: 7)
+
+            // Fire low quantity alert immediately if enabled and stock is already low
+            if medication.lowQuantityAlert &&
+               medication.currentQuantity > 0 &&
+               medication.currentQuantity <= medication.lowQuantityThreshold {
+                notificationService.scheduleLowQuantityAlert(for: medication)
+            }
 
             savedMedication = medication
             didSave = true
