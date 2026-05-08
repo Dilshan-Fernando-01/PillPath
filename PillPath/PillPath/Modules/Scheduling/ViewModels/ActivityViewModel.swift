@@ -184,7 +184,8 @@ final class ActivityViewModel: ObservableObject {
                 guard let med = medMap[schedule.medicationId],
                       med.isActive else { continue }
                 let daysAhead = max(2, (calendar.dateComponents([.day], from: calendar.startOfDay(for: .now), to: selectedDate).day ?? 0) + 2)
-                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: daysAhead)
+                let startOfDate = calendar.startOfDay(for: selectedDate)
+                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: daysAhead, from: startOfDate)
                     .filter { calendar.isDate($0, inSameDayAs: selectedDate) }
 
                 for doseTime in doseTimes {
@@ -201,11 +202,11 @@ final class ActivityViewModel: ObservableObject {
                     } else {
                         status = .pending
                     }
-                    items.append(DoseDisplayItem(
+                    var item = DoseDisplayItem(
                         id: matchedLog?.id ?? UUID(),
                         medicationId: med.id,
                         scheduleId: schedule.id,
-                        medicationName: med.name,
+                        medicationName: med.displayName ?? med.name,
                         dosageDisplay: med.dosageDisplay,
                         medicationCategory: med.instructions,
                         usageNote: med.notes,
@@ -214,7 +215,11 @@ final class ActivityViewModel: ObservableObject {
                         mealTiming: schedule.mealTiming,
                         status: status,
                         logId: matchedLog?.id
-                    ))
+                    )
+                    item.dosageAmount = med.dosageAmount
+                    item.currentQuantity = med.currentQuantity
+                    item.photoURL = med.photoURL
+                    items.append(item)
                 }
             }
             selectedDayDoses = items.sorted { $0.scheduledAt < $1.scheduledAt }

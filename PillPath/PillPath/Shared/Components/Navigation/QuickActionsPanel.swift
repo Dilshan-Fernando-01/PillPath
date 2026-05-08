@@ -1,7 +1,4 @@
-//
-//  QuickActionsPanel.swift
-//  PillPath — Design System
-//
+
 
 import SwiftUI
 
@@ -87,6 +84,7 @@ struct MainTabContainer: View {
     @State private var showSettings = false
     @State private var showInsights = false
     @State private var showDoseHistory = false
+    @State private var showHelp = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -148,9 +146,12 @@ struct MainTabContainer: View {
         .sheet(isPresented: $showDoseHistory) {
             DoseHistoryQuickAccess()
         }
+        .sheet(isPresented: $showHelp) {
+            HelpView()
+        }
     }
 
-    // MARK: - Tab content
+  
 
     @ViewBuilder
     private var tabContent: some View {
@@ -168,7 +169,7 @@ struct MainTabContainer: View {
         case .analytics: showInsights = true
         case .lookup:    showLookup = true
         case .history:   showDoseHistory = true
-        case .help:      break
+        case .help:      showHelp = true
         }
     }
 }

@@ -1,10 +1,4 @@
-//
-//  InsightsView.swift
-//  PillPath — Insights Module
-//
-//  Full analytics screen: adherence rate, activity chart,
-//  per-medication performance, smart tips, upcoming events.
-//
+
 
 import SwiftUI
 
@@ -18,36 +12,42 @@ struct InsightsView: View {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
 
-                    // Period picker
+             
                     periodPicker
                         .padding(.horizontal, AppSpacing.md)
                         .padding(.top, AppSpacing.md)
 
-                    // Adherence hero
+                   
+                    if viewModel.period == .month {
+                        monthNavigator
+                            .padding(.horizontal, AppSpacing.md)
+                    }
+
+                  
                     adherenceCard
                         .padding(.horizontal, AppSpacing.md)
 
-                    // Mini stats row
+                    
                     statsRow
                         .padding(.horizontal, AppSpacing.md)
 
-                    // Activity chart
+                   
                     activityChartCard
                         .padding(.horizontal, AppSpacing.md)
 
-                    // Medication performance
+                   
                     if !viewModel.medicationStats.isEmpty {
                         medicationPerformanceSection
                             .padding(.horizontal, AppSpacing.md)
                     }
 
-                    // Upcoming events
+                   
                     if !viewModel.upcomingEvents.isEmpty {
                         upcomingEventsSection
                             .padding(.horizontal, AppSpacing.md)
                     }
 
-                    // Tips
+              
                     tipsSection
                         .padding(.horizontal, AppSpacing.md)
 
@@ -70,7 +70,7 @@ struct InsightsView: View {
         .onAppear { viewModel.load() }
     }
 
-    // MARK: - Period Picker
+  
 
     private var periodPicker: some View {
         HStack(spacing: 0) {
@@ -99,7 +99,46 @@ struct InsightsView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
     }
 
-    // MARK: - Adherence Hero Card
+    
+
+    private var monthNavigator: some View {
+        HStack {
+            Button {
+                viewModel.previousMonth()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.brandPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Color.appSurface)
+                    .clipShape(Circle())
+            }
+
+            Spacer()
+
+            Text(viewModel.selectedMonthLabel)
+                .font(AppFont.subheadline())
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.textPrimary)
+
+            Spacer()
+
+            Button {
+                viewModel.nextMonth()
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(viewModel.canGoForward ? Color.brandPrimary : Color.appBorder)
+                    .frame(width: 36, height: 36)
+                    .background(Color.appSurface)
+                    .clipShape(Circle())
+            }
+            .disabled(!viewModel.canGoForward)
+        }
+        .padding(.horizontal, AppSpacing.sm)
+    }
+
+    
 
     private var adherenceCard: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -142,7 +181,6 @@ struct InsightsView: View {
         return "Let's get back on track together"
     }
 
-    // MARK: - Stats Row
 
     private var statsRow: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -169,7 +207,7 @@ struct InsightsView: View {
         .appCardShadow()
     }
 
-    // MARK: - Activity Chart
+   
 
     private var activityChartCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -178,10 +216,10 @@ struct InsightsView: View {
                 .foregroundStyle(Color.textSecondary)
                 .kerning(1)
 
-            // Bars
+           
             let stats = viewModel.period == .week
                 ? viewModel.dailyStats
-                : Array(viewModel.dailyStats.suffix(7))  // last 7 days for month view
+                : Array(viewModel.dailyStats.suffix(7)) 
 
             GeometryReader { geo in
                 let maxVal = max(1, stats.map { $0.taken + $0.missed }.max() ?? 1)
@@ -195,13 +233,13 @@ struct InsightsView: View {
 
                         VStack(spacing: 0) {
                             Spacer(minLength: 0)
-                            // Missed on top
+                            
                             if stat.missed > 0 {
                                 RoundedRectangle(cornerRadius: 3)
                                     .fill(Color.semanticError.opacity(0.7))
                                     .frame(width: barWidth, height: max(4, missedH))
                             }
-                            // Taken at bottom
+                           
                             if stat.taken > 0 {
                                 RoundedRectangle(cornerRadius: 3)
                                     .fill(Color.semanticSuccess)
@@ -223,7 +261,7 @@ struct InsightsView: View {
             }
             .frame(height: 140)
 
-            // Legend
+  
             HStack(spacing: AppSpacing.md) {
                 legendDot(color: Color.semanticSuccess, label: "Taken")
                 legendDot(color: Color.semanticError.opacity(0.7), label: "Missed")
@@ -244,7 +282,7 @@ struct InsightsView: View {
         }
     }
 
-    // MARK: - Medication Performance
+
 
     private var medicationPerformanceSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -287,7 +325,6 @@ struct InsightsView: View {
                 }
             }
 
-            // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3)
@@ -306,7 +343,7 @@ struct InsightsView: View {
         .appCardShadow()
     }
 
-    // MARK: - Upcoming Events
+
 
     private var upcomingEventsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -349,7 +386,7 @@ struct InsightsView: View {
         }
     }
 
-    // MARK: - Tips
+
 
     private var tipsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {

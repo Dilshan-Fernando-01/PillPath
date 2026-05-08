@@ -1,12 +1,9 @@
-//
-//  InsightsViewModel.swift
-//  PillPath — Insights Module
-//
+
 
 import Foundation
 import Combine
 
-// MARK: - Supporting Types
+
 
 enum InsightsPeriod: CaseIterable, Identifiable {
     case week, month
@@ -58,34 +55,44 @@ enum InsightAccent {
     case warning, success, info, error
 }
 
-// MARK: - ViewModel
 
 @MainActor
 final class InsightsViewModel: ObservableObject {
 
     @Published var period: InsightsPeriod = .week
+    @Published var selectedMonth: Date = Calendar.current.startOfDay(for: .now)
     @Published var isLoading = false
 
-    // Summary stats
+    var selectedMonthLabel: String {
+        let f = DateFormatter()
+        f.dateFormat = "MMMM yyyy"
+        return f.string(from: selectedMonth)
+    }
+
+    var canGoForward: Bool {
+        Calendar.current.compare(selectedMonth, to: .now, toGranularity: .month) == .orderedAscending
+    }
+
+
     @Published var takenCount: Int = 0
     @Published var missedCount: Int = 0
     @Published var skippedCount: Int = 0
     @Published var currentStreak: Int = 0
-    @Published var adherenceRate: Double = 0   // 0.0 – 1.0
+    @Published var adherenceRate: Double = 0   
 
-    // Chart
+  
     @Published var dailyStats: [DailyBarData] = []
 
-    // Per-medication
+
     @Published var medicationStats: [MedicationStat] = []
 
-    // Tips
+  
     @Published var tips: [InsightTip] = []
 
-    // Upcoming events (next 7 days)
+  
     @Published var upcomingEvents: [MedicalEvent] = []
 
-    // Services
+
     private let doseService: DoseTrackingServiceProtocol
     private let medService: MedicationServiceProtocol
     private let eventService: EventServiceProtocol
@@ -100,7 +107,7 @@ final class InsightsViewModel: ObservableObject {
         self.eventService = eventService ?? DIContainer.shared.resolve(EventServiceProtocol.self)
     }
 
-    // MARK: - Load
+   
 
     func load() {
         isLoading = true
@@ -108,8 +115,18 @@ final class InsightsViewModel: ObservableObject {
 
         let calendar = Calendar.current
         let today    = calendar.startOfDay(for: .now)
-        let end      = calendar.date(byAdding: .day, value: 1, to: today)!
-        let start    = calendar.date(byAdding: .day, value: -(period.days - 1), to: today)!
+        let (start, end): (Date, Date)
+        if period == .month {
+            let comps = calendar.dateComponents([.year, .month], from: selectedMonth)
+            let firstDay = calendar.date(from: comps) ?? today
+            let lastDay = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: firstDay) ?? today
+            start = firstDay
+            end = calendar.date(byAdding: .day, value: 1, to: lastDay) ?? lastDay
+        } else {
+            let weekStart = calendar.date(byAdding: .day, value: -(period.days - 1), to: today)!
+            start = weekStart
+            end = calendar.date(byAdding: .day, value: 1, to: today)!
+        }
 
         do {
             let logs = try doseService.fetchLogs(from: start, to: end)
@@ -123,7 +140,7 @@ final class InsightsViewModel: ObservableObject {
             computeTips(logs: logs, medMap: medMap, calendar: calendar)
             loadUpcomingEvents()
         } catch {
-            // silently fail — UI will show empty state
+            
         }
     }
 
@@ -132,7 +149,20 @@ final class InsightsViewModel: ObservableObject {
         load()
     }
 
-    // MARK: - Private computations
+    func previousMonth() {
+        let cal = Calendar.current
+        selectedMonth = cal.date(byAdding: .month, value: -1, to: selectedMonth) ?? selectedMonth
+        if period != .month { period = .month }
+        load()
+    }
+
+    func nextMonth() {
+        guard canGoForward else { return }
+        let cal = Calendar.current
+        selectedMonth = cal.date(byAdding: .month, value: 1, to: selectedMonth) ?? selectedMonth
+        load()
+    }
+
 
     private func computeSummary(logs: [DoseLog]) {
         takenCount   = logs.filter { $0.status == .taken }.count
@@ -144,7 +174,15 @@ final class InsightsViewModel: ObservableObject {
 
     private func computeDailyStats(logs: [DoseLog], start: Date, calendar: Calendar) {
         var result: [DailyBarData] = []
-        for offset in 0..<period.days {
+        let numDays: Int
+        if period == .month {
+            let comps = calendar.dateComponents([.year, .month], from: selectedMonth)
+            let firstDay = calendar.date(from: comps) ?? start
+            numDays = calendar.range(of: .day, in: .month, for: firstDay)?.count ?? 30
+        } else {
+            numDays = period.days
+        }
+        for offset in 0..<numDays {
             guard let day = calendar.date(byAdding: .day, value: offset, to: start) else { continue }
             let dayLogs = logs.filter { calendar.isDate($0.scheduledAt, inSameDayAs: day) }
             result.append(DailyBarData(
@@ -200,7 +238,6 @@ final class InsightsViewModel: ObservableObject {
     private func computeTips(logs: [DoseLog], medMap: [UUID: Medication], calendar: Calendar) {
         var result: [InsightTip] = []
 
-        // Tip 1: Check which time of day has most misses
         let missedLogs = logs.filter { $0.status == .missed }
         if !missedLogs.isEmpty {
             var labelCounts: [DoseTimeLabel: Int] = [:]
@@ -219,8 +256,7 @@ final class InsightsViewModel: ObservableObject {
             }
         }
 
-        // Tip 2: Streak milestone
-        if currentStreak >= 7 {
+       if currentStreak >= 7 {
             result.append(InsightTip(
                 icon: "flame.fill",
                 accentColor: .success,
@@ -236,8 +272,7 @@ final class InsightsViewModel: ObservableObject {
             ))
         }
 
-        // Tip 3: Best performing medication
-        if let best = medicationStats.first, best.adherenceRate > 0.9 && medicationStats.count > 1 {
+       if let best = medicationStats.first, best.adherenceRate > 0.9 && medicationStats.count > 1 {
             let bestName = medMap[best.medicationId]?.name ?? best.name
             result.append(InsightTip(
                 icon: "sun.max.fill",
@@ -247,8 +282,7 @@ final class InsightsViewModel: ObservableObject {
             ))
         }
 
-        // Tip 4: Worst performing medication
-        if let worst = medicationStats.last, worst.adherenceRate < 0.6 && worst.totalScheduled > 2 {
+      if let worst = medicationStats.last, worst.adherenceRate < 0.6 && worst.totalScheduled > 2 {
             let worstName = medMap[worst.medicationId]?.name ?? worst.name
             result.append(InsightTip(
                 icon: "exclamationmark.triangle.fill",
@@ -258,7 +292,7 @@ final class InsightsViewModel: ObservableObject {
             ))
         }
 
-        // Tip 5: High overall adherence
+      
         if adherenceRate >= 0.9 && takenCount >= 5 {
             result.append(InsightTip(
                 icon: "checkmark.seal.fill",

@@ -4,34 +4,35 @@ import Foundation
 
 enum ScheduleCalculator {
 
-    static func upcomingDoseTimes(for schedule: MedicationSchedule, days: Int = 7) -> [Date] {
+    static func upcomingDoseTimes(for schedule: MedicationSchedule, days: Int = 7, from startOverride: Date = .now) -> [Date] {
         guard schedule.isActive else { return [] }
         let calendar = Calendar.current
-        let now = Date.now
-        let end = calendar.date(byAdding: .day, value: days, to: now) ?? now
+        let start = startOverride
+        let end = calendar.date(byAdding: .day, value: days, to: start) ?? start
 
         switch schedule.frequency {
         case .daily:
-            return dailyDoses(schedule: schedule, from: now, to: end, calendar: calendar)
+            return dailyDoses(schedule: schedule, from: start, to: end, calendar: calendar)
 
         case .everyXHours:
-            return intervalDoses(schedule: schedule, from: now, to: end, calendar: calendar)
+            return intervalDoses(schedule: schedule, from: start, to: end, calendar: calendar)
 
         case .specificDays:
-            return specificDayDoses(schedule: schedule, from: now, to: end, calendar: calendar)
+            return specificDayDoses(schedule: schedule, from: start, to: end, calendar: calendar)
 
         case .alternateDays:
-            return alternateDayDoses(schedule: schedule, from: now, to: end, calendar: calendar)
+            return alternateDayDoses(schedule: schedule, from: start, to: end, calendar: calendar)
 
         case .custom:
-            return customDateDoses(schedule: schedule, from: now, to: end, calendar: calendar)
+            return customDateDoses(schedule: schedule, from: start, to: end, calendar: calendar)
         }
     }
 
   
 
     static func todaysDoses(for schedule: MedicationSchedule) -> [Date] {
-        upcomingDoseTimes(for: schedule, days: 1)
+        let startOfToday = Calendar.current.startOfDay(for: .now)
+        return upcomingDoseTimes(for: schedule, days: 1, from: startOfToday)
             .filter { Calendar.current.isDateInToday($0) }
     }
 
@@ -84,7 +85,7 @@ enum ScheduleCalculator {
     ) -> [Date] {
         guard schedule.intervalHours > 0 else { return [] }
         var results: [Date] = []
-        let interval = TimeInterval(schedule.intervalHours * 3600)
+        let interval = TimeInterval(schedule.intervalHours * 60)
         var current = schedule.startDate
         if current < start {
             let elapsed = start.timeIntervalSince(current)
