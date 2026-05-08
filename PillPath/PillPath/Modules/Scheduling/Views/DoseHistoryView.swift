@@ -7,12 +7,27 @@ struct DoseHistoryView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedPeriod: HistoryPeriod = .week
+    @State private var selectedMonth: Date = {
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.year, .month], from: .now)
+        return cal.date(from: comps) ?? .now
+    }()
 
     enum HistoryPeriod: CaseIterable, Identifiable {
         case week, month
         var id: Self { self }
-        var displayName: String { self == .week ? "Last 7 Days" : "Last 30 Days" }
-        var days: Int { self == .week ? 7 : 30 }
+        var displayName: String { self == .week ? "Last 7 Days" : "By Month" }
+    }
+
+    private var canGoForward: Bool {
+        let cal = Calendar.current
+        return cal.compare(selectedMonth, to: .now, toGranularity: .month) == .orderedAscending
+    }
+
+    private var monthLabel: String {
+        let f = DateFormatter()
+        f.dateFormat = "MMMM yyyy"
+        return f.string(from: selectedMonth)
     }
 
     var body: some View {
@@ -27,6 +42,12 @@ struct DoseHistoryView: View {
                 .pickerStyle(.segmented)
                 .padding(AppSpacing.md)
                 .onChange(of: selectedPeriod) { _, _ in loadHistory() }
+
+                if selectedPeriod == .month {
+                    monthNavigator
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.bottom, AppSpacing.sm)
+                }
 
                 if viewModel.historyItems.isEmpty {
                     emptyState
@@ -48,6 +69,41 @@ struct DoseHistoryView: View {
             }
         }
         .onAppear { loadHistory() }
+    }
+
+
+    private var monthNavigator: some View {
+        HStack {
+            Button { previousMonth() } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.brandPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Color.appSurface)
+                    .clipShape(Circle())
+                    .appCardShadow()
+            }
+
+            Spacer()
+
+            Text(monthLabel)
+                .font(AppFont.subheadline())
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.textPrimary)
+
+            Spacer()
+
+            Button { nextMonth() } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(canGoForward ? Color.brandPrimary : Color.appBorder)
+                    .frame(width: 36, height: 36)
+                    .background(Color.appSurface)
+                    .clipShape(Circle())
+                    .appCardShadow()
+            }
+            .disabled(!canGoForward)
+        }
     }
 
 
@@ -234,9 +290,36 @@ struct DoseHistoryView: View {
         }
     }
 
+
+    private func previousMonth() {
+        let cal = Calendar.current
+        selectedMonth = cal.date(byAdding: .month, value: -1, to: selectedMonth) ?? selectedMonth
+        loadHistory()
+    }
+
+    private func nextMonth() {
+        guard canGoForward else { return }
+        let cal = Calendar.current
+        selectedMonth = cal.date(byAdding: .month, value: 1, to: selectedMonth) ?? selectedMonth
+        loadHistory()
+    }
+
     private func loadHistory() {
-        let end   = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: .now))!
-        let start = Calendar.current.date(byAdding: .day, value: -selectedPeriod.days, to: end)!
+        let cal = Calendar.current
+        let end: Date
+        let start: Date
+
+        switch selectedPeriod {
+        case .week:
+            end   = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: .now))!
+            start = cal.date(byAdding: .day, value: -7, to: end)!
+        case .month:
+            let comps = cal.dateComponents([.year, .month], from: selectedMonth)
+            let firstDay = cal.date(from: comps) ?? cal.startOfDay(for: .now)
+            start = firstDay
+            end   = cal.date(byAdding: DateComponents(month: 1), to: firstDay) ?? firstDay
+        }
+
         viewModel.loadMedications()
         viewModel.loadHistory(from: start, to: end)
     }

@@ -36,19 +36,16 @@ struct MealTimingSection: View {
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.vertical, AppSpacing.md)
             } else {
-                ForEach(group.items) { item in
-                    DoseItemRow(
-                        item: item,
-                        onMarkTaken: { onMarkTaken(item) },
-                        onUndoTaken: { onUndoTaken(item) }
-                    )
-
-                    if item.id != group.items.last?.id {
-                        Divider()
-                            .padding(.leading, 66)
-                            .opacity(0.5)
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(group.items) { item in
+                        DoseItemRow(
+                            item: item,
+                            onMarkTaken: { onMarkTaken(item) },
+                            onUndoTaken: { onUndoTaken(item) }
+                        )
                     }
                 }
+                .padding(.bottom, AppSpacing.xs)
             }
         }
     }

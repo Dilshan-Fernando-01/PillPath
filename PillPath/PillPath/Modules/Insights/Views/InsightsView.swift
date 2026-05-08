@@ -6,13 +6,15 @@ struct InsightsView: View {
 
     @StateObject private var viewModel = InsightsViewModel()
     @Environment(\.dismiss) private var dismiss
+    private let seedService = SeedDataService()
+    @State private var seedMessage: String? = nil
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
 
-             
+
                     periodPicker
                         .padding(.horizontal, AppSpacing.md)
                         .padding(.top, AppSpacing.md)
@@ -51,6 +53,18 @@ struct InsightsView: View {
                     tipsSection
                         .padding(.horizontal, AppSpacing.md)
 
+                    if viewModel.takenCount == 0 && viewModel.missedCount == 0 {
+                        demoBanner
+                            .padding(.horizontal, AppSpacing.md)
+                    }
+
+                    if let msg = seedMessage {
+                        Text(msg)
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.semanticSuccess)
+                            .padding(.horizontal, AppSpacing.md)
+                    }
+
                     Spacer().frame(height: 40)
                 }
             }
@@ -65,12 +79,64 @@ struct InsightsView: View {
                             .foregroundStyle(Color.textPrimary)
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        loadDemoData()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "wand.and.stars")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Demo Data")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.brandPrimary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.brandPrimaryLight)
+                        .clipShape(Capsule())
+                    }
+                }
             }
         }
         .onAppear { viewModel.load() }
     }
 
   
+
+    private func loadDemoData() {
+        do {
+            let count = try seedService.seedDemoHistory(days: 30)
+            viewModel.load()
+            if count > 0 {
+                seedMessage = "\(count) demo dose logs loaded. Switch to This Month to see full history."
+            } else {
+                seedMessage = "No medications found. Add at least one medication first, then tap Demo Data."
+            }
+        } catch {
+            seedMessage = "Error: \(error.localizedDescription)"
+        }
+    }
+
+    private var demoBanner: some View {
+        HStack(spacing: AppSpacing.md) {
+            Image(systemName: "wand.and.stars")
+                .font(.system(size: 20))
+                .foregroundStyle(Color.brandPrimary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("No dose data yet")
+                    .font(AppFont.body())
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.textPrimary)
+                Text("Tap \"Demo Data\" above to load 30 days of sample history for your medications.")
+                    .font(AppFont.caption())
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(AppSpacing.md)
+        .background(Color.brandPrimaryLight)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+    }
 
     private var periodPicker: some View {
         HStack(spacing: 0) {

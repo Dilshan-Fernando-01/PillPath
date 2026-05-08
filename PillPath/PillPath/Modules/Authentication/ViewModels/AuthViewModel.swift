@@ -84,9 +84,10 @@ final class AuthViewModel: ObservableObject {
 
 
     func signInWithBiometrics() async {
-        guard isBiometryAvailable else { return }
+        guard isBiometryAvailable && !isLoading else { return }
         isLoading = true
         errorMessage = nil
+        defer { isLoading = false }
         do {
             let success = try await biometricService.authenticate(reason: "Sign in to PillPath")
             if success {
@@ -94,10 +95,15 @@ final class AuthViewModel: ObservableObject {
             } else {
                 errorMessage = AuthError.biometryFailed.localizedDescription
             }
+        } catch let laError as LAError
+            where laError.code == .userCancel
+               || laError.code == .userFallback
+               || laError.code == .appCancel
+               || laError.code == .systemCancel {
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
-        isLoading = false
     }
 
 

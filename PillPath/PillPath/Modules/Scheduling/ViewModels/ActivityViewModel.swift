@@ -63,6 +63,7 @@ final class ActivityViewModel: ObservableObject {
    
 
     @Published var historyItems: [DoseHistoryItem] = []
+    @Published var rangeDoses: [DoseDisplayItem] = []
 
    
 
@@ -189,6 +190,8 @@ final class ActivityViewModel: ObservableObject {
                     .filter { calendar.isDate($0, inSameDayAs: selectedDate) }
 
                 for doseTime in doseTimes {
+                    guard doseTime >= schedule.startDate else { continue }
+
                     let hour      = calendar.component(.hour, from: doseTime)
                     let timeLabel = DoseTimeLabel.from(hour: hour)
                     let matchedLog = logMap[schedule.id]?.first {
@@ -229,6 +232,67 @@ final class ActivityViewModel: ObservableObject {
     }
 
 
+
+    func loadDosesForDateRange(days: Int) {
+        do {
+            try doseTrackingService.detectAndMarkMissed()
+            let schedules  = try scheduleService.fetchAll().filter(\.isActive)
+            let medications = try medicationService.fetchAll()
+            let medMap = Dictionary(uniqueKeysWithValues: medications.map { ($0.id, $0) })
+
+            let calendar = Calendar.current
+            let startOfToday = calendar.startOfDay(for: .now)
+            guard let endDate = calendar.date(byAdding: .day, value: days, to: startOfToday) else { return }
+            let allLogs = try doseTrackingService.fetchLogs(from: startOfToday, to: endDate)
+            let logsBySchedule = Dictionary(grouping: allLogs, by: { $0.scheduleId })
+
+            var items: [DoseDisplayItem] = []
+            for schedule in schedules {
+                guard let med = medMap[schedule.medicationId], med.isActive else { continue }
+                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: days, from: startOfToday)
+                    .filter { $0 >= startOfToday && $0 < endDate }
+
+                for doseTime in doseTimes {
+                    guard doseTime >= schedule.startDate else { continue }
+
+                    let hour = calendar.component(.hour, from: doseTime)
+                    let timeLabel = DoseTimeLabel.from(hour: hour)
+                    let matchedLog = logsBySchedule[schedule.id]?.first {
+                        abs($0.scheduledAt.timeIntervalSince(doseTime)) < 60
+                    }
+                    let status: DoseStatus
+                    if let log = matchedLog {
+                        status = log.status
+                    } else if Date.now > doseTime.addingTimeInterval(3600) && calendar.isDateInToday(doseTime) {
+                        status = .missed
+                    } else {
+                        status = .pending
+                    }
+                    var item = DoseDisplayItem(
+                        id: matchedLog?.id ?? UUID(),
+                        medicationId: med.id,
+                        scheduleId: schedule.id,
+                        medicationName: med.displayName ?? med.name,
+                        dosageDisplay: med.dosageDisplay,
+                        medicationCategory: med.instructions,
+                        usageNote: med.notes,
+                        scheduledAt: doseTime,
+                        timeLabel: timeLabel,
+                        mealTiming: schedule.mealTiming,
+                        status: status,
+                        logId: matchedLog?.id
+                    )
+                    item.dosageAmount = med.dosageAmount
+                    item.currentQuantity = med.currentQuantity
+                    item.photoURL = med.photoURL
+                    items.append(item)
+                }
+            }
+            rangeDoses = items.sorted { $0.scheduledAt < $1.scheduledAt }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
 
     func loadMedications() {
         do {
@@ -295,6 +359,7 @@ final class ActivityViewModel: ObservableObject {
 
     func loadHistory(from start: Date, to end: Date) {
         do {
+            try doseTrackingService.detectAndMarkMissed()
             let logs = try doseTrackingService.fetchLogs(from: start, to: end)
             let allMeds = activeMedications + stoppedMedications
             let medMap = Dictionary(uniqueKeysWithValues: allMeds.map { ($0.id, $0) })
