@@ -59,7 +59,6 @@ final class DoseTrackingServiceTests: XCTestCase {
         XCTAssertTrue(result.isEmpty)
     }
 
-    // MARK: - fetchLogs(from:to:)
 
     func test_fetchLogsFromTo_returnsLogsInRange() throws {
         insertLog(scheduledAt: todayAt(hour: 8), status: .pending)
@@ -131,7 +130,6 @@ final class DoseTrackingServiceTests: XCTestCase {
         XCTAssertEqual(result.first?.status, .skipped)
     }
 
-    // MARK: - detectAndMarkMissed
 
     func test_detectAndMarkMissed_marksPastPendingAsMissed() throws {
         insertLog(scheduledAt: yesterdayAt(hour: 8), status: .pending)

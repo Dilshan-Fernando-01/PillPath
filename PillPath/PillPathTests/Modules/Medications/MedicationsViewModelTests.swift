@@ -1,7 +1,3 @@
-//
-//  MedicationsViewModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath
@@ -24,7 +20,6 @@ final class MedicationsViewModelTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - loadMedications
 
     func test_loadMedications_populatesMedications() {
         mockService.medications = [
@@ -43,7 +38,6 @@ final class MedicationsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.medications.isEmpty)
     }
 
-    // MARK: - addMedication
 
     func test_addMedication_appendsToList() {
         let med = Medication(name: "Paracetamol", dosage: "500mg")
@@ -57,7 +51,6 @@ final class MedicationsViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.errorMessage)
     }
 
-    // MARK: - deleteMedication
 
     func test_deleteMedication_removesFromList() {
         let med = Medication(name: "Aspirin", dosage: "100mg")
@@ -67,7 +60,6 @@ final class MedicationsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.medications.isEmpty)
     }
 
-    // MARK: - searchOpenFDA
 
     func test_searchOpenFDA_updatesSearchResults() async {
         mockService.openFDAResults = [Medication(name: "FDA Drug", dosage: "50mg")]

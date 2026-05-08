@@ -1,9 +1,3 @@
-//
-//  DateFormatterHelper.swift
-//  PillPath
-//
-//  Shared formatters — reused to avoid creating new instances on every render.
-//
 
 import Foundation
 

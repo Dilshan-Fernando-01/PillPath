@@ -1,7 +1,4 @@
-//
-//  MedicationService.swift
-//  PillPath — Medications Module
-//
+
 
 import Foundation
 import CoreData
@@ -25,7 +22,7 @@ final class MedicationService: MedicationServiceProtocol {
         self.network = network
     }
 
-    // MARK: - Fetch
+
 
     func fetchAll() throws -> [Medication] {
         let request = MedicationEntity.fetchRequest()
@@ -49,11 +46,11 @@ final class MedicationService: MedicationServiceProtocol {
         return try coreData.viewContext.fetch(request).first.flatMap { MedicationMapper.toDomain($0) }
     }
 
-    // MARK: - Save / Delete
+  
 
     func save(_ medication: Medication) throws {
         let entity = MedicationMapper.toEntity(medication, context: coreData.viewContext)
-        _ = entity  // entity is already inserted into context
+        _ = entity  
         coreData.save()
     }
 
@@ -66,7 +63,6 @@ final class MedicationService: MedicationServiceProtocol {
         coreData.save()
     }
 
-    // MARK: - openFDA Search
 
     func searchOpenFDA(query: String) async throws -> [Medication] {
         let response: OpenFDADrugResponse = try await network.request(

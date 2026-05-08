@@ -1,24 +1,17 @@
-//
-//  MedicalEventMapperTests.swift
-//  PillPathTests
-//
-//  Tests JSON pack/unpack in MedicalEventMapper and DoseHistoryItem out-of-window logic.
-//
 
 import XCTest
 @testable import PillPath
 
 final class MedicalEventMapperTests: XCTestCase {
 
-    // MARK: - DoseHistoryItem out-of-window
 
     func test_outOfWindow_false_whenTakenInSameSlot() {
         let item = ActivityViewModel.DoseHistoryItem(
             id: UUID(),
             medicationName: "Aspirin",
             dosageDisplay: "1 Tablet",
-            scheduledAt: makeDate(hour: 8),  // 8am → morning
-            takenAt:      makeDate(hour: 9),  // 9am → still morning
+            scheduledAt: makeDate(hour: 8),  
+            takenAt:      makeDate(hour: 9),  
             status: .taken,
             scheduledLabel: .morning,
             takenLabel: .morning
@@ -31,8 +24,8 @@ final class MedicalEventMapperTests: XCTestCase {
             id: UUID(),
             medicationName: "Ibuprofen",
             dosageDisplay: "1 Tablet",
-            scheduledAt: makeDate(hour: 21), // 9pm → night
-            takenAt:      makeDate(hour: 8),  // 8am → morning
+            scheduledAt: makeDate(hour: 21), 
+            takenAt:      makeDate(hour: 8),  
             status: .taken,
             scheduledLabel: .night,
             takenLabel: .morning
@@ -68,7 +61,6 @@ final class MedicalEventMapperTests: XCTestCase {
         XCTAssertFalse(item.isOutOfWindow)
     }
 
-    // MARK: - DoseTimeLabel window boundaries
 
     func test_doseTimeLabel_from_hour_morning() {
         XCTAssertEqual(DoseTimeLabel.from(hour: 6),  .morning)
@@ -94,7 +86,6 @@ final class MedicalEventMapperTests: XCTestCase {
         XCTAssertEqual(DoseTimeLabel.from(hour: 5),  .night)
     }
 
-    // MARK: - MedicalEvent notes rename (regression)
 
     func test_medicalEvent_notes_field_exists() {
         let event = MedicalEvent(
@@ -110,7 +101,6 @@ final class MedicalEventMapperTests: XCTestCase {
         XCTAssertNil(event.notes)
     }
 
-    // MARK: - DoseDisplayItem usageNote
 
     func test_doseDisplayItem_usageNote_propagates() {
         let item = DoseDisplayItem(
@@ -135,7 +125,6 @@ final class MedicalEventMapperTests: XCTestCase {
         XCTAssertNil(item.usageNote)
     }
 
-    // MARK: - Private helpers
 
     private func makeDate(hour: Int) -> Date {
         var comps = Calendar.current.dateComponents([.year, .month, .day], from: .now)

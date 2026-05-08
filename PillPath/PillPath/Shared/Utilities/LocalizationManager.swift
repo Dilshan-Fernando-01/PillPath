@@ -1,11 +1,3 @@
-//
-//  LocalizationManager.swift
-//  PillPath
-//
-//  Wraps NSLocalizedString with app language support.
-//  Observe SettingsViewModel.language and call LocalizationManager.setLanguage(_:)
-//  to switch language at runtime without restarting the app.
-//
 
 import Foundation
 
@@ -30,7 +22,6 @@ final class LocalizationManager {
     }
 }
 
-// MARK: - Convenience global function
 
 func L(_ key: String) -> String {
     LocalizationManager.shared.localized(key)

@@ -1,7 +1,3 @@
-//
-//  View+Extensions.swift
-//  PillPath
-//
 
 import SwiftUI
 

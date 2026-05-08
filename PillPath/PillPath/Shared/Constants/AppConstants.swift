@@ -1,7 +1,3 @@
-//
-//  AppConstants.swift
-//  PillPath
-//
 
 import Foundation
 

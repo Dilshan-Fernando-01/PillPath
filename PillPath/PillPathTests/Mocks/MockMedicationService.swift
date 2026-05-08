@@ -1,24 +1,15 @@
-//
-//  MockMedicationService.swift
-//  PillPathTests
-//
-//  In-memory mock conforming to MedicationServiceProtocol.
-//  Use this in all ViewModel unit tests instead of hitting CoreData or the network.
-//
 
 import Foundation
 @testable import PillPath
 
 final class MockMedicationService: MedicationServiceProtocol {
 
-    // Controllable state
     var medications: [Medication] = []
     var shouldThrowOnFetch  = false
     var shouldThrowOnSave   = false
     var shouldThrowOnDelete = false
     var openFDAResults: [Medication] = []
 
-    // Call tracking
     var fetchCallCount  = 0
     var saveCallCount   = 0
     var deleteCallCount = 0

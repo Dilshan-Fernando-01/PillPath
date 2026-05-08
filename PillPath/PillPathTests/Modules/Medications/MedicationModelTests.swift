@@ -1,7 +1,3 @@
-//
-//  MedicationModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath

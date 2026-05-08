@@ -1,14 +1,6 @@
-//
-//  BottomNavigationBar.swift
-//  PillPath — Design System
-//
-//  Custom tab bar matching Figma: HOME | MEDS | [FAB] | SCAN | ACTIVITY
-//  The centre + button expands into a QuickActionsPanel overlay.
-//
 
 import SwiftUI
 
-// MARK: - Tab Enum
 
 enum AppTab: CaseIterable {
     case home, medications, scan, activity
@@ -41,7 +33,6 @@ enum AppTab: CaseIterable {
     }
 }
 
-// MARK: - Bottom Navigation Bar
 
 struct BottomNavigationBar: View {
 
@@ -50,13 +41,11 @@ struct BottomNavigationBar: View {
 
     var body: some View {
         ZStack {
-            // Tab bar background
             HStack(spacing: 0) {
                 ForEach([AppTab.home, .medications], id: \.label) { tab in
                     tabItem(tab)
                 }
 
-                // FAB placeholder space
                 Spacer().frame(width: 72)
 
                 ForEach([AppTab.scan, .activity], id: \.label) { tab in
@@ -68,7 +57,6 @@ struct BottomNavigationBar: View {
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
             .appCardShadow()
 
-            // Centre FAB
             Button(action: {
                 withAnimation(.spring(duration: 0.3)) {
                     isQuickActionsOpen.toggle()
@@ -91,7 +79,6 @@ struct BottomNavigationBar: View {
         .padding(.horizontal, AppSpacing.md)
     }
 
-    // MARK: - Tab Item
 
     private func tabItem(_ tab: AppTab) -> some View {
         let isSelected = selectedTab == tab

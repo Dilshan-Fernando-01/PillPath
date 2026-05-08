@@ -1,7 +1,3 @@
-//
-//  PrescriptionScanViewModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 import UIKit
