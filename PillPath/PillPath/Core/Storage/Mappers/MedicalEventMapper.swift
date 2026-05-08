@@ -1,18 +1,10 @@
-//
-//  MedicalEventMapper.swift
-//  PillPath
-//
-//  All extra fields (provider, description, medicationIds) are packed
-//  into eventDescription as JSON: {"p":"","d":"","m":["uuid1","uuid2"]}
-//  Plain strings (legacy data) are treated as description-only.
-//
 
 import Foundation
 import CoreData
 
 enum MedicalEventMapper {
 
-    // MARK: - toDomain
+  
 
     static func toDomain(_ entity: MedicalEventEntity) -> MedicalEvent? {
         guard let id        = entity.id,
@@ -33,7 +25,7 @@ enum MedicalEventMapper {
         )
     }
 
-    // MARK: - toEntity
+  
 
     static func toEntity(_ event: MedicalEvent, context: NSManagedObjectContext) -> MedicalEventEntity {
         let entity = fetchOrCreate(id: event.id, context: context)
@@ -48,12 +40,12 @@ enum MedicalEventMapper {
         return entity
     }
 
-    // MARK: - Packing helpers
+   
 
     private struct Payload: Codable {
-        var p: String   // provider
-        var d: String   // description
-        var m: [String] // medicationId UUIDs
+        var p: String  
+        var d: String   
+        var m: [String] 
     }
 
     private static func pack(provider: String?, description: String?, medicationIds: [UUID]) -> String? {
@@ -75,7 +67,7 @@ enum MedicalEventMapper {
             let medicationIds = payload.m.compactMap { UUID(uuidString: $0) }
             return (provider, description, medicationIds)
         }
-        // Legacy: treat as plain description string
+
         return (nil, stored, [])
     }
 

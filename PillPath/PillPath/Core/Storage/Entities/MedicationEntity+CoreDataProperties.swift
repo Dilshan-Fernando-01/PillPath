@@ -1,7 +1,4 @@
-//
-//  MedicationEntity+CoreDataProperties.swift
-//  PillPath
-//
+
 
 import Foundation
 import CoreData
@@ -30,13 +27,11 @@ extension MedicationEntity {
     @NSManaged public var sideEffectsJSON: String?
     @NSManaged public var interactionsJSON: String?
     @NSManaged public var statusInfoJSON: String?
-
-    // Relationships
     @NSManaged public var schedules: NSSet?
     @NSManaged public var doseLogs: NSSet?
 }
 
-// MARK: - Relationship Accessors
+
 
 extension MedicationEntity {
     @objc(addSchedulesObject:)  @NSManaged public func addToSchedules(_ value: ScheduleEntity)

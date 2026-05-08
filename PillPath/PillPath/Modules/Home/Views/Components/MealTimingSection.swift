@@ -1,10 +1,3 @@
-//
-//  MealTimingSection.swift
-//  PillPath — Home Module
-//
-//  Card containing all doses for one meal-timing slot (BEFORE MEAL / WITH MEAL / AFTER MEAL).
-//  Shows "No medications scheduled" when empty.
-//
 
 import SwiftUI
 

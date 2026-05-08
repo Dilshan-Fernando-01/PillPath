@@ -1,10 +1,4 @@
-//
-//  NetworkClient.swift
-//  PillPath
-//
-//  Generic async/await HTTP client.
-//  Usage: let result = try await NetworkClient.shared.request(OpenFDAEndpoint.search(...))
-//
+
 
 import Foundation
 

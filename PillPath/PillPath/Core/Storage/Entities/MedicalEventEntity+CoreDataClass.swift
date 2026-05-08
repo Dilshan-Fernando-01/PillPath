@@ -1,7 +1,4 @@
-//
-//  MedicalEventEntity+CoreDataClass.swift
-//  PillPath
-//
+
 
 import Foundation
 import CoreData

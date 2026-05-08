@@ -1,17 +1,10 @@
-//
-//  MedicationMapper.swift
-//  PillPath
-//
-//  Converts between MedicationEntity (CoreData) and Medication (domain).
-//  All CoreData ↔ domain conversions happen here only.
-//
 
 import Foundation
 import CoreData
 
 enum MedicationMapper {
 
-    // MARK: - Entity → Domain
+
 
     static func toDomain(_ entity: MedicationEntity) -> Medication? {
         guard let id = entity.id,
@@ -46,7 +39,7 @@ enum MedicationMapper {
         )
     }
 
-    // MARK: - Domain → Entity (upsert)
+
 
     static func toEntity(_ medication: Medication, context: NSManagedObjectContext) -> MedicationEntity {
         let entity = fetchOrCreate(id: medication.id, context: context)

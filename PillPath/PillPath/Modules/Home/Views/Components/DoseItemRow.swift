@@ -86,7 +86,19 @@ struct DoseItemRow: View {
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.vertical, 12)
 
-                if let note = item.usageNote, !note.isEmpty {
+                if item.hasInsufficientQuantity {
+                    HStack(spacing: 5) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.semanticError)
+                        Text("Insufficient quantity — \(item.currentQuantity) remaining, \(Int(item.dosageAmount)) needed")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.semanticError)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.bottom, 8)
+                } else if let note = item.usageNote, !note.isEmpty {
                     HStack(spacing: 5) {
                         Image(systemName: "info.circle.fill")
                             .font(.system(size: 11))
@@ -203,6 +215,18 @@ struct DoseItemRow: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 7)
                     .background(Color.textSecondary.opacity(0.1))
+                    .clipShape(Capsule())
+                } else if item.hasInsufficientQuantity {
+                    HStack(spacing: 5) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("Low Qty")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.semanticError)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color.semanticError.opacity(0.1))
                     .clipShape(Capsule())
                 } else {
                     Button {

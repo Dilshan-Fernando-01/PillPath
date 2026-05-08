@@ -1,7 +1,4 @@
-//
-//  AddMedicationViewModelTests.swift
-//  PillPathTests
-//
+
 
 import XCTest
 @testable import PillPath
@@ -15,30 +12,34 @@ final class AddMedicationViewModelTests: XCTestCase {
     var mockDoseTrackingService: MockDoseTrackingService!
     var mockFDAService: MockFDAService!
     var mockEventService: MockEventService!
+    var mockNotificationService: MockNotificationService!
 
     override func setUp() {
         super.setUp()
-        mockMedicationService   = MockMedicationService()
-        mockScheduleService     = MockScheduleService()
-        mockDoseTrackingService = MockDoseTrackingService()
-        mockFDAService          = MockFDAService()
-        mockEventService        = MockEventService()
+        mockMedicationService    = MockMedicationService()
+        mockScheduleService      = MockScheduleService()
+        mockDoseTrackingService  = MockDoseTrackingService()
+        mockFDAService           = MockFDAService()
+        mockEventService         = MockEventService()
+        mockNotificationService  = MockNotificationService()
         sut = AddMedicationViewModel(
             medicationService:    mockMedicationService,
             scheduleService:      mockScheduleService,
             doseTrackingService:  mockDoseTrackingService,
             fdaService:           mockFDAService,
-            eventService:         mockEventService
+            eventService:         mockEventService,
+            notificationService:  mockNotificationService
         )
     }
 
     override func tearDown() {
         sut = nil
-        mockMedicationService   = nil
-        mockScheduleService     = nil
-        mockDoseTrackingService = nil
-        mockFDAService          = nil
-        mockEventService        = nil
+        mockMedicationService    = nil
+        mockScheduleService      = nil
+        mockDoseTrackingService  = nil
+        mockFDAService           = nil
+        mockEventService         = nil
+        mockNotificationService  = nil
         super.tearDown()
     }
 

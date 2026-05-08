@@ -1,10 +1,4 @@
-//
-//  AppDependencies.swift
-//  PillPath
-//
-//  Single place to register all services into the DI container.
-//  Call AppDependencies.register() once from PillPathApp.init().
-//
+
 
 import Foundation
 
@@ -42,7 +36,7 @@ struct AppDependencies {
             EventService(coreData: c.resolve(CoreDataStack.self))
         }
 
-        // ── Analytics ─────────────────────────────────────────
+      
         c.registerSingleton(AnalyticsServiceProtocol.self) {
             AnalyticsService(coreData: c.resolve(CoreDataStack.self))
         }

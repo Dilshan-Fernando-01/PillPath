@@ -1,7 +1,4 @@
-//
-//  LoginView.swift
-//  PillPath — Authentication Module
-//
+
 
 import SwiftUI
 import AuthenticationServices
@@ -75,7 +72,7 @@ struct LoginView: View {
                     HStack {
                         Spacer()
                         Button("Forgot Password?") {
-                            // TODO: Navigate to password reset
+                           
                         }
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.brandPrimary)
@@ -101,7 +98,7 @@ struct LoginView: View {
 
                 
                 VStack(spacing: AppSpacing.md) {
-                    // Apple Sign In (native button)
+                
                     SignInWithAppleButton(.signIn) { request in
                         let nonce = randomNonceString()
                         currentNonce = nonce
@@ -167,7 +164,7 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Biometric Sign-In Card
+
 
 private struct BiometricSignInCard: View {
     let biometryType: LABiometryType

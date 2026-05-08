@@ -1,7 +1,4 @@
-//
-//  AnalyticsViewModel.swift
-//  PillPath — Analytics Module
-//
+
 
 import Foundation
 import Combine

@@ -1,7 +1,3 @@
-//
-//  MedicationEntity+CoreDataClass.swift
-//  PillPath
-//
 
 import Foundation
 import CoreData

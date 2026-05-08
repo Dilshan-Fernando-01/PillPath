@@ -1,10 +1,4 @@
-//
-//  APIEndpoint.swift
-//  PillPath
-//
-//  Protocol-based endpoint definition.
-//  Conform a new enum to APIEndpoint to add an API.
-//
+
 
 import Foundation
 

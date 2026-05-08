@@ -1,8 +1,3 @@
-//
-//  NextDoseCard.swift
-//  PillPath — Home Module
-//
-
 
 import SwiftUI
 

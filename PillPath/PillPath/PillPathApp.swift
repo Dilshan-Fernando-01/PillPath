@@ -1,9 +1,4 @@
-//
-//  PillPathApp.swift
-//  PillPath
-//
-//  Entry point. Bootstraps DI, CoreData, and injects global environment objects.
-//
+
 
 import SwiftUI
 import UserNotifications

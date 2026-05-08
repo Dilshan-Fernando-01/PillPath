@@ -1,7 +1,4 @@
-//
-//  CalendarStripView.swift
-//  PillPath — Home Module
-//
+
 
 
 import SwiftUI

@@ -19,18 +19,20 @@ final class HomeViewModel: ObservableObject {
     private let scheduleService: ScheduleServiceProtocol
     private let doseTrackingService: DoseTrackingServiceProtocol
     private let medicationService: MedicationServiceProtocol
+    private let notificationService: NotificationServiceProtocol
     private var cancellables = Set<AnyCancellable>()
 
-    
 
     init(
         scheduleService: ScheduleServiceProtocol? = nil,
         doseTrackingService: DoseTrackingServiceProtocol? = nil,
-        medicationService: MedicationServiceProtocol? = nil
+        medicationService: MedicationServiceProtocol? = nil,
+        notificationService: NotificationServiceProtocol? = nil
     ) {
         self.scheduleService     = scheduleService     ?? DIContainer.shared.resolve(ScheduleServiceProtocol.self)
         self.doseTrackingService = doseTrackingService ?? DIContainer.shared.resolve(DoseTrackingServiceProtocol.self)
         self.medicationService   = medicationService   ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
+        self.notificationService = notificationService ?? DIContainer.shared.resolve(NotificationServiceProtocol.self)
 
         
         $selectedDate
@@ -71,14 +73,14 @@ final class HomeViewModel: ObservableObject {
                       med.isActive else { continue }
 
                 let daysAhead = max(2, (calendar.dateComponents([.day], from: calendar.startOfDay(for: .now), to: date).day ?? 0) + 2)
-                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: daysAhead)
+                let startOfDate = calendar.startOfDay(for: date)
+                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: daysAhead, from: startOfDate)
                     .filter { calendar.isDate($0, inSameDayAs: date) }
 
                 for doseTime in doseTimes {
                     let hour = calendar.component(.hour, from: doseTime)
                     let timeLabel = DoseTimeLabel.from(hour: hour)
 
-                 
                     let matchedLog = logMap[schedule.id]?.first {
                         abs($0.scheduledAt.timeIntervalSince(doseTime)) < 60
                     }
@@ -92,11 +94,11 @@ final class HomeViewModel: ObservableObject {
                         status = .pending
                     }
 
-                    let item = DoseDisplayItem(
+                    var item = DoseDisplayItem(
                         id: matchedLog?.id ?? UUID(),
                         medicationId: med.id,
                         scheduleId: schedule.id,
-                        medicationName: med.name,
+                        medicationName: med.displayName ?? med.name,
                         dosageDisplay: med.dosageDisplay,
                         medicationCategory: med.instructions,
                         usageNote: med.notes,
@@ -106,6 +108,9 @@ final class HomeViewModel: ObservableObject {
                         status: status,
                         logId: matchedLog?.id
                     )
+                    item.dosageAmount = med.dosageAmount
+                    item.currentQuantity = med.currentQuantity
+                    item.photoURL = med.photoURL
                     items.append(item)
                 }
             }
@@ -159,6 +164,16 @@ final class HomeViewModel: ObservableObject {
                 status: item.status
             )
             try doseTrackingService.markTaken(log, at: .now)
+
+            if var med = try? medicationService.fetchAll().first(where: { $0.id == item.medicationId }),
+               med.currentQuantity > 0 {
+                med.currentQuantity = max(0, med.currentQuantity - Int(med.dosageAmount))
+                try? medicationService.save(med)
+                if med.lowQuantityAlert && med.currentQuantity <= med.lowQuantityThreshold {
+                    notificationService.scheduleLowQuantityAlert(for: med)
+                }
+            }
+
             loadDoses(for: selectedDate)
         } catch {
             errorMessage = error.localizedDescription

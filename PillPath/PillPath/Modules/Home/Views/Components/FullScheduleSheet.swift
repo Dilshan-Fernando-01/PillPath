@@ -1,10 +1,3 @@
-//
-//  FullScheduleSheet.swift
-//  PillPath — Home Module
-//
-//  Bottom sheet showing all time-of-day groups for the selected date.
-//  Triggered by "View Full Schedule of the Day".
-//
 
 import SwiftUI
 
