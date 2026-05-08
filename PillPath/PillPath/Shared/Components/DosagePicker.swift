@@ -1,30 +1,50 @@
-//
-//  DosagePicker.swift
-//  PillPath — Design System
-//
-//  Step 3: large dosage number + quick-select chips (0.5, 1, 1.5, 2).
-//  Matches Figma "What is the dosage?" screen.
-//
+
 
 import SwiftUI
 
 struct DosagePicker: View {
     @Binding var amount: Double
     @Binding var unit: DosageUnit
+    var form: MedicationForm = .tablet
 
-    private let quickValues: [Double] = [0.5, 1, 1.5, 2]
+    private var quickValues: [Double] {
+        switch form {
+        case .inhaler:            return [1, 2, 3, 4]
+        case .liquid, .injection: return [5, 10, 15, 20]
+        default:                  return [0.5, 1, 1.5, 2]
+        }
+    }
+
+    private var toggleUnits: [DosageUnit] {
+        switch form {
+        case .liquid, .injection: return [.ml, .mg]
+        case .patch, .inhaler:   return [.mg, .ml]
+        default:                 return [.pills, .mg]
+        }
+    }
+
+    private func unitLabel(_ u: DosageUnit) -> String {
+        switch (form, u) {
+        case (.inhaler, .pills): return "Puffs"
+        case (.tablet, .pills):  return "Tablet"
+        case (.capsule, .pills): return "Capsule"
+        case (_, .pills):        return "Count"
+        case (_, .mg):           return "mg"
+        case (_, .ml):           return "mL"
+        }
+    }
 
     var body: some View {
         VStack(spacing: AppSpacing.lg) {
-            // Unit toggle (Tablet | Liquid)
+        
             HStack(spacing: 0) {
-                unitToggle(label: "Tablet", unit: .pills)
-                unitToggle(label: "Liquid", unit: .ml)
+                ForEach(toggleUnits, id: \.self) { u in
+                    unitToggle(label: unitLabel(u), unit: u)
+                }
             }
             .background(Color.appBackground)
             .clipShape(Capsule())
 
-            // Large dosage display
             HStack(alignment: .lastTextBaseline, spacing: AppSpacing.sm) {
                 Text(amountText)
                     .font(.system(size: 72, weight: .black))
@@ -32,14 +52,14 @@ struct DosagePicker: View {
                     .contentTransition(.numericText())
                     .animation(.spring(duration: 0.25), value: amount)
 
-                Text(unit.displayName)
+                Text(displayUnitLabel)
                     .font(.system(size: 28, weight: .regular))
                     .foregroundStyle(Color.textSecondary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppSpacing.sm)
 
-            // Quick-select chips
+           
             HStack(spacing: AppSpacing.md) {
                 ForEach(quickValues, id: \.self) { value in
                     quickChip(value: value)
@@ -48,7 +68,7 @@ struct DosagePicker: View {
         }
     }
 
-    // MARK: - Sub-views
+  
 
     private func unitToggle(label: String, unit: DosageUnit) -> some View {
         let isSelected = self.unit == unit
@@ -81,7 +101,14 @@ struct DosagePicker: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Helpers
+  
+
+    private var displayUnitLabel: String {
+        if form == .inhaler && unit == .pills {
+            return amount == 1 ? "puff" : "puffs"
+        }
+        return unit.displayName
+    }
 
     private var amountText: String {
         amount.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(amount)) : String(amount)
@@ -95,7 +122,7 @@ struct DosagePicker: View {
 #Preview {
     @State var amount: Double = 1
     @State var unit: DosageUnit = .pills
-    return DosagePicker(amount: $amount, unit: $unit)
+    return DosagePicker(amount: $amount, unit: $unit, form: .tablet)
         .padding()
         .background(Color.appBackground)
 }

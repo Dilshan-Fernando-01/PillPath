@@ -1,7 +1,4 @@
-//
-//  ScheduleMapper.swift
-//  PillPath
-//
+
 
 import Foundation
 import CoreData
@@ -23,7 +20,10 @@ enum ScheduleMapper {
         let specificDays = entity.specificDaysJSON
             .flatMap { JSONHelper.decodeIntArray($0) } ?? []
 
-        let customDates = JSONHelper.decodeDateArray(entity.customDatesJSON)
+       let customDatesRaw = entity.entity.attributesByName["customDatesJSON"] != nil
+            ? (entity.value(forKey: "customDatesJSON") as? String)
+            : nil
+        let customDates = JSONHelper.decodeDateArray(customDatesRaw)
 
         return MedicationSchedule(
             id: id,
@@ -51,7 +51,9 @@ enum ScheduleMapper {
         entity.frequency       = schedule.frequency.rawValue
         entity.intervalHours   = Int32(schedule.intervalHours)
         entity.specificDaysJSON = JSONHelper.encodeIntArray(schedule.specificDays)
-        entity.customDatesJSON  = JSONHelper.encodeDateArray(schedule.customDates)
+       if entity.entity.attributesByName["customDatesJSON"] != nil {
+            entity.setValue(JSONHelper.encodeDateArray(schedule.customDates), forKey: "customDatesJSON")
+        }
         entity.mealTiming      = schedule.mealTiming.rawValue
         entity.startDate       = schedule.startDate
         entity.endDate         = schedule.endDate
