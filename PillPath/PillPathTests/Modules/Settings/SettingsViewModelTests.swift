@@ -1,7 +1,3 @@
-//
-//  SettingsViewModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath
@@ -10,7 +6,6 @@ final class SettingsViewModelTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        // Clean UserDefaults before each test
         let keys = ["pillpath_language", "pillpath_text_size", "pillpath_color_scheme"]
         keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
     }

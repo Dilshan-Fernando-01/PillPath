@@ -73,7 +73,6 @@ final class MedicationServiceTests: XCTestCase {
         XCTAssertEqual(result.first?.name, "Updated")
     }
 
-    // MARK: - delete
 
     func test_delete_removesMedication() throws {
         let med = makeMedication(name: "ToDelete")

@@ -1,7 +1,3 @@
-//
-//  MockOCRService.swift
-//  PillPathTests
-//
 
 import UIKit
 @testable import PillPath

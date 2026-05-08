@@ -1,7 +1,3 @@
-//
-//  ActivityViewModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath

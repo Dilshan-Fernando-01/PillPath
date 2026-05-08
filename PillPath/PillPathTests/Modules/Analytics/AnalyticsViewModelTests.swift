@@ -1,7 +1,3 @@
-//
-//  AnalyticsViewModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath

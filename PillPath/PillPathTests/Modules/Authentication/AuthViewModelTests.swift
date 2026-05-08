@@ -1,7 +1,3 @@
-//
-//  AuthViewModelTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath
@@ -27,7 +23,6 @@ final class AuthViewModelTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Init
 
     func test_init_isNotAuthenticated_byDefault() {
         XCTAssertFalse(sut.isAuthenticated)
@@ -47,7 +42,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertTrue(vm.hasCachedSession)
     }
 
-    // MARK: - signIn
 
     func test_signIn_success_setsCurrentUser() async {
         await sut.signIn(email: "user@test.com", password: "password123")
@@ -87,7 +81,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading)
     }
 
-    // MARK: - register
 
     func test_register_success_setsCurrentUser() async {
         await sut.register(name: "Dilshan", email: "d@test.com", password: "Password1!", confirmPassword: "Password1!")
@@ -132,7 +125,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isAuthenticated)
     }
 
-    // MARK: - signInWithBiometrics
 
     func test_signInWithBiometrics_success_setsCurrentUser() async {
         mockAuth.cachedSessionExists = true
@@ -191,7 +183,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertEqual(mockBiometric.authenticateCallCount, 0)
     }
 
-    // MARK: - isBiometryAvailable
 
     func test_isBiometryAvailable_trueWhenBothConditionsMet() {
         mockAuth.cachedSessionExists = true
@@ -214,7 +205,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isBiometryAvailable)
     }
 
-    // MARK: - signInWithApple
 
     func test_signInWithApple_success_setsCurrentUser() async {
         await sut.signInWithApple(idToken: "token", nonce: "nonce", fullName: nil)
@@ -229,7 +219,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.errorMessage)
     }
 
-    // MARK: - signInWithGoogle
 
     func test_signInWithGoogle_success_setsCurrentUser() async {
         await sut.signInWithGoogle()
@@ -244,7 +233,6 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.errorMessage)
     }
 
-    // MARK: - signOut
 
     func test_signOut_clearsCurrentUser() async {
         await sut.signIn(email: "user@test.com", password: "password123")

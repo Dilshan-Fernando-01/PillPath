@@ -1,7 +1,3 @@
-//
-//  NetworkClientTests.swift
-//  PillPathTests
-//
 
 import XCTest
 @testable import PillPath

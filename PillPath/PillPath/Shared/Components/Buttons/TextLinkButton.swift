@@ -1,9 +1,3 @@
-//
-//  TextLinkButton.swift
-//  PillPath — Design System
-//
-//  Plain text button, matches Figma "Skip for now" / "Cancel" styles.
-//
 
 import SwiftUI
 

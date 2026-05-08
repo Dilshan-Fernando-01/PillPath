@@ -1,21 +1,14 @@
-//
-//  FDAService.swift
-//  PillPath — Medications Module
-//
-//  Clean DTO wrapper around openFDA.
-//  The rest of the app only sees [MedicationSearchResult] — never raw API JSON.
-//
+
 
 import Foundation
 
-// MARK: - Protocol
+
 
 protocol FDAServiceProtocol {
     func search(query: String, limit: Int) async throws -> [MedicationSearchResult]
     func details(for name: String) async throws -> MedicationSearchResult?
 }
 
-// MARK: - Clean DTO (not the raw API response)
 
 struct MedicationSearchResult: Identifiable, Codable, Hashable {
     let id: UUID
@@ -23,14 +16,13 @@ struct MedicationSearchResult: Identifiable, Codable, Hashable {
     let genericName: String?
     let manufacturer: String?
     let dosageForms: [String]
-    let pharmClass: [String]                   // e.g. ["Analgesic", "Antipyretic"]
+    let pharmClass: [String]                  
     let indications: String?
-    let dosageAndAdministration: [String]      // numbered how-to-use steps
+    let dosageAndAdministration: [String]     
     let warnings: String?
     let interactions: String?
     let sideEffects: [String]
 
-    /// Converts the search result into a pre-filled Medication domain model.
     func toMedication() -> Medication {
         Medication(
             name: brandName,
@@ -43,7 +35,7 @@ struct MedicationSearchResult: Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Service
+
 
 final class FDAService: FDAServiceProtocol {
 
@@ -69,7 +61,6 @@ final class FDAService: FDAServiceProtocol {
     }
 }
 
-// MARK: - FDA Response Models (raw API — stay in this file)
 
 struct OpenFDADrugResponse: Decodable {
     let results: [OpenFDADrugResult]?
@@ -89,10 +80,9 @@ struct OpenFDAInfo: Decodable {
     let generic_name: [String]?
     let manufacturer_name: [String]?
     let dosage_form: [String]?
-    let pharm_class_epc: [String]?   // Established Pharmacologic Class
-}
+    let pharm_class_epc: [String]?   
 
-// MARK: - FDA Mapper
+
 
 enum FDAMapper {
 
