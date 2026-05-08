@@ -1,10 +1,4 @@
-//
-//  LookupViewModel.swift
-//  PillPath — Lookup Module
-//
-//  Drives the Search Medication screen.
-//  Debounces input → openFDA search → suggestions while idle.
-//
+
 
 import Foundation
 import Combine
@@ -12,7 +6,7 @@ import Combine
 @MainActor
 final class LookupViewModel: ObservableObject {
 
-    // MARK: - Published
+   
 
     @Published var searchText = ""
     @Published var searchResults: [MedicationSearchResult] = []
@@ -20,27 +14,26 @@ final class LookupViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var selectedResult: MedicationSearchResult?
 
-    // MARK: - Suggestions (shown when search field is empty)
-
+    
     let suggestions = [
         "Aspirin", "Ibuprofen", "Metformin", "Lisinopril",
         "Amoxicillin", "Atorvastatin", "Omeprazole", "Sertraline"
     ]
 
-    // MARK: - Private
+   
 
     private let fdaService: FDAServiceProtocol
     private var searchTask: Task<Void, Never>?
 
-    // MARK: - Init
+   
 
     init(fdaService: FDAServiceProtocol? = nil) {
         self.fdaService = fdaService ?? DIContainer.shared.resolve(FDAServiceProtocol.self)
     }
 
-    // MARK: - Search
+   
 
-    /// Call on every keystroke; debounced internally.
+    
     func onSearchTextChanged(_ text: String) {
         searchTask?.cancel()
         guard !text.trimmingCharacters(in: .whitespaces).isEmpty else {
@@ -50,7 +43,7 @@ final class LookupViewModel: ObservableObject {
         }
         isSearching = true
         searchTask = Task {
-            // 400ms debounce
+       
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
             await performSearch(query: text)

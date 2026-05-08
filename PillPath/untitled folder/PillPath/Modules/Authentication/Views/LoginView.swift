@@ -1,7 +1,4 @@
-//
-//  LoginView.swift
-//  PillPath — Authentication Module
-//
+
 
 import SwiftUI
 import AuthenticationServices

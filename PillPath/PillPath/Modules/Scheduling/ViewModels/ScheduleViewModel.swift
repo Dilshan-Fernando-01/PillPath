@@ -1,7 +1,3 @@
-//
-//  ScheduleViewModel.swift
-//  PillPath — Scheduling Module
-//
 
 import Foundation
 import Combine
@@ -25,7 +21,6 @@ final class ScheduleViewModel: ObservableObject {
         self.doseTrackingService = doseTrackingService ?? DIContainer.shared.resolve(DoseTrackingServiceProtocol.self)
     }
 
-    // MARK: - Load
 
     func loadSchedules() {
         do {
@@ -43,9 +38,7 @@ final class ScheduleViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Add / Delete
 
-    /// `medication` is required because ScheduleService links schedule → medication entity.
     func addSchedule(_ schedule: MedicationSchedule, for medication: Medication) {
         do {
             try scheduleService.save(schedule, for: medication)
@@ -64,7 +57,6 @@ final class ScheduleViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Dose Actions (delegated to DoseTrackingService)
 
     func markDoseTaken(_ log: DoseLog) {
         do {

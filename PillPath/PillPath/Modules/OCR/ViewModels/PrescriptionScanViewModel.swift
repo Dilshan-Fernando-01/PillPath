@@ -1,9 +1,3 @@
-//
-//  PrescriptionScanViewModel.swift
-//  PillPath — OCR Module
-//
-//  Orchestrates the full scan → extract → validate → import pipeline.
-//
 
 import Foundation
 import UIKit
@@ -12,34 +6,29 @@ import Combine
 @MainActor
 final class PrescriptionScanViewModel: ObservableObject {
 
-    // MARK: - Flow state
 
     enum ScanStep {
-        case camera       // Step 1: capture image
-        case crop         // Step 2: user crops the image
-        case analyzing    // Step 3: OCR + FDA validation
-        case review       // Step 4: user reviews/edits list
-        case done         // Step 5: success
+        case camera       
+        case crop         
+        case analyzing    
+        case review       
+        case done         
     }
 
     @Published var step: ScanStep = .camera
     @Published var scannedItems: [ScannedMedicationItem] = []
     @Published var capturedImage: UIImage?
-    @Published var rawImage: UIImage?      // full uncropped image, shown in crop step
+    @Published var rawImage: UIImage?      
     @Published var errorMessage: String?
     @Published var isImporting = false
     @Published var savedMedications: [Medication] = []
 
-    // Manual addition (+ Add Another Manually)
     @Published var showManualEntry = false
 
-    // Quick-edit sheet
     @Published var editingItem: ScannedMedicationItem?
 
-    // Advanced edit (redirect to Add Medication stepper)
     @Published var advancedEditViewModel: AddMedicationViewModel?
 
-    // MARK: - Services
 
     private let ocrService: OCRServiceProtocol
     private let extractionService: MedicationExtractionServiceProtocol
@@ -58,22 +47,17 @@ final class PrescriptionScanViewModel: ObservableObject {
         self.importService     = importService     ?? BulkImportService()
     }
 
-    // MARK: - Crop step
 
-    /// Shows the crop screen with the raw captured image.
     func presentCrop(_ image: UIImage) {
         rawImage = image
         step = .crop
     }
 
-    /// Called when user confirms a crop (or skips with the original).
     func processFromCrop(_ image: UIImage) {
         processImage(image)
     }
 
-    // MARK: - Pipeline
 
-    /// Called when user captures or picks an image.
     func processImage(_ image: UIImage) {
         capturedImage = image
         step = .analyzing
@@ -81,7 +65,6 @@ final class PrescriptionScanViewModel: ObservableObject {
 
         Task {
             do {
-                // 1. OCR
                 let ocrResult = try await ocrService.recognizeText(from: image)
                 guard !ocrResult.rawText.isEmpty else {
                     errorMessage = "No text found in the image. Try a clearer photo."
@@ -89,17 +72,14 @@ final class PrescriptionScanViewModel: ObservableObject {
                     return
                 }
 
-                // 2. Extract candidates
                 let candidates = extractionService.extractCandidates(from: ocrResult.rawText)
                 guard !candidates.isEmpty else {
                     errorMessage = "No medication names detected. You can add them manually."
-                    // Show review with empty state + manual add
                     scannedItems = []
                     step = .review
                     return
                 }
 
-                // 3. Validate against FDA (concurrent)
                 let validated = await validationService.validate(candidates: candidates)
 
                 scannedItems = validated
@@ -112,7 +92,6 @@ final class PrescriptionScanViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Item actions (Review screen)
 
     func accept(_ item: ScannedMedicationItem) {
         update(item) { $0.action = .accepted }
@@ -163,11 +142,9 @@ final class PrescriptionScanViewModel: ObservableObject {
             unit: item.suggestedDosageUnit
         )
         advancedEditViewModel = vm
-        // Mark rejected so it won't double-import
         reject(item)
     }
 
-    // MARK: - Import
 
     var acceptedCount: Int { scannedItems.filter { $0.action == .accepted }.count }
 
@@ -186,7 +163,6 @@ final class PrescriptionScanViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Reset
 
     func scanAnother() {
         capturedImage = nil
@@ -197,7 +173,6 @@ final class PrescriptionScanViewModel: ObservableObject {
         step = .camera
     }
 
-    // MARK: - Private
 
     private func update(_ item: ScannedMedicationItem, mutation: (inout ScannedMedicationItem) -> Void) {
         guard let idx = scannedItems.firstIndex(where: { $0.id == item.id }) else { return }

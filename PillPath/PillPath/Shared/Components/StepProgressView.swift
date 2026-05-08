@@ -1,10 +1,3 @@
-//
-//  StepProgressView.swift
-//  PillPath — Design System
-//
-//  "STEP X OF 8   |   37% Complete" header + progress bar.
-//  Matches the Add Medication stepper shown in Figma.
-//
 
 import SwiftUI
 

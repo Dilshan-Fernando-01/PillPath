@@ -131,7 +131,7 @@ final class SettingsViewModel: ObservableObject {
         static let highContrast         = "pp_high_contrast"
         static let language             = "pp_language"
         static let colorScheme          = "pp_color_scheme"
-        static let guardianContact      = "pp_guardian_contact"    // legacy key, kept for migration
+        static let guardianContact      = "pp_guardian_contact"    
         static let guardianContacts     = "pp_guardian_contacts"
     }
 }

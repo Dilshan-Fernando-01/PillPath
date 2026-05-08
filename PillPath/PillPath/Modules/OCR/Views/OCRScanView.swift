@@ -1,10 +1,3 @@
-//
-//  OCRScanView.swift
-//  PillPath — OCR Module
-//
-//  Root container for the prescription scan flow.
-//  Routes between camera → analyzing → review → success screens.
-//
 
 import SwiftUI
 import PhotosUI
@@ -14,7 +7,6 @@ struct OCRScanView: View {
     @StateObject private var viewModel = PrescriptionScanViewModel()
     @EnvironmentObject private var settings: SettingsViewModel
 
-    // Picker state lives here — no binding tunnelling required
     @State private var showCamera  = false
     @State private var showGallery = false
 
@@ -40,7 +32,6 @@ struct OCRScanView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.step == .camera)
-        // Camera picker
         .fullScreenCover(isPresented: $showCamera) {
             ImagePickerView(source: .camera) { image in
                 showCamera = false
@@ -50,7 +41,6 @@ struct OCRScanView: View {
             }
             .ignoresSafeArea()
         }
-        // Gallery picker
         .sheet(isPresented: $showGallery) {
             ImagePickerView(source: .photoLibrary) { image in
                 showGallery = false
@@ -59,7 +49,6 @@ struct OCRScanView: View {
                 showGallery = false
             }
         }
-        // Advanced edit redirect
         .sheet(item: $viewModel.advancedEditViewModel) { vm in
             AddMedicationFlowView(viewModel: vm)
         }
@@ -70,14 +59,12 @@ struct OCRScanView: View {
         }
     }
 
-    // MARK: - Camera landing screen (inline — no sub-view binding tunnel)
 
     private var cameraLandingScreen: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Title
                 Text("Scan Prescription")
                     .foregroundStyle(.white)
                     .font(AppFont.headline())
@@ -86,12 +73,10 @@ struct OCRScanView: View {
 
                 Spacer()
 
-                // Viewfinder frame guide
                 cameraFrameGuide
 
                 Spacer()
 
-                // Buttons — live here, read @State directly
                 cameraButtons
             }
         }
@@ -131,7 +116,6 @@ struct OCRScanView: View {
     private var cameraButtons: some View {
         VStack(spacing: AppSpacing.lg) {
 
-            // Camera button
             Button {
                 showCamera = true
             } label: {
@@ -152,7 +136,6 @@ struct OCRScanView: View {
             }
             .buttonStyle(.plain)
 
-            // Gallery button — clearly labelled
             Button {
                 showGallery = true
             } label: {
@@ -176,7 +159,6 @@ struct OCRScanView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Success view
 
     private var prescriptionSuccessView: some View {
         SuccessView(
@@ -195,7 +177,6 @@ struct OCRScanView: View {
     }
 }
 
-// MARK: - Notification names
 
 extension Notification.Name {
     static let switchToHomeTab = Notification.Name("switchToHomeTab")

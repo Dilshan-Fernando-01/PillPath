@@ -1,20 +1,14 @@
-//
-//  ScannedMedicationItem.swift
-//  PillPath — OCR Module
-//
-//  Represents one medication candidate extracted from a prescription scan.
-//
 
 import Foundation
 
 struct ScannedMedicationItem: Identifiable {
     let id: UUID
-    var originalName: String          // Raw text from OCR
-    var fdaMatchName: String?         // Best openFDA brand/generic match
+    var originalName: String          
+    var fdaMatchName: String?         
     var fdaResult: MedicationSearchResult?
-    var confidence: Int               // 0–100 similarity score
+    var confidence: Int               
     var matchStatus: MatchStatus
-    var userEditedName: String        // Editable by the user; starts == fdaMatchName ?? originalName
+    var userEditedName: String        
     var action: ItemAction
     var suggestedDosageAmount: Double
     var suggestedDosageUnit: DosageUnit
@@ -44,12 +38,11 @@ struct ScannedMedicationItem: Identifiable {
         self.suggestedForm         = suggestedForm
     }
 
-    // MARK: - Nested Enums
 
     enum MatchStatus {
-        case exact      // ≥ 95 % similarity
-        case partial    // 60–94 %
-        case none       // < 60 %
+        case exact      
+        case partial    
+        case none       
 
         var displayName: String {
             switch self {
@@ -69,12 +62,11 @@ struct ScannedMedicationItem: Identifiable {
     }
 
     enum ItemAction {
-        case pending   // Not yet decided
-        case accepted  // User confirmed
-        case rejected  // User removed
+        case pending   
+        case accepted  
+        case rejected  
     }
 
-    // MARK: - Helpers
 
     var displayName: String { userEditedName.isEmpty ? originalName : userEditedName }
 

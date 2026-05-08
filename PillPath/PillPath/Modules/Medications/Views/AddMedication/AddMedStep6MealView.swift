@@ -1,9 +1,3 @@
-//
-//  AddMedStep6MealView.swift
-//  PillPath — Medications Module
-//
-//  Step 6: Select meal timing preference.
-//
 
 import SwiftUI
 
@@ -19,17 +13,14 @@ struct AddMedStep6MealView: View {
                 subtitle: "Select the meal timing as instructed by your doctor."
             )
 
-            // Shared segmented selector + detail rows
             MealTimingSelector(selected: $viewModel.mealTiming)
 
-            // "No preference" option
             noPreferenceRow
 
             Spacer()
         }
     }
 
-    // MARK: - No Preference
 
     private var noPreferenceRow: some View {
         let isSelected = viewModel.mealTiming == .none

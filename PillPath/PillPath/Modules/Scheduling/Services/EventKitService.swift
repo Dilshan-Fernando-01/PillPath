@@ -1,10 +1,3 @@
-//
-//  EventKitService.swift
-//  PillPath — Scheduling Module
-//
-//  Integrates with Apple EventKit to sync medication schedules to the
-//  user's iOS Calendar as recurring events with dose-time alerts.
-//
 
 import Combine
 import EventKit
@@ -16,16 +9,13 @@ final class EventKitService: ObservableObject {
 
     private let store = EKEventStore()
 
-    /// Published so UI can react to permission state
     @Published var authorizationStatus: EKAuthorizationStatus = .notDetermined
 
     private init() {
         authorizationStatus = EKEventStore.authorizationStatus(for: .event)
     }
 
-    // MARK: - Request Access
 
-    /// Requests calendar write access. Calls completion on the main thread.
     func requestAccess(completion: @escaping (Bool) -> Void) {
         if #available(iOS 17.0, *) {
             store.requestWriteOnlyAccessToEvents { [weak self] granted, _ in
@@ -44,10 +34,7 @@ final class EventKitService: ObservableObject {
         }
     }
 
-    // MARK: - Sync Medication Schedule
 
-    /// Creates a recurring calendar event for each daily dose of the medication.
-    /// Returns the number of events created.
     @discardableResult
     func syncMedicationToCalendar(
         medicationName: String,
@@ -60,7 +47,6 @@ final class EventKitService: ObservableObject {
 
         let calendar = EKCalendar.init(for: .event, eventStore: store)
 
-        // Use the app's dedicated calendar if it exists, otherwise use the default
         let targetCalendar = existingPillPathCalendar() ?? store.defaultCalendarForNewEvents
 
         var created = 0
@@ -70,13 +56,11 @@ final class EventKitService: ObservableObject {
             event.notes    = [dosageDisplay, notes].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " — ")
             event.calendar = targetCalendar
             event.startDate = alignToToday(time: time, from: startDate)
-            event.endDate   = event.startDate.addingTimeInterval(15 * 60) // 15-min duration
+            event.endDate   = event.startDate.addingTimeInterval(15 * 60) 
 
-            // Alert 10 minutes before
             let alarm = EKAlarm(relativeOffset: -10 * 60)
             event.addAlarm(alarm)
 
-            // Repeat daily
             let rule = EKRecurrenceRule(
                 recurrenceWith: .daily,
                 interval: 1,
@@ -88,13 +72,11 @@ final class EventKitService: ObservableObject {
                 created += 1
             }
         }
-        _ = calendar // silence unused warning
+        _ = calendar 
         return created
     }
 
-    // MARK: - Remove Medication Events
 
-    /// Removes all PillPath calendar events that match the medication name.
     func removeMedicationEvents(medicationName: String) {
         guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return }
 
@@ -110,14 +92,11 @@ final class EventKitService: ObservableObject {
         }
     }
 
-    // MARK: - Calendar Management
 
-    /// Returns the existing PillPath calendar if it was previously created.
     private func existingPillPathCalendar() -> EKCalendar? {
         store.calendars(for: .event).first { $0.title == "PillPath Medications" }
     }
 
-    /// Creates a dedicated PillPath calendar in the user's default source.
     func createPillPathCalendarIfNeeded() {
         guard existingPillPathCalendar() == nil else { return }
         guard let source = store.defaultCalendarForNewEvents?.source else { return }
@@ -125,11 +104,10 @@ final class EventKitService: ObservableObject {
         let cal = EKCalendar(for: .event, eventStore: store)
         cal.title  = "PillPath Medications"
         cal.source = source
-        cal.cgColor = CGColor(red: 0.27, green: 0.51, blue: 0.94, alpha: 1) // brand blue
+        cal.cgColor = CGColor(red: 0.27, green: 0.51, blue: 0.94, alpha: 1) 
         try? store.saveCalendar(cal, commit: true)
     }
 
-    // MARK: - Helpers
 
     private func alignToToday(time: Date, from base: Date) -> Date {
         let cal = Calendar.current

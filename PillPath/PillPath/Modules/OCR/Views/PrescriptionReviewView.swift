@@ -1,11 +1,3 @@
-//
-//  PrescriptionReviewView.swift
-//  PillPath — OCR Module
-//
-//  Step 3: Review extracted medications.
-//  Accept / Edit / Reject per item. "+ Add Another Manually". Save All.
-//  Matches Figma "Medications Found" screen.
-//
 
 import SwiftUI
 
@@ -18,7 +10,6 @@ struct PrescriptionReviewView: View {
     var body: some View {
         VStack(spacing: 0) {
 
-            // Header
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Medications Found")
                     .font(AppFont.title())
@@ -34,7 +25,6 @@ struct PrescriptionReviewView: View {
             ScrollView {
                 VStack(spacing: AppSpacing.sm) {
 
-                    // Item cards
                     ForEach($viewModel.scannedItems) { $item in
                         if !item.isRejected {
                             MedicationReviewCard(item: $item) {
@@ -49,12 +39,10 @@ struct PrescriptionReviewView: View {
                         }
                     }
 
-                    // Manual add
                     if showManualField {
                         manualEntryField
                     }
 
-                    // + Add Another Manually button
                     if !showManualField {
                         Button {
                             showManualField = true
@@ -91,7 +79,6 @@ struct PrescriptionReviewView: View {
         .safeAreaInset(edge: .bottom) {
             saveButton
         }
-        // Quick edit sheet
         .sheet(item: $viewModel.editingItem) { item in
             QuickEditSheet(
                 item: item,
@@ -108,7 +95,6 @@ struct PrescriptionReviewView: View {
         }
     }
 
-    // MARK: - Manual entry
 
     private var manualEntryField: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -148,7 +134,6 @@ struct PrescriptionReviewView: View {
         }
     }
 
-    // MARK: - Save button
 
     private var saveButton: some View {
         VStack(spacing: AppSpacing.sm) {

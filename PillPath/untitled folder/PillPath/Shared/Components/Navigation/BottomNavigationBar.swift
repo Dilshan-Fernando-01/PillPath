@@ -50,7 +50,7 @@ struct BottomNavigationBar: View {
                     tabItem(tab)
                 }
 
-                // FAB placeholder space
+              
                 Spacer().frame(width: 72)
 
                 ForEach([AppTab.scan, .activity], id: \.label) { tab in

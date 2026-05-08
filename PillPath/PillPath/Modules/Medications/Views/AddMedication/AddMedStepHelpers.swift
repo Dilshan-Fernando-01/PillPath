@@ -1,15 +1,7 @@
-//
-//  AddMedStepHelpers.swift
-//  PillPath — Medications Module
-//
-//  Shared helpers used across all Add Medication step views.
-//
 
 import SwiftUI
 
-// MARK: - Step Header
 
-/// Renders a consistent title + subtitle used at the top of each step.
 @ViewBuilder
 func stepHeader(title: String, subtitle: String? = nil) -> some View {
     VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -25,9 +17,7 @@ func stepHeader(title: String, subtitle: String? = nil) -> some View {
     .frame(maxWidth: .infinity, alignment: .leading)
 }
 
-// MARK: - Section Label
 
-/// Small all-caps section label.
 struct SectionLabel: View {
     let text: String
     var body: some View {
@@ -38,9 +28,7 @@ struct SectionLabel: View {
     }
 }
 
-// MARK: - Field Container
 
-/// White card container for a labelled field row.
 struct FieldCard<Content: View>: View {
     let label: String
     let content: Content

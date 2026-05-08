@@ -195,7 +195,7 @@ struct DoseHistoryView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Helpers
+  
 
     private var groupedByDate: [(date: Date, items: [ActivityViewModel.DoseHistoryItem])] {
         let calendar = Calendar.current

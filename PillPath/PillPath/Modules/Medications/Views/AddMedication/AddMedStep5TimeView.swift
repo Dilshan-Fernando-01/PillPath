@@ -1,9 +1,3 @@
-//
-//  AddMedStep5TimeView.swift
-//  PillPath — Medications Module
-//
-//  Step 5: Select time of day (morning/noon/evening/night) + optional custom times.
-//
 
 import SwiftUI
 
@@ -19,23 +13,19 @@ struct AddMedStep5TimeView: View {
                 subtitle: "Select all time slots that apply. You can add a custom time too."
             )
 
-            // 2×2 grid — morning / noon / evening / night
             TimeOfDayGrid(selected: $viewModel.selectedTimeLabels)
 
-            // Custom times section
             customTimesSection
 
             Spacer()
         }
     }
 
-    // MARK: - Custom Times
 
     private var customTimesSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             SectionLabel(text: "Custom Times")
 
-            // List of added custom times
             if !viewModel.customTimes.isEmpty {
                 VStack(spacing: 0) {
                     ForEach(viewModel.customTimes) { time in
@@ -66,7 +56,6 @@ struct AddMedStep5TimeView: View {
                 .appCardShadow()
             }
 
-            // Inline time picker
             if viewModel.showCustomTimePicker {
                 customTimePicker
             } else {
@@ -91,12 +80,10 @@ struct AddMedStep5TimeView: View {
         }
     }
 
-    // MARK: - Custom Time Picker
 
     private var customTimePicker: some View {
         VStack(spacing: AppSpacing.md) {
             HStack(spacing: 0) {
-                // Hour wheel
                 Picker("Hour", selection: $viewModel.customTimePickerHour) {
                     ForEach(0..<24, id: \.self) { h in
                         Text(String(format: "%02d", h)).tag(h)
@@ -110,7 +97,6 @@ struct AddMedStep5TimeView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(Color.textPrimary)
 
-                // Minute wheel
                 Picker("Minute", selection: $viewModel.customTimePickerMinute) {
                     ForEach([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55], id: \.self) { m in
                         Text(String(format: "%02d", m)).tag(m)

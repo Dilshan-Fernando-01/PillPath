@@ -1,13 +1,4 @@
-//
-//  MedicationInfoView.swift
-//  PillPath — Lookup Module
-//
-//  Full detail screen for a MedicationSearchResult.
-//  Matches Figma: pharm-class chip → title → generic →
-//    What It Is Used For → How To Use (numbered) →
-//    Side Effects → Critical Warnings → Specifications →
-//    [+ Add to My Medications] [Save for Later]
-//
+
 
 import SwiftUI
 
@@ -22,10 +13,8 @@ struct MedicationInfoView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
 
-                    // ── Header ─────────────────────────────────
-                    headerSection
+                  headerSection
 
-                    // ── What It Is Used For ────────────────────
                     if let indications = result.indications, !indications.isEmpty {
                         infoSection(title: "WHAT IT IS USED FOR") {
                             Text(indications)
@@ -35,7 +24,6 @@ struct MedicationInfoView: View {
                         }
                     }
 
-                    // ── How To Use ─────────────────────────────
                     if !result.dosageAndAdministration.isEmpty {
                         infoSection(title: "HOW TO USE") {
                             VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -59,8 +47,7 @@ struct MedicationInfoView: View {
                         }
                     }
 
-                    // ── Side Effects ───────────────────────────
-                    if !result.sideEffects.isEmpty {
+                  if !result.sideEffects.isEmpty {
                         infoSection(title: "SIDE EFFECTS") {
                             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                                 let effects = sideEffectLines
@@ -84,13 +71,11 @@ struct MedicationInfoView: View {
                         }
                     }
 
-                    // ── Critical Warnings ──────────────────────
-                    if let warnings = result.warnings, !warnings.isEmpty {
+                  if let warnings = result.warnings, !warnings.isEmpty {
                         warningsSection(warnings)
                     }
 
-                    // ── Specifications ─────────────────────────
-                    specificationsSection
+                   specificationsSection
 
                     Spacer().frame(height: 100)
                 }
@@ -111,8 +96,7 @@ struct MedicationInfoView: View {
                     }
                 }
             }
-            // Sticky footer buttons
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+           .safeAreaInset(edge: .bottom, spacing: 0) {
                 footerButtons
             }
         }
@@ -124,11 +108,11 @@ struct MedicationInfoView: View {
         }
     }
 
-    // MARK: - Header
+   
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // Pharm class chip
+          
             if let cls = result.pharmClass.first {
                 Text(cls.uppercased())
                     .font(AppFont.label())
@@ -152,7 +136,7 @@ struct MedicationInfoView: View {
         }
     }
 
-    // MARK: - Info Section
+   
 
     private func infoSection<Content: View>(
         title: String,
@@ -170,11 +154,11 @@ struct MedicationInfoView: View {
         }
     }
 
-    // MARK: - Warnings Section
+  
 
     private func warningsSection(_ raw: String) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // Header
+           
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(Color.semanticWarning)
@@ -205,7 +189,7 @@ struct MedicationInfoView: View {
         )
     }
 
-    // MARK: - Specifications
+
 
     private var specificationsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -252,7 +236,7 @@ struct MedicationInfoView: View {
         .padding(.vertical, AppSpacing.sm)
     }
 
-    // MARK: - Footer Buttons
+   
 
     private var footerButtons: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -298,7 +282,7 @@ struct MedicationInfoView: View {
         .background(Color.appBackground)
     }
 
-    // MARK: - Helpers
+  
 
     private var dosageFormEnum: MedicationForm {
         let raw = result.dosageForms.first?.lowercased() ?? ""
@@ -310,9 +294,7 @@ struct MedicationInfoView: View {
         return .tablet
     }
 
-    /// Parses the raw adverse_reactions blob into bullet lines.
-    private var sideEffectLines: [String] {
-        // Some FDA entries return a single paragraph; split on semicolons or commas
+   private var sideEffectLines: [String] {
         let raw = result.sideEffects.first ?? ""
         if raw.isEmpty { return result.sideEffects }
         let splitOn: Character = raw.contains(";") ? ";" : ","
@@ -328,17 +310,14 @@ struct MedicationInfoView: View {
         return "Most people do not experience significant side effects when taken at the recommended dose."
     }
 
-    /// Splits the raw warnings string into bold-label bullets.
-    private func warningBullets(_ raw: String) -> [String] {
-        // Return top 3 sentences or the full string if short
-        let sentences = raw.components(separatedBy: ". ")
+     private func warningBullets(_ raw: String) -> [String] {
+       let sentences = raw.components(separatedBy: ". ")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
         return Array(sentences.prefix(3))
     }
 }
 
-// MARK: - String helper
 
 private extension String {
     func truncated(to length: Int) -> String {

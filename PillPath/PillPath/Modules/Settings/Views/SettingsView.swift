@@ -1,10 +1,3 @@
-//
-//  SettingsView.swift
-//  PillPath — Settings Module
-//
-//  Matches Figma: Security → Notifications → Emergency Contact →
-//    Accessibility → General → Save Settings
-//
 
 import SwiftUI
 
@@ -15,10 +8,8 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
-    // Local editable copies of emergency contact
     @State private var contactName   = ""
     @State private var contactPhone  = ""
-    // Local editable copies of guardian contacts (up to 3)
     @State private var guardians: [GuardianContact] = [.empty(), .empty(), .empty()]
     @State private var showGuardianHelp = false
     @State private var showSavedBanner = false
@@ -304,7 +295,6 @@ struct SettingsView: View {
                 .foregroundStyle(Color.brandPrimary)
                 .padding(.leading, 2)
 
-            // Name
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Name")
                     .font(AppFont.caption())
@@ -317,7 +307,6 @@ struct SettingsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
             }
 
-            // Phone
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Phone Number")
                     .font(AppFont.caption())
@@ -331,7 +320,6 @@ struct SettingsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
             }
 
-            // Notification toggles — shown only when at least name is filled
             if !guardians[index].name.trimmingCharacters(in: .whitespaces).isEmpty {
                 VStack(spacing: 0) {
                     settingsToggleRow(title: "Notify when medication taken",   subtitle: nil, isOn: guardianNotifyBinding(index, \.notifyOnMedTaken))
@@ -350,7 +338,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Guardian bindings
 
     private func guardianNameBinding(_ idx: Int) -> Binding<String> {
         Binding(
@@ -420,7 +407,6 @@ struct SettingsView: View {
     private var accessibilitySection: some View {
         settingsSection(title: "ACCESSIBILITY") {
             VStack(spacing: 0) {
-                // Text Size
                 VStack(alignment: .leading, spacing: AppSpacing.sm) {
                     Text("Text Size")
                         .font(AppFont.body())
@@ -500,7 +486,6 @@ struct SettingsView: View {
 
                 Divider().padding(.leading, AppSpacing.md)
 
-                // About App
                 HStack {
                     Text("About App")
                         .font(AppFont.body())
@@ -582,7 +567,6 @@ struct SettingsView: View {
         contactName  = settings.emergencyContact?.name ?? ""
         contactPhone = settings.emergencyContact?.phoneNumber ?? ""
 
-        // Populate guardian slots from saved data, filling remaining with empties
         var loaded = settings.guardianContacts
         while loaded.count < maxGuardians { loaded.append(.empty()) }
         guardians = Array(loaded.prefix(maxGuardians))
@@ -597,7 +581,6 @@ struct SettingsView: View {
             settings.emergencyContact = EmergencyContact(name: name, phoneNumber: phone)
         }
 
-        // Save non-empty guardians only
         settings.guardianContacts = guardians.filter { !$0.isEmpty }
     }
 }

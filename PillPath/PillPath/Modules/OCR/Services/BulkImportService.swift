@@ -1,10 +1,3 @@
-//
-//  BulkImportService.swift
-//  PillPath — OCR Module
-//
-//  Imports a batch of validated ScannedMedicationItems into CoreData.
-//  Handles deduplication, schedule generation, and dose log pre-population.
-//
 
 import Foundation
 
@@ -32,7 +25,6 @@ final class BulkImportService: BulkImportServiceProtocol {
         let accepted = items.filter { $0.action == .accepted }
         guard !accepted.isEmpty else { return [] }
 
-        // Fetch existing to deduplicate by name (case-insensitive)
         let existing = try medicationService.fetchAll()
         let existingNames = Set(existing.map { $0.name.lowercased() })
 
@@ -55,7 +47,6 @@ final class BulkImportService: BulkImportServiceProtocol {
 
             try medicationService.save(medication)
 
-            // Auto-generate a simple daily morning schedule
             let schedule = MedicationSchedule(
                 medicationId: medication.id,
                 frequency: .daily,
@@ -68,7 +59,6 @@ final class BulkImportService: BulkImportServiceProtocol {
 
             try scheduleService.save(schedule, for: medication)
 
-            // Pre-populate 7 days of dose logs
             try await doseTrackingService.generateUpcomingLogs(for: schedule, days: 7)
 
             saved.append(medication)

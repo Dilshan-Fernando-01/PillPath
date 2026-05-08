@@ -1,19 +1,13 @@
-//
-//  Medication.swift
-//  PillPath — Medications Module
-//
-//  Pure Swift domain model — no CoreData imports here.
-//  Updated to match the 8-step Add Medication flow.
-//
+
 
 import Foundation
 
-// MARK: - MedicationStatusChange
+
 
 struct MedicationStatusChange: Codable, Hashable {
-    var isActive: Bool          // false = stopped, true = resumed
-    var effectiveDate: Date     // when the change takes effect
-    var reason: String          // user-supplied reason
+    var isActive: Bool          
+    var effectiveDate: Date   
+    var reason: String         
 
     var formattedDate: String {
         let f = DateFormatter()
@@ -23,16 +17,16 @@ struct MedicationStatusChange: Codable, Hashable {
     }
 }
 
-// MARK: - Medication
+
 
 struct Medication: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
     var genericName: String?
-    var displayName: String?            // User-set label e.g. "Red pill for heart"
+    var displayName: String?            
     var form: MedicationForm
-    var dosageAmount: Double            // Numeric quantity (1, 0.5, 2…)
-    var dosageUnit: DosageUnit          // pills / mg / ml
+    var dosageAmount: Double           
+    var dosageUnit: DosageUnit         
     var instructions: String?
     var notes: String?
     var photoURL: String?
@@ -43,7 +37,7 @@ struct Medication: Identifiable, Codable, Hashable {
     var addedAt: Date
     var sideEffects: [String]
     var interactions: [String]
-    var statusChange: MedicationStatusChange?   // most recent stop/resume record
+    var statusChange: MedicationStatusChange?   
 
     init(
         id: UUID = .init(),
@@ -85,7 +79,6 @@ struct Medication: Identifiable, Codable, Hashable {
         self.statusChange = statusChange
     }
 
-    /// Formatted dosage string e.g. "500mg" or "1 pill"
     var dosageDisplay: String {
         let amount = dosageAmount.truncatingRemainder(dividingBy: 1) == 0
             ? String(Int(dosageAmount))
@@ -94,7 +87,7 @@ struct Medication: Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Enums
+
 
 enum MedicationForm: String, Codable, CaseIterable, Identifiable {
     case tablet    = "tablet"

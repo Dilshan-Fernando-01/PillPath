@@ -1,10 +1,3 @@
-//
-//  TimeOfDayCard.swift
-//  PillPath — Design System
-//
-//  Selectable time-of-day card used in Step 5 (when do you take it?).
-//  Matches Figma: icon, title, time range. Blue fill when selected.
-//
 
 import SwiftUI
 
@@ -47,7 +40,6 @@ struct TimeOfDayCard: View {
     }
 }
 
-// MARK: - Grid Usage
 
 struct TimeOfDayGrid: View {
     @Binding var selected: Set<DoseTimeLabel>

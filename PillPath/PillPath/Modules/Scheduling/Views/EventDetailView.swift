@@ -1,10 +1,3 @@
-//
-//  EventDetailView.swift
-//  PillPath — Scheduling Module
-//
-//  Full-screen detail for a single MedicalEvent.
-//  Provider name shown in brand blue. Edit / Delete actions.
-//
 
 import SwiftUI
 
@@ -22,18 +15,14 @@ struct EventDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
 
-                    // Header card
                     headerCard
 
-                    // Details card
                     detailsCard
 
-                    // Notes
                     if let desc = event.notes, !desc.isEmpty {
                         notesCard(desc)
                     }
 
-                    // Linked Medications
                     if !linkedMedications.isEmpty {
                         linkedMedicationsCard
                     }
@@ -93,7 +82,6 @@ struct EventDetailView: View {
         }
     }
 
-    // MARK: - Header Card
 
     private var headerCard: some View {
         HStack(spacing: AppSpacing.md) {
@@ -138,7 +126,6 @@ struct EventDetailView: View {
         .appCardShadow()
     }
 
-    // MARK: - Details Card
 
     private var detailsCard: some View {
         VStack(spacing: 0) {
@@ -204,7 +191,6 @@ struct EventDetailView: View {
         .padding(.vertical, AppSpacing.sm)
     }
 
-    // MARK: - Linked Medications
 
     private var linkedMedications: [Medication] {
         let all = viewModel.activeMedications + viewModel.stoppedMedications
@@ -267,7 +253,6 @@ struct EventDetailView: View {
         }
     }
 
-    // MARK: - Notes Card
 
     private func notesCard(_ text: String) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -291,7 +276,6 @@ struct EventDetailView: View {
         .appCardShadow()
     }
 
-    // MARK: - Helpers
 
     private var formattedDate: String {
         let f = DateFormatter()

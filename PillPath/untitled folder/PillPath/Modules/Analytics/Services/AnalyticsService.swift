@@ -1,7 +1,4 @@
-//
-//  AnalyticsService.swift
-//  PillPath — Analytics Module
-//
+
 
 import Foundation
 import CoreData

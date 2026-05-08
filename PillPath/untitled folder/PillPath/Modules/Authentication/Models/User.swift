@@ -1,7 +1,4 @@
-//
-//  User.swift
-//  PillPath — Authentication Module
-//
+
 
 import Foundation
 

@@ -1,10 +1,3 @@
-//
-//  MedicationSavedSuccessView.swift
-//  PillPath — Medications Module
-//
-//  Shown after a medication is saved. Offers the user a chance to sync
-//  the medication's schedule to their iOS Calendar via EventKit.
-//
 
 import SwiftUI
 import EventKit
@@ -29,16 +22,12 @@ struct MedicationSavedSuccessView: View {
             ScrollView {
                 VStack(spacing: AppSpacing.xl) {
 
-                    // Success illustration
                     successHeader
 
-                    // Review items
                     reviewCard
 
-                    // Calendar sync card
                     calendarSyncCard
 
-                    // Actions
                     VStack(spacing: AppSpacing.md) {
                         PrimaryButton(title: "Done") { onDone() }
 
@@ -68,7 +57,6 @@ struct MedicationSavedSuccessView: View {
         }
     }
 
-    // MARK: - Sub-views
 
     private var successHeader: some View {
         VStack(spacing: AppSpacing.md) {
@@ -209,7 +197,6 @@ struct MedicationSavedSuccessView: View {
         }
     }
 
-    // MARK: - Actions
 
     private func syncToCalendar() {
         calendarSyncState = .syncing
@@ -233,7 +220,6 @@ struct MedicationSavedSuccessView: View {
 
     private func performSync() {
         eventKit.createPillPathCalendarIfNeeded()
-        // Use the medication's start date at 9 AM as the first dose reminder
         let morning = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
 
         let count = eventKit.syncMedicationToCalendar(

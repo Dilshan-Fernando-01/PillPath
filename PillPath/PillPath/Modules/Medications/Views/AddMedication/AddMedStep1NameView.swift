@@ -1,9 +1,3 @@
-//
-//  AddMedStep1NameView.swift
-//  PillPath — Medications Module
-//
-//  Step 1: Enter medication name + optional FDA auto-complete.
-//
 
 import SwiftUI
 
@@ -15,13 +9,11 @@ struct AddMedStep1NameView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xl) {
 
-            // Header
             stepHeader(
                 title: "What is the medication called?",
                 subtitle: "Enter the name as written on the label or prescription."
             )
 
-            // Name field
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Medication Name")
                     .font(AppFont.subheadline())
@@ -61,7 +53,6 @@ struct AddMedStep1NameView: View {
                 )
             }
 
-            // FDA suggestions
             if !viewModel.fdaSearchResults.isEmpty {
                 fdaSuggestions
             }
@@ -71,7 +62,6 @@ struct AddMedStep1NameView: View {
         .onAppear { nameFocused = true }
     }
 
-    // MARK: - FDA Suggestion List
 
     private var fdaSuggestions: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {

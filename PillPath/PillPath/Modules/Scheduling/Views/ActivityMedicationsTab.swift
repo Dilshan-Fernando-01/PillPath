@@ -1,10 +1,3 @@
-//
-//  ActivityMedicationsTab.swift
-//  PillPath — Scheduling Module
-//
-//  Tab 2: Ongoing Medications + Stopped Medications + Prescription Records.
-//  Uses MedicationActionsSheet for edit / toggle / delete.
-//
 
 import SwiftUI
 
@@ -18,12 +11,10 @@ struct ActivityMedicationsTab: View {
         ScrollView {
             VStack(spacing: AppSpacing.md) {
 
-                // Search bar
                 searchBar
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, AppSpacing.md)
 
-                // Ongoing
                 medicationSection(
                     title: "Ongoing",
                     icon: "checkmark.circle.fill",
@@ -32,7 +23,6 @@ struct ActivityMedicationsTab: View {
                     countBadge: viewModel.filteredActiveMedications.count
                 )
 
-                // Stopped
                 if !viewModel.stoppedMedications.isEmpty {
                     medicationSection(
                         title: "Stopped",
@@ -43,7 +33,6 @@ struct ActivityMedicationsTab: View {
                     )
                 }
 
-                // Prescription Records placeholder
                 prescriptionRecordsSection
 
                 Spacer().frame(height: 100)
@@ -56,7 +45,6 @@ struct ActivityMedicationsTab: View {
             MedicationActionsSheet(
                 medication: med,
                 onViewDetails: {
-                    // Capture id before sheet dismisses
                     let captured = med
                     sheetMedication = nil
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -81,7 +69,6 @@ struct ActivityMedicationsTab: View {
         }
     }
 
-    // MARK: - Search Bar
 
     private var searchBar: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -106,7 +93,6 @@ struct ActivityMedicationsTab: View {
         .overlay(RoundedRectangle(cornerRadius: AppRadius.md).stroke(Color.appBorder, lineWidth: 1))
     }
 
-    // MARK: - Medication Section
 
     private func medicationSection(
         title: String,
@@ -116,7 +102,6 @@ struct ActivityMedicationsTab: View {
         countBadge: Int?
     ) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            // Section header
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: icon)
                     .font(.system(size: 16))
@@ -153,7 +138,6 @@ struct ActivityMedicationsTab: View {
         }
     }
 
-    // MARK: - Prescription Records
 
     private var prescriptionRecordsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -189,7 +173,6 @@ struct ActivityMedicationsTab: View {
     }
 }
 
-// MARK: - Activity Medication Row
 
 struct ActivityMedicationRow: View {
 

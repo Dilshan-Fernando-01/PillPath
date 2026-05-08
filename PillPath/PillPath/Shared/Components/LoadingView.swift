@@ -1,7 +1,3 @@
-//
-//  LoadingView.swift
-//  PillPath — Shared Component
-//
 
 import SwiftUI
 

@@ -1,10 +1,3 @@
-//
-//  DoseHistoryView.swift
-//  PillPath — Scheduling Module
-//
-//  Shows a log of all taken / missed doses for the past 7 or 30 days.
-//  Flags out-of-window confirmations (e.g. Evening dose confirmed in Morning).
-//
 
 import SwiftUI
 
@@ -26,7 +19,6 @@ struct DoseHistoryView: View {
         NavigationStack {
             VStack(spacing: 0) {
 
-                // Period picker
                 Picker("Period", selection: $selectedPeriod) {
                     ForEach(HistoryPeriod.allCases) { p in
                         Text(p.displayName).tag(p)
@@ -58,11 +50,9 @@ struct DoseHistoryView: View {
         .onAppear { loadHistory() }
     }
 
-    // MARK: - History List
 
     private var historyList: some View {
         ScrollView {
-            // Out-of-window banner
             let outOfWindow = viewModel.historyItems.filter(\.isOutOfWindow)
             if !outOfWindow.isEmpty {
                 HStack(spacing: AppSpacing.sm) {
@@ -104,11 +94,9 @@ struct DoseHistoryView: View {
         }
     }
 
-    // MARK: - History Row
 
     private func historyRow(_ item: ActivityViewModel.DoseHistoryItem) -> some View {
         HStack(spacing: AppSpacing.md) {
-            // Status indicator
             ZStack {
                 Circle()
                     .fill(statusColor(item.status).opacity(0.12))
@@ -124,14 +112,12 @@ struct DoseHistoryView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.textPrimary)
 
-                // Scheduled time info
                 HStack(spacing: AppSpacing.xs) {
                     Text("Scheduled: \(formattedTime(item.scheduledAt)) (\(item.scheduledLabel.displayName))")
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
                 }
 
-                // Taken time (if applicable)
                 if let takenAt = item.takenAt {
                     HStack(spacing: AppSpacing.xs) {
                         Image(systemName: "clock.fill")
@@ -143,7 +129,6 @@ struct DoseHistoryView: View {
                     }
                 }
 
-                // Out-of-window flag
                 if item.isOutOfWindow, let takenLabel = item.takenLabel {
                     HStack(spacing: AppSpacing.xs) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -158,7 +143,6 @@ struct DoseHistoryView: View {
 
             Spacer()
 
-            // Status badge
             Text(item.status.displayName)
                 .font(AppFont.caption())
                 .fontWeight(.medium)
@@ -179,7 +163,6 @@ struct DoseHistoryView: View {
         .appCardShadow()
     }
 
-    // MARK: - Empty State
 
     private var emptyState: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -201,7 +184,6 @@ struct DoseHistoryView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Helpers
 
     private var groupedByDate: [(date: Date, items: [ActivityViewModel.DoseHistoryItem])] {
         let calendar = Calendar.current

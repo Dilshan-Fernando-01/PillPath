@@ -86,14 +86,12 @@ struct ScheduleTime: Codable, Identifiable, Hashable {
         return formatter.string(from: date)
     }
 
-    /// Preset schedule times used in the Time-of-Day picker
     static let morning = ScheduleTime(hour: 8,  minute: 0, label: .morning)
     static let noon    = ScheduleTime(hour: 12, minute: 0, label: .noon)
     static let evening = ScheduleTime(hour: 18, minute: 0, label: .evening)
     static let night   = ScheduleTime(hour: 21, minute: 0, label: .night)
 }
 
-// MARK: - DoseLog
 
 struct DoseLog: Identifiable, Codable {
     let id: UUID

@@ -1,16 +1,10 @@
-//
-//  PrimaryButton.swift
-//  PillPath — Design System
-//
-//  Full-width blue button with arrow, matches Figma "Next →" / "Next Step →" / "Save Medication"
-//
 
 import SwiftUI
 
 struct PrimaryButton: View {
 
     let title: String
-    var icon: String?          // SF Symbol name, e.g. "arrow.right"
+    var icon: String?          
     var isLoading: Bool = false
     var isDisabled: Bool = false
     let action: () -> Void

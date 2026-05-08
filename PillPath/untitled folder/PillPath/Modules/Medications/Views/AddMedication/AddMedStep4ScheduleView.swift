@@ -137,7 +137,7 @@ struct AddMedStep4ScheduleView: View {
                     .stroke(Color.brandPrimary.opacity(0.3), lineWidth: 1)
             )
 
-            // Preview
+         
             let totalHours = viewModel.intervalHours
             let totalMins  = viewModel.intervalMinutes
             let label = totalMins > 0 ? "Every \(totalHours)h \(totalMins)m" : "Every \(totalHours) hours"

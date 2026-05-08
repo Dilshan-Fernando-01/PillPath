@@ -1,15 +1,7 @@
-//
-//  AppSettings.swift
-//  PillPath — Settings Module
-//
-//  All user preferences persisted via UserDefaults.
-//  Injected at root so every view can read them via @EnvironmentObject.
-//
 
 import Foundation
 import SwiftUI
 
-/// Supported app languages.
 enum AppLanguage: String, CaseIterable, Identifiable {
     case english  = "en"
     case sinhala  = "si"
@@ -26,7 +18,6 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     }
 }
 
-/// Dynamic text scaling options.
 enum AppTextSize: String, CaseIterable, Identifiable {
     case small  = "small"
     case medium = "medium"
@@ -42,7 +33,6 @@ enum AppTextSize: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Scale factor applied to base font sizes.
     var scaleFactor: CGFloat {
         switch self {
         case .small:  return 0.85
@@ -52,7 +42,6 @@ enum AppTextSize: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Guardian Contact
 
 struct GuardianContact: Codable, Equatable {
     var name: String
@@ -73,10 +62,8 @@ struct GuardianContact: Codable, Equatable {
     }
 }
 
-/// Maximum number of guardian contacts allowed.
 let maxGuardians = 3
 
-/// Preferred colour scheme.
 enum AppColorScheme: String, CaseIterable, Identifiable {
     case system = "system"
     case light  = "light"

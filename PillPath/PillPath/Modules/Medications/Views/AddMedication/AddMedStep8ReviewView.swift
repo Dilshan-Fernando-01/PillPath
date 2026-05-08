@@ -1,10 +1,3 @@
-//
-//  AddMedStep8ReviewView.swift
-//  PillPath — Medications Module
-//
-//  Step 8: Full review of all entered information.
-//  Each section has an Edit button that jumps back to that step.
-//
 
 import SwiftUI
 
@@ -20,23 +13,18 @@ struct AddMedStep8ReviewView: View {
                 subtitle: "Check the details below. Tap Edit to make any changes."
             )
 
-            // Medication summary card
             medicationCard
 
-            // Schedule card
             scheduleCard
 
-            // Timing card
             timingCard
 
-            // Advanced card (only non-empty fields)
             advancedCard
 
             Spacer()
         }
     }
 
-    // MARK: - Medication Card
 
     private var medicationCard: some View {
         reviewSection(title: "Medication", step: 1) {
@@ -52,7 +40,6 @@ struct AddMedStep8ReviewView: View {
         }
     }
 
-    // MARK: - Schedule Card
 
     private var scheduleCard: some View {
         reviewSection(title: "Schedule", step: 4) {
@@ -64,7 +51,6 @@ struct AddMedStep8ReviewView: View {
         }
     }
 
-    // MARK: - Timing Card
 
     private var timingCard: some View {
         reviewSection(title: "Duration", step: 7) {
@@ -93,7 +79,6 @@ struct AddMedStep8ReviewView: View {
         }
     }
 
-    // MARK: - Advanced Card
 
     @ViewBuilder
     private var advancedCard: some View {
@@ -113,7 +98,6 @@ struct AddMedStep8ReviewView: View {
         }
     }
 
-    // MARK: - Review Section
 
     private func reviewSection<Content: View>(
         title: String,
@@ -147,7 +131,6 @@ struct AddMedStep8ReviewView: View {
         }
     }
 
-    // MARK: - Review Row
 
     private func reviewRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: AppSpacing.md) {
