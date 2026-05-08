@@ -93,7 +93,6 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
         coreData.save()
     }
 
-    // MARK: - Missed Dose Detection
 
     func detectAndMarkMissed() throws {
         let request = DoseLogEntity.fetchRequest()

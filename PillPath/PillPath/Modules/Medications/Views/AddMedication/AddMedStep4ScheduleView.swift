@@ -1,9 +1,3 @@
-//
-//  AddMedStep4ScheduleView.swift
-//  PillPath — Medications Module
-//
-//  Step 4: Choose schedule frequency + configure sub-options per type.
-//
 
 import SwiftUI
 
@@ -19,14 +13,12 @@ struct AddMedStep4ScheduleView: View {
                 subtitle: "Choose a schedule that matches your prescription."
             )
 
-            // Frequency selector list
             VStack(spacing: AppSpacing.sm) {
                 ForEach(ScheduleFrequency.allCases) { freq in
                     frequencyRow(freq)
                 }
             }
 
-            // Sub-options panel for selected frequency
             Group {
                 switch viewModel.frequency {
                 case .everyXHours:   intervalSubOptions
@@ -42,7 +34,6 @@ struct AddMedStep4ScheduleView: View {
         }
     }
 
-    // MARK: - Frequency Row
 
     private func frequencyRow(_ freq: ScheduleFrequency) -> some View {
         let isSelected = viewModel.frequency == freq
@@ -96,14 +87,12 @@ struct AddMedStep4ScheduleView: View {
         }
     }
 
-    // MARK: - Every X Hours Sub-Options
 
     private var intervalSubOptions: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             SectionLabel(text: "Interval")
 
             VStack(spacing: AppSpacing.md) {
-                // Hours picker
                 HStack {
                     Text("Hours")
                         .font(AppFont.body())
@@ -120,7 +109,6 @@ struct AddMedStep4ScheduleView: View {
 
                 Divider()
 
-                // Minutes picker
                 HStack {
                     Text("Minutes")
                         .font(AppFont.body())
@@ -143,7 +131,6 @@ struct AddMedStep4ScheduleView: View {
                     .stroke(Color.brandPrimary.opacity(0.3), lineWidth: 1)
             )
 
-            // Preview
             let totalHours = viewModel.intervalHours
             let totalMins  = viewModel.intervalMinutes
             let label = totalMins > 0 ? "Every \(totalHours)h \(totalMins)m" : "Every \(totalHours) hours"
@@ -153,7 +140,6 @@ struct AddMedStep4ScheduleView: View {
         }
     }
 
-    // MARK: - Specific Days Sub-Options
 
     private let dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -195,7 +181,6 @@ struct AddMedStep4ScheduleView: View {
         }
     }
 
-    // MARK: - Custom Dates Sub-Options
 
     @State private var showDatePicker = false
     @State private var pickerDate = Date.now
@@ -204,7 +189,6 @@ struct AddMedStep4ScheduleView: View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             SectionLabel(text: "Custom Dates")
 
-            // Selected dates list
             if !viewModel.customDates.isEmpty {
                 VStack(spacing: 0) {
                     ForEach(viewModel.customDates, id: \.self) { date in
@@ -235,7 +219,6 @@ struct AddMedStep4ScheduleView: View {
                 .appCardShadow()
             }
 
-            // Date picker inline
             if showDatePicker {
                 VStack(spacing: AppSpacing.sm) {
                     DatePicker("", selection: $pickerDate, in: Date.now..., displayedComponents: .date)

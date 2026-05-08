@@ -1,17 +1,11 @@
-//
-//  MedicationStatusChangeSheet.swift
-//  PillPath — Medications Module
-//
-//  Presented when user taps "Mark as Inactive" or "Mark as Active".
-//  Lets them choose effective date (now or specific) and provide a reason.
-//
+
 
 import SwiftUI
 
 struct MedicationStatusChangeSheet: View {
 
     let medication: Medication
-    let targetIsActive: Bool           // false = stopping, true = resuming
+    let targetIsActive: Bool          
     var onConfirm: (MedicationStatusChange) -> Void = { _ in }
     var onDismiss: () -> Void = {}
 
@@ -27,13 +21,13 @@ struct MedicationStatusChangeSheet: View {
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
 
-                    // Header
+                  
                     headerSection
 
-                    // Date picker
+              
                     dateSection
 
-                    // Reason
+                   
                     reasonSection
 
                     if let err = reasonError {
@@ -44,7 +38,7 @@ struct MedicationStatusChangeSheet: View {
                             .padding(.horizontal, AppSpacing.md)
                     }
 
-                    // Confirm button
+                 
                     PrimaryButton(
                         title: isDeactivating ? "Stop Medication" : "Resume Medication"
                     ) {
@@ -71,7 +65,7 @@ struct MedicationStatusChangeSheet: View {
         }
     }
 
-    // MARK: - Header
+   
 
     private var headerSection: some View {
         HStack(spacing: AppSpacing.md) {
@@ -101,7 +95,7 @@ struct MedicationStatusChangeSheet: View {
         .padding(.horizontal, AppSpacing.md)
     }
 
-    // MARK: - Date Section
+    
 
     private var dateSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -112,7 +106,7 @@ struct MedicationStatusChangeSheet: View {
                 .padding(.horizontal, AppSpacing.md)
 
             VStack(spacing: 0) {
-                // Now option
+           
                 Button {
                     withAnimation { useNow = true }
                 } label: {
@@ -134,7 +128,7 @@ struct MedicationStatusChangeSheet: View {
 
                 Divider().padding(.leading, AppSpacing.md)
 
-                // Specific date option
+             
                 Button {
                     withAnimation { useNow = false }
                 } label: {
@@ -170,7 +164,7 @@ struct MedicationStatusChangeSheet: View {
         }
     }
 
-    // MARK: - Reason Section
+
 
     private var reasonSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -185,7 +179,7 @@ struct MedicationStatusChangeSheet: View {
             }
             .padding(.horizontal, AppSpacing.md)
 
-            // Quick-pick reasons
+        
             let suggestions = isDeactivating
                 ? ["Side effects", "Course completed", "Doctor advised", "Out of stock", "Temporary hold"]
                 : ["Restarting course", "Doctor approved", "Symptoms returned", "New prescription"]
@@ -213,7 +207,7 @@ struct MedicationStatusChangeSheet: View {
                 .padding(.horizontal, AppSpacing.md)
             }
 
-            // Free-text field
+      
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 TextField("Or type your own reason…", text: $reason, axis: .vertical)
                     .font(AppFont.body())
@@ -231,7 +225,7 @@ struct MedicationStatusChangeSheet: View {
         }
     }
 
-    // MARK: - Actions
+   
 
     private func confirm() {
         let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)

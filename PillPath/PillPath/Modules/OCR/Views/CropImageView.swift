@@ -1,11 +1,3 @@
-//
-//  CropImageView.swift
-//  PillPath — OCR Module
-//
-//  Lets the user select a rectangular region of the captured image before
-//  OCR processing. Drag corners to resize, drag inside to reposition.
-//  Helps eliminate non-medication text (hospital name, address, etc.).
-//
 
 import SwiftUI
 
@@ -15,7 +7,6 @@ struct CropImageView: View {
     var onConfirm: (UIImage) -> Void
     var onSkip: () -> Void
 
-    // Crop rect in normalised image coordinates (0 … 1)
     @State private var norm = CGRect(x: 0.08, y: 0.08, width: 0.84, height: 0.84)
     @State private var dragOrigin: CGRect?
 
@@ -34,35 +25,29 @@ struct CropImageView: View {
                 let imgFrame = displayFrame(for: image, in: geo.size)
 
                 ZStack {
-                    // The image
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
                         .frame(width: imgFrame.width, height: imgFrame.height)
                         .position(x: imgFrame.midX, y: imgFrame.midY)
 
-                    // Dark vignette outside crop hole (even-odd fill creates the hole)
                     CropMaskShape(normRect: norm)
                         .fill(Color.black.opacity(0.6), style: FillStyle(eoFill: true))
                         .frame(width: imgFrame.width, height: imgFrame.height)
                         .position(x: imgFrame.midX, y: imgFrame.midY)
                         .allowsHitTesting(false)
 
-                    // Crop border + grid
                     let cf = cropScreenFrame(imgFrame: imgFrame)
                     cropBorderAndGrid(cf)
 
-                    // Body drag to reposition
                     bodyDrag(cf, imgFrame: imgFrame)
 
-                    // Four corner drag handles
                     ForEach(CornerHandle.allCases, id: \.self) { handle in
                         cornerHandle(handle, cropFrame: cf, imgFrame: imgFrame)
                     }
                 }
             }
 
-            // Bottom controls always visible
             VStack {
                 Spacer()
                 bottomControls
@@ -70,7 +55,6 @@ struct CropImageView: View {
         }
     }
 
-    // MARK: - Controls
 
     private var bottomControls: some View {
         VStack(spacing: 12) {
@@ -116,18 +100,15 @@ struct CropImageView: View {
         .padding(.bottom, 40)
     }
 
-    // MARK: - Crop border + grid
 
     @ViewBuilder
     private func cropBorderAndGrid(_ cf: CGRect) -> some View {
-        // Border
         Rectangle()
             .stroke(Color.white, lineWidth: 2)
             .frame(width: cf.width, height: cf.height)
             .position(x: cf.midX, y: cf.midY)
             .allowsHitTesting(false)
 
-        // Rule-of-thirds grid
         let col1 = cf.minX + cf.width / 3
         let col2 = cf.minX + cf.width * 2 / 3
         let row1 = cf.minY + cf.height / 3
@@ -143,7 +124,6 @@ struct CropImageView: View {
         .allowsHitTesting(false)
     }
 
-    // MARK: - Body drag
 
     private func bodyDrag(_ cf: CGRect, imgFrame: CGRect) -> some View {
         Color.clear
@@ -166,7 +146,6 @@ struct CropImageView: View {
             )
     }
 
-    // MARK: - Corner handle
 
     private func cornerHandle(_ handle: CornerHandle, cropFrame cf: CGRect, imgFrame: CGRect) -> some View {
         let pos = cornerPoint(handle, in: cf)
@@ -211,7 +190,6 @@ struct CropImageView: View {
         return out
     }
 
-    // MARK: - Helpers
 
     private func displayFrame(for img: UIImage, in size: CGSize) -> CGRect {
         let ia = img.size.width / img.size.height
@@ -240,7 +218,6 @@ struct CropImageView: View {
         }
     }
 
-    /// Crops UIImage to the normalised selection rect.
     private func croppedImage() -> UIImage {
         let pw = image.size.width
         let ph = image.size.height
@@ -251,7 +228,6 @@ struct CropImageView: View {
     }
 }
 
-// MARK: - Mask shape (full rect minus crop hole using even-odd winding)
 
 private struct CropMaskShape: Shape {
     let normRect: CGRect

@@ -1,10 +1,3 @@
-//
-//  EventFormView.swift
-//  PillPath — Scheduling Module
-//
-//  Add / Edit a MedicalEvent.
-//  Includes medication linking and local notification for upcoming events.
-//
 
 import SwiftUI
 import UserNotifications
@@ -62,7 +55,6 @@ struct EventFormView: View {
                             .tint(Color.brandPrimary)
                     }
 
-                    // Linked Medications
                     if !allMeds.isEmpty {
                         linkedMedicationsSection
                     }
@@ -115,7 +107,6 @@ struct EventFormView: View {
         }
     }
 
-    // MARK: - Linked Medications
 
     private var linkedMedicationsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -169,7 +160,6 @@ struct EventFormView: View {
         }
     }
 
-    // MARK: - Upcoming Notice
 
     private var upcomingNoticeRow: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -186,7 +176,6 @@ struct EventFormView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
     }
 
-    // MARK: - Form Field
 
     private func formField<Content: View>(
         label: String,
@@ -210,7 +199,6 @@ struct EventFormView: View {
         }
     }
 
-    // MARK: - Logic
 
     private func prefill() {
         guard let ev = existingEvent else { return }

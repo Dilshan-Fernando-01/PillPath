@@ -1,9 +1,3 @@
-//
-//  SecondaryButton.swift
-//  PillPath — Design System
-//
-//  Outlined button, matches Figma "Back" button style.
-//
 
 import SwiftUI
 

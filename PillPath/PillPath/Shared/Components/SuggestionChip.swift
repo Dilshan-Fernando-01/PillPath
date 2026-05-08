@@ -1,10 +1,3 @@
-//
-//  SuggestionChip.swift
-//  PillPath — Design System
-//
-//  Small rounded suggestion chips shown below the medication name field.
-//  Matches Figma Step 1: "Aspirin", "Paracetamol", "Amoxicillin".
-//
 
 import SwiftUI
 

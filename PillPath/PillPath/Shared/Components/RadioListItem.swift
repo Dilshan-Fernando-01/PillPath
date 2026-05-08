@@ -1,10 +1,3 @@
-//
-//  RadioListItem.swift
-//  PillPath — Design System
-//
-//  Full-width row with icon, label, and radio button.
-//  Used in Step 4 (schedule type: Daily, Every X hours, etc.)
-//
 
 import SwiftUI
 
@@ -19,7 +12,6 @@ struct RadioListItem: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: AppSpacing.md) {
-                // Icon
                 ZStack {
                     Circle()
                         .fill(isSelected ? Color.brandPrimaryLight : Color(hex: "#F5F6FA"))
@@ -29,7 +21,6 @@ struct RadioListItem: View {
                         .foregroundStyle(isSelected ? Color.brandPrimary : Color.textSecondary)
                 }
 
-                // Label
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(AppFont.body())
@@ -44,7 +35,6 @@ struct RadioListItem: View {
 
                 Spacer()
 
-                // Radio indicator
                 ZStack {
                     Circle()
                         .stroke(isSelected ? Color.brandPrimary : Color.appBorder, lineWidth: 2)
@@ -68,7 +58,6 @@ struct RadioListItem: View {
     }
 }
 
-// MARK: - Schedule Frequency List
 
 struct ScheduleFrequencyList: View {
     @Binding var selected: ScheduleFrequency

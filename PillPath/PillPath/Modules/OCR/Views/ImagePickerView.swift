@@ -1,9 +1,3 @@
-//
-//  ImagePickerView.swift
-//  PillPath — OCR Module
-//
-//  UIImagePickerController wrapper for camera capture + photo library.
-//
 
 import SwiftUI
 import UIKit
@@ -41,7 +35,6 @@ struct ImagePickerView: UIViewControllerRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
-    // MARK: - Coordinator
 
     final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 

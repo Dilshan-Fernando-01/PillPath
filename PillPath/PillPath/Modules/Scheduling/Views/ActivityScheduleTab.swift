@@ -1,11 +1,3 @@
-//
-//  ActivityScheduleTab.swift
-//  PillPath — Scheduling Module
-//
-//  Tab 1: Week calendar + daily dose list.
-//  Day circles: green=allTaken, red=hasMissed, yellow=hasPending, gray=noData.
-//  Filter chips: Today / This Week / This Month.
-//
 
 import SwiftUI
 
@@ -18,20 +10,16 @@ struct ActivityScheduleTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.md) {
-                // Week navigator + day circles
                 weekCalendarSection
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, AppSpacing.md)
 
-                // Search bar only — history moved to Quick Actions panel
                 searchBar
                     .padding(.horizontal, AppSpacing.md)
 
-                // Filter chips
                 filterChips
                     .padding(.horizontal, AppSpacing.md)
 
-                // Dose list
                 doseListSection
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.bottom, 100)
@@ -46,7 +34,6 @@ struct ActivityScheduleTab: View {
         }
     }
 
-    // MARK: - Search Bar
 
     private var searchBar: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -71,11 +58,9 @@ struct ActivityScheduleTab: View {
         .overlay(RoundedRectangle(cornerRadius: AppRadius.md).stroke(Color.appBorder, lineWidth: 1))
     }
 
-    // MARK: - Week Calendar
 
     private var weekCalendarSection: some View {
         VStack(spacing: AppSpacing.sm) {
-            // Month label + navigation
             HStack {
                 Button {
                     viewModel.changeWeek(by: -1)
@@ -104,7 +89,6 @@ struct ActivityScheduleTab: View {
                 }
             }
 
-            // Day columns
             HStack(spacing: 0) {
                 ForEach(viewModel.weekDays, id: \.self) { day in
                     dayColumn(for: day)
@@ -171,7 +155,6 @@ struct ActivityScheduleTab: View {
         }
     }
 
-    // MARK: - Filter Chips
 
     private var filterChips: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -201,7 +184,6 @@ struct ActivityScheduleTab: View {
         }
     }
 
-    // MARK: - Dose List
 
     private var doseListSection: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -251,7 +233,6 @@ struct ActivityScheduleTab: View {
         .padding(.vertical, AppSpacing.xl)
     }
 
-    // MARK: - Helpers
 
     private var monthYearLabel: String {
         let days = viewModel.weekDays
@@ -284,7 +265,6 @@ struct ActivityScheduleTab: View {
     }
 }
 
-// MARK: - Schedule Dose Row
 
 struct ScheduleDoseRow: View {
 
@@ -292,7 +272,6 @@ struct ScheduleDoseRow: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            // Time column
             VStack(alignment: .trailing, spacing: 2) {
                 Text(timeDisplay)
                     .font(AppFont.caption())
@@ -304,14 +283,12 @@ struct ScheduleDoseRow: View {
             }
             .frame(width: 56, alignment: .trailing)
 
-            // Timeline dot
             VStack(spacing: 0) {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 10, height: 10)
             }
 
-            // Info
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.medicationName)
                     .font(AppFont.body())
@@ -324,7 +301,6 @@ struct ScheduleDoseRow: View {
 
             Spacer()
 
-            // Status badge
             Text(item.effectiveStatus.displayName)
                 .font(AppFont.caption())
                 .fontWeight(.medium)

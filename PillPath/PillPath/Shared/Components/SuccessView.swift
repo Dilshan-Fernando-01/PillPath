@@ -1,10 +1,3 @@
-//
-//  SuccessView.swift
-//  PillPath — Design System
-//
-//  Generic success screen.
-//  Matches Figma "Scan Prescription: Step 5 — X Medications Saved!"
-//
 
 import SwiftUI
 
@@ -23,7 +16,6 @@ struct SuccessView: View {
             VStack(spacing: AppSpacing.lg) {
                 Spacer(minLength: AppSpacing.xl)
 
-                // Success icon
                 ZStack {
                     Circle()
                         .fill(Color.semanticSuccess.opacity(0.12))
@@ -45,7 +37,6 @@ struct SuccessView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                // Saved items list
                 if !items.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("SAVED ITEMS")
@@ -92,7 +83,6 @@ struct SuccessView: View {
 
                 Spacer()
 
-                // Actions
                 VStack(spacing: AppSpacing.sm) {
                     PrimaryButton(title: primaryActionLabel, action: onPrimary)
 

@@ -1,10 +1,3 @@
-//
-//  MedicationTypeCard.swift
-//  PillPath — Design System
-//
-//  Selectable card used in Step 2 (medication type grid).
-//  Matches Figma: icon circle + label, blue border when selected.
-//
 
 import SwiftUI
 
@@ -43,7 +36,6 @@ struct MedicationTypeCard: View {
     }
 }
 
-// MARK: - Grid Usage Example
 
 struct MedicationTypeGrid: View {
     @Binding var selected: MedicationForm

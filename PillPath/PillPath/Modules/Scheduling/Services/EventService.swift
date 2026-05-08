@@ -1,7 +1,3 @@
-//
-//  EventService.swift
-//  PillPath — Scheduling Module
-//
 
 import Foundation
 import CoreData

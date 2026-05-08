@@ -1,9 +1,3 @@
-//
-//  AddMedStep2TypeView.swift
-//  PillPath — Medications Module
-//
-//  Step 2: Select medication form (tablet, capsule, liquid, …).
-//
 
 import SwiftUI
 
@@ -11,7 +5,6 @@ struct AddMedStep2TypeView: View {
 
     @ObservedObject var viewModel: AddMedicationViewModel
 
-    // All forms split into a primary 4 + secondary row
     private let primaryForms: [MedicationForm] = [.tablet, .capsule, .liquid, .injection]
     private let secondaryForms: [MedicationForm] = [.patch, .inhaler, .other]
 
@@ -23,7 +16,6 @@ struct AddMedStep2TypeView: View {
                 subtitle: "Select the form that matches your medication."
             )
 
-            // Primary 2×2 grid
             LazyVGrid(
                 columns: [GridItem(.flexible()), GridItem(.flexible())],
                 spacing: AppSpacing.md
@@ -38,7 +30,6 @@ struct AddMedStep2TypeView: View {
                 }
             }
 
-            // Secondary row
             HStack(spacing: AppSpacing.sm) {
                 ForEach(secondaryForms) { form in
                     compactTypeCard(form)
@@ -49,7 +40,6 @@ struct AddMedStep2TypeView: View {
         }
     }
 
-    // MARK: - Compact Card (secondary row)
 
     private func compactTypeCard(_ form: MedicationForm) -> some View {
         let isSelected = viewModel.selectedForm == form

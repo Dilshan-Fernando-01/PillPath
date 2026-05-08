@@ -1,7 +1,4 @@
-//
-//  HomeViewModel.swift
-//  PillPath — Home Module
-//
+
 
 import Foundation
 import Combine

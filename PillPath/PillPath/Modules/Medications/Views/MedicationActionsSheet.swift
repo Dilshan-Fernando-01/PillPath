@@ -1,10 +1,4 @@
-//
-//  MedicationActionsSheet.swift
-//  PillPath — Medications Module
-//
-//  Bottom sheet shown when user taps a medication row.
-//  Tapping Inactive/Active opens MedicationStatusChangeSheet for date + reason.
-//
+
 
 import SwiftUI
 
@@ -22,14 +16,14 @@ struct MedicationActionsSheet: View {
     var body: some View {
         VStack(spacing: 0) {
 
-            // Handle
+      
             Capsule()
                 .fill(Color.appBorder)
                 .frame(width: 40, height: 4)
                 .padding(.top, AppSpacing.sm)
                 .padding(.bottom, AppSpacing.md)
 
-            // Header
+       
             VStack(spacing: 4) {
                 Text("Medication Actions")
                     .font(AppFont.headline())
@@ -40,7 +34,7 @@ struct MedicationActionsSheet: View {
             }
             .padding(.bottom, AppSpacing.lg)
 
-            // Action rows
+         
             VStack(spacing: 0) {
                 actionRow(
                     icon: "pencil",
@@ -76,7 +70,7 @@ struct MedicationActionsSheet: View {
             .appCardShadow()
             .padding(.horizontal, AppSpacing.md)
 
-            // Cancel
+          
             Button {
                 onDismiss()
             } label: {
@@ -119,7 +113,7 @@ struct MedicationActionsSheet: View {
         }
     }
 
-    // MARK: - Action Row
+    
 
     private func actionRow(
         icon: String,

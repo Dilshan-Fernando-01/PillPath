@@ -1,12 +1,3 @@
-//
-//  PrescriptionValidationService.swift
-//  PillPath — OCR Module
-//
-//  Validates a list of raw medication name candidates against openFDA.
-//  Returns [ScannedMedicationItem] with confidence scores and FDA-matched names.
-//
-//  Confidence scoring uses Jaro-Winkler string similarity — pure Swift, no library.
-//
 
 import Foundation
 
@@ -18,7 +9,6 @@ final class PrescriptionValidationService: PrescriptionValidationServiceProtocol
 
     private let fdaService: FDAServiceProtocol
 
-    // Confidence thresholds
     static let exactThreshold:   Int = 95
     static let partialThreshold: Int = 60
     static let autoAcceptThreshold: Int = 75
@@ -28,24 +18,20 @@ final class PrescriptionValidationService: PrescriptionValidationServiceProtocol
     }
 
     func validate(candidates: [String]) async -> [ScannedMedicationItem] {
-        // Deduplicate before API calls
         let unique = Array(OrderedSet(candidates))
 
-        // Run all FDA searches concurrently (one task per candidate)
         return await withTaskGroup(of: ScannedMedicationItem.self) { group in
             for name in unique {
                 group.addTask { await self.validateSingle(name) }
             }
             var results: [ScannedMedicationItem] = []
             for await item in group { results.append(item) }
-            // Preserve original ordering
             return unique.compactMap { name in
                 results.first { $0.originalName == name }
             }
         }
     }
 
-    // MARK: - Single validation
 
     private func validateSingle(_ name: String) async -> ScannedMedicationItem {
         do {
@@ -55,7 +41,6 @@ final class PrescriptionValidationService: PrescriptionValidationServiceProtocol
                 return ScannedMedicationItem(originalName: name, matchStatus: .none)
             }
 
-            // Score each FDA result against the original name
             let scored: [(result: MedicationSearchResult, score: Int)] = fdaResults.map { result in
                 let brandScore   = jaroWinklerSimilarity(name.lowercased(), result.brandName.lowercased())
                 let genericScore = result.genericName.map {
@@ -75,7 +60,6 @@ final class PrescriptionValidationService: PrescriptionValidationServiceProtocol
             default:                        matchStatus = .none
             }
 
-            // Guess form from FDA dosage forms
             let guessedForm = best.result.dosageForms.first
                 .flatMap { MedicationForm(rawValue: $0.lowercased()) } ?? .tablet
 
@@ -93,12 +77,11 @@ final class PrescriptionValidationService: PrescriptionValidationServiceProtocol
         }
     }
 
-    // MARK: - Jaro-Winkler similarity (returns 0–100)
 
     private func jaroWinklerSimilarity(_ s1: String, _ s2: String) -> Int {
         let jaro = jaroSimilarity(s1, s2)
         let prefix = commonPrefixLength(s1, s2, maxLen: 4)
-        let p = 0.1  // standard winkler constant
+        let p = 0.1  
         let jw = jaro + Double(prefix) * p * (1.0 - jaro)
         return Int((jw * 100).rounded())
     }
@@ -144,7 +127,6 @@ final class PrescriptionValidationService: PrescriptionValidationServiceProtocol
     }
 }
 
-// MARK: - Ordered Set helper (preserves insertion order, deduplicates)
 
 private struct OrderedSet<T: Hashable>: Sequence {
     private var set  = Set<T>()

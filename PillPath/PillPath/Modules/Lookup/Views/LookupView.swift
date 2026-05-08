@@ -1,10 +1,3 @@
-//
-//  LookupView.swift
-//  PillPath — Lookup Module
-//
-//  Search Medication screen.
-//  Matches Figma: search bar → suggestions chips → results list.
-//
 
 import SwiftUI
 
@@ -20,13 +13,13 @@ struct LookupView: View {
                 Color.appBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Search bar
+                  
                     searchBar
                         .padding(.horizontal, AppSpacing.md)
                         .padding(.top, AppSpacing.md)
                         .padding(.bottom, AppSpacing.sm)
 
-                    // Body
+                
                     if viewModel.isSearching {
                         loadingView
                             .frame(maxHeight: .infinity)
@@ -57,22 +50,19 @@ struct LookupView: View {
                 MedicationInfoView(result: result)
             }
         }
-        // Replicate bottom nav bar so it's visible in the full-screen cover
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+       .safeAreaInset(edge: .bottom, spacing: 0) {
             lookupNavBar
         }
         .onAppear { searchFocused = true }
     }
 
-    // MARK: - Lookup Nav Bar (mirrors main tab bar, "Lookup" active)
-    // Each item dismisses Lookup and deep-links back to the correct tab via Notification.
-
+   
     private var lookupNavBar: some View {
         HStack(spacing: 0) {
             navBarItem(icon: "house", label: "HOME")      { postTabSwitch(.home) }
             navBarItem(icon: "cross.circle", label: "MEDS") { postTabSwitch(.medications) }
 
-            // FAB (active — stays on Lookup)
+       
             Spacer().frame(width: 72)
 
             navBarItem(icon: "qrcode.viewfinder", label: "SCAN") { postTabSwitch(.scan) }
@@ -84,7 +74,7 @@ struct LookupView: View {
         .appCardShadow()
         .padding(.horizontal, AppSpacing.md)
         .overlay(alignment: .top) {
-            // Active Lookup FAB
+         
             ZStack {
                 Circle()
                     .fill(Color.brandPrimary)
@@ -119,7 +109,7 @@ struct LookupView: View {
         NotificationCenter.default.post(name: notif, object: tab)
     }
 
-    // MARK: - Search Bar
+
 
     private var searchBar: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -156,12 +146,11 @@ struct LookupView: View {
         .animation(.easeInOut(duration: 0.15), value: searchFocused)
     }
 
-    // MARK: - Suggestions
 
     private var suggestionsView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                // Subtitle
+              
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Search Medication")
                         .font(AppFont.title())
@@ -174,7 +163,7 @@ struct LookupView: View {
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.top, AppSpacing.sm)
 
-                // Suggested chips
+             
                 VStack(alignment: .leading, spacing: AppSpacing.sm) {
                     Text("SUGGESTED MEDICATIONS")
                         .font(AppFont.label())
@@ -213,12 +202,11 @@ struct LookupView: View {
         }
     }
 
-    // MARK: - Results List
 
     private var resultsList: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Count header
+         
                 HStack {
                     Text("SEARCH RESULTS")
                         .font(AppFont.label())
@@ -231,7 +219,6 @@ struct LookupView: View {
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.vertical, AppSpacing.sm)
 
-                // Result rows
                 VStack(spacing: 0) {
                     ForEach(Array(viewModel.searchResults.enumerated()), id: \.element.id) { index, result in
                         Button {
@@ -255,8 +242,6 @@ struct LookupView: View {
             }
         }
     }
-
-    // MARK: - States
 
     private var loadingView: some View {
         VStack(spacing: AppSpacing.md) {
@@ -306,15 +291,13 @@ struct LookupView: View {
     }
 }
 
-// MARK: - Search Result Row
-
 struct SearchResultRow: View {
 
     let result: MedicationSearchResult
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            // Colored icon based on pharm class
+           
             ZStack {
                 Circle()
                     .fill(iconColor.opacity(0.12))
@@ -359,7 +342,7 @@ struct SearchResultRow: View {
     }
 }
 
-// MARK: - String truncation helper
+
 
 private extension String {
     func truncated(to length: Int) -> String {

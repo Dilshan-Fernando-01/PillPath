@@ -1,7 +1,3 @@
-//
-//  MockNetworkClient.swift
-//  PillPathTests
-//
 
 import Foundation
 @testable import PillPath

@@ -1,6 +1,6 @@
 
-
 import SwiftUI
+import UIKit
 
 struct MedicationsListView: View {
 
@@ -153,14 +153,25 @@ struct MedicationRowCard: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-       
+
             ZStack {
-                Circle()
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.brandPrimaryLight)
                     .frame(width: 48, height: 48)
-                Image(systemName: medication.form.systemIcon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.brandPrimary)
+                if let urlStr = medication.photoURL,
+                   let url = URL(string: urlStr),
+                   let data = try? Data(contentsOf: url),
+                   let img = UIImage(data: data) {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                } else {
+                    Image(systemName: medication.form.systemIcon)
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.brandPrimary)
+                }
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -185,8 +196,17 @@ struct MedicationRowCard: View {
                     Text(medication.form.displayName)
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
+                    if medication.currentQuantity > 0 {
+                        Text("•")
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.textSecondary)
+                        Text("\(medication.currentQuantity) remaining")
+                            .font(AppFont.caption())
+                            .foregroundStyle(medication.lowQuantityAlert && medication.currentQuantity <= medication.lowQuantityThreshold
+                                ? Color.semanticError : Color.textSecondary)
+                    }
                 }
-              
+
                 if !medication.isActive, let sc = medication.statusChange {
                     HStack(spacing: AppSpacing.xs) {
                         Image(systemName: "pause.circle.fill")
@@ -202,7 +222,6 @@ struct MedicationRowCard: View {
 
             Spacer()
 
-        
             Circle()
                 .fill(medication.isActive ? Color.semanticSuccess : Color.appBorder)
                 .frame(width: 8, height: 8)

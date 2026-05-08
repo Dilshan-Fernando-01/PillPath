@@ -1,10 +1,3 @@
-//
-//  AddMedicationFlowView.swift
-//  PillPath — Medications Module
-//
-//  Root container for the 8-step Add Medication wizard.
-//  Hosts the step router and the shared sticky footer.
-//
 
 import SwiftUI
 
@@ -23,7 +16,6 @@ struct AddMedicationFlowView: View {
         NavigationStack {
             ZStack(alignment: .bottom) {
 
-                // ── Step content ──────────────────────────────────
                 VStack(spacing: 0) {
                     StepProgressView(
                         currentStep: viewModel.currentStep,
@@ -36,7 +28,6 @@ struct AddMedicationFlowView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
 
-                // ── Sticky footer ─────────────────────────────────
                 footerButtons
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.bottom, AppSpacing.lg)
@@ -66,7 +57,6 @@ struct AddMedicationFlowView: View {
                     }
                 }
             }
-            // Success redirect
             .fullScreenCover(isPresented: $viewModel.didSave) {
                 if let med = viewModel.savedMedication {
                     MedicationSavedSuccessView(
@@ -83,7 +73,6 @@ struct AddMedicationFlowView: View {
         }
     }
 
-    // MARK: - Step Router
 
     @ViewBuilder
     private var stepContent: some View {
@@ -100,7 +89,6 @@ struct AddMedicationFlowView: View {
                 case 8: AddMedStep8ReviewView(viewModel: viewModel)
                 default: EmptyView()
                 }
-                // Bottom padding for footer
                 Spacer().frame(height: 90)
             }
             .padding(.horizontal, AppSpacing.md)
@@ -108,7 +96,6 @@ struct AddMedicationFlowView: View {
         }
     }
 
-    // MARK: - Footer
 
     private var footerButtons: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -137,7 +124,6 @@ struct AddMedicationFlowView: View {
         }
     }
 
-    // MARK: - Step Titles
 
     private var stepTitle: String {
         switch viewModel.currentStep {

@@ -1,10 +1,3 @@
-//
-//  MealTimingSelector.swift
-//  PillPath — Design System
-//
-//  Step 6 component: segmented header + selectable detail rows.
-//  "Before Meal / With Meal / After Meal" with description card.
-//
 
 import SwiftUI
 
@@ -15,7 +8,6 @@ struct MealTimingSelector: View {
 
     var body: some View {
         VStack(spacing: AppSpacing.md) {
-            // Segmented control
             HStack(spacing: 0) {
                 ForEach(options) { timing in
                     Button(timing.shortName) {
@@ -34,7 +26,6 @@ struct MealTimingSelector: View {
             .background(Color.appBackground)
             .clipShape(Capsule())
 
-            // Detail rows
             VStack(spacing: AppSpacing.sm) {
                 ForEach(options) { timing in
                     MealTimingRow(timing: timing, isSelected: selected == timing) {

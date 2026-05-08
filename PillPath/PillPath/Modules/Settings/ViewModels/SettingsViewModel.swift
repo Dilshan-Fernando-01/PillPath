@@ -1,10 +1,3 @@
-//
-//  SettingsViewModel.swift
-//  PillPath — Settings Module
-//
-//  Single source of truth for all user preferences.
-//  Injected as @EnvironmentObject from PillPathApp.
-//
 
 import Foundation
 import Combine
@@ -12,13 +5,11 @@ import SwiftUI
 
 final class SettingsViewModel: ObservableObject {
 
-    // MARK: - Security
 
     @Published var biometricLockEnabled: Bool {
         didSet { UserDefaults.standard.set(biometricLockEnabled, forKey: Keys.biometricLock) }
     }
 
-    // MARK: - Notifications
 
     @Published var medicationReminders: Bool {
         didSet { UserDefaults.standard.set(medicationReminders, forKey: Keys.medicationReminders) }
@@ -32,7 +23,6 @@ final class SettingsViewModel: ObservableObject {
         didSet { UserDefaults.standard.set(reminderSound.rawValue, forKey: Keys.reminderSound) }
     }
 
-    // MARK: - Emergency Contact
 
     @Published var emergencyContact: EmergencyContact? {
         didSet {
@@ -45,7 +35,6 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Accessibility
 
     @Published var textSize: AppTextSize {
         didSet {
@@ -61,7 +50,6 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Guardians (up to 3)
 
     @Published var guardianContacts: [GuardianContact] {
         didSet {
@@ -71,10 +59,8 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    /// Convenience: first guardian (backward-compat helper)
     var guardianContact: GuardianContact? { guardianContacts.first(where: { !$0.isEmpty }) }
 
-    // MARK: - General
 
     @Published var language: AppLanguage {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: Keys.language) }
@@ -84,11 +70,9 @@ final class SettingsViewModel: ObservableObject {
         didSet { UserDefaults.standard.set(colorScheme.rawValue, forKey: Keys.colorScheme) }
     }
 
-    // MARK: - App Info
 
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
 
-    // MARK: - Init
 
     init() {
         let d = UserDefaults.standard
@@ -107,25 +91,21 @@ final class SettingsViewModel: ObservableObject {
             self.emergencyContact = contact
         }
 
-        // Migrate old single guardian → array; then load array
         if let arrayData = d.data(forKey: Keys.guardianContacts),
            let contacts = try? JSONDecoder().decode([GuardianContact].self, from: arrayData) {
             self.guardianContacts = contacts
         } else if let legacyData = d.data(forKey: Keys.guardianContact),
                   let legacy = try? JSONDecoder().decode(GuardianContact.self, from: legacyData) {
-            // One-time migration from old single-contact key
             self.guardianContacts = [legacy]
             d.removeObject(forKey: Keys.guardianContact)
         } else {
             self.guardianContacts = []
         }
 
-        // Seed globals so AppFont / contrast colours are correct on first render
         appFontScale    = self.textSize.scaleFactor
         appHighContrast = self.highContrastMode
     }
 
-    // MARK: - Keys
 
     private enum Keys {
         static let biometricLock        = "pp_biometric_lock"
@@ -137,12 +117,11 @@ final class SettingsViewModel: ObservableObject {
         static let highContrast         = "pp_high_contrast"
         static let language             = "pp_language"
         static let colorScheme          = "pp_color_scheme"
-        static let guardianContact      = "pp_guardian_contact"    // legacy key, kept for migration
+        static let guardianContact      = "pp_guardian_contact"    
         static let guardianContacts     = "pp_guardian_contacts"
     }
 }
 
-// MARK: - ReminderSound
 
 enum ReminderSound: String, CaseIterable, Identifiable {
     case chime   = "chime"

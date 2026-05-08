@@ -1,7 +1,3 @@
-//
-//  OCRViewModel.swift
-//  PillPath — OCR Module
-//
 
 import Foundation
 import Combine
@@ -30,7 +26,6 @@ final class OCRViewModel: ObservableObject {
         errorMessage = nil
         do {
             ocrResult = try await ocrService.recognizeText(from: image)
-            // TODO: Pass rawText to openFDA to enrich result
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -1,10 +1,3 @@
-//
-//  ScheduleView.swift
-//  PillPath — Scheduling Module
-//
-//  Activity screen — 3-tab container:
-//    [Schedule] | [Medications] | [Events]
-//
 
 import SwiftUI
 
@@ -23,7 +16,6 @@ struct ScheduleView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Custom tab bar
                 tabSelector
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, AppSpacing.sm)
@@ -32,7 +24,6 @@ struct ScheduleView: View {
                 Divider()
                     .foregroundStyle(Color.appBorder)
 
-                // Tab content
                 Group {
                     switch selectedTab {
                     case .schedule:
@@ -69,7 +60,6 @@ struct ScheduleView: View {
         .onAppear { viewModel.loadAll() }
     }
 
-    // MARK: - Tab Selector
 
     private var tabSelector: some View {
         HStack(spacing: AppSpacing.xs) {

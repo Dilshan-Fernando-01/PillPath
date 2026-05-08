@@ -1,11 +1,3 @@
-//
-//  QuickEditSheet.swift
-//  PillPath — OCR Module
-//
-//  Step 6 from Figma: Quick inline editor for a scanned medication.
-//  Shows: editable name, dosage field, schedule type chips, time-of-day chips.
-//  "Done" → saves quick edits. "Advance Settings" → redirects to full stepper.
-//
 
 import SwiftUI
 
@@ -39,7 +31,6 @@ struct QuickEditSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.xl) {
 
-                    // Name field
                     FieldCard(label: "Medication Name") {
                         TextField("Name", text: $name)
                             .font(AppFont.body())
@@ -52,10 +43,8 @@ struct QuickEditSheet: View {
                             )
                     }
 
-                    // Dosage
                     FieldCard(label: "Dosage") {
                         HStack(spacing: AppSpacing.md) {
-                            // Amount stepper
                             HStack(spacing: AppSpacing.sm) {
                                 Button {
                                     if dosageAmount > 0.5 { dosageAmount -= 0.5 }
@@ -89,7 +78,6 @@ struct QuickEditSheet: View {
                                 .buttonStyle(.plain)
                             }
 
-                            // Unit selector
                             HStack(spacing: AppSpacing.xs) {
                                 ForEach(DosageUnit.allCases) { unit in
                                     let isSelected = dosageUnit == unit
@@ -113,7 +101,6 @@ struct QuickEditSheet: View {
                         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
                     }
 
-                    // Schedule type
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
                         SectionLabel(text: "Schedule Type")
                         HStack(spacing: AppSpacing.sm) {
@@ -123,7 +110,6 @@ struct QuickEditSheet: View {
                         }
                     }
 
-                    // Time of day
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
                         SectionLabel(text: "Time of Day")
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppSpacing.sm) {
@@ -162,7 +148,6 @@ struct QuickEditSheet: View {
         }
     }
 
-    // MARK: - Schedule chip
 
     private func scheduleChip(_ freq: ScheduleFrequency, label: String) -> some View {
         let isSelected = selectedSchedule == freq
@@ -184,7 +169,6 @@ struct QuickEditSheet: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Time chip
 
     private func timeChip(_ label: DoseTimeLabel) -> some View {
         let isSelected = selectedTimes.contains(label)

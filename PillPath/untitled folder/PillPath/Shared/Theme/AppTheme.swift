@@ -27,7 +27,7 @@ private extension Color {
 
 
 extension Color {
-    // Brand (intentionally same in light + dark)
+
     static let brandPrimary      = Color(hex: "#2B5CE6")
     static let brandAccent       = Color(hex: "#3D72F6")
     static let brandPrimaryLight = dynamic(light: "#EEF2FF", dark: "#1E2A66")
@@ -68,7 +68,7 @@ enum AppFont {
     static func label()      -> Font { .system(size: 11 * appFontScale, weight: .medium) }
 }
 
-// MARK: - Spacing & Radius
+
 
 enum AppSpacing {
     static let xs:  CGFloat = 4

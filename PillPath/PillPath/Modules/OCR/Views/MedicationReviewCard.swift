@@ -1,11 +1,3 @@
-//
-//  MedicationReviewCard.swift
-//  PillPath — OCR Module
-//
-//  Single scanned medication card on the review screen.
-//  Shows: accepted indicator + name + confidence badge + Edit button.
-//  Matches Figma "Medications Found" card style.
-//
 
 import SwiftUI
 
@@ -20,7 +12,6 @@ struct MedicationReviewCard: View {
     var body: some View {
         HStack(spacing: AppSpacing.md) {
 
-            // Accept / pending toggle
             Button {
                 if item.isAccepted { item.action = .pending }
                 else { onAccept() }
@@ -31,7 +22,6 @@ struct MedicationReviewCard: View {
             }
             .buttonStyle(.plain)
 
-            // Info
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: AppSpacing.sm) {
                     Text(item.displayName)
@@ -55,7 +45,6 @@ struct MedicationReviewCard: View {
 
             Spacer()
 
-            // Edit button
             Button(action: onEdit) {
                 Text("Edit")
                     .font(AppFont.caption())
@@ -81,7 +70,6 @@ struct MedicationReviewCard: View {
         .appCardShadow()
     }
 
-    // MARK: - Confidence badge
 
     @ViewBuilder
     private var confidenceBadge: some View {

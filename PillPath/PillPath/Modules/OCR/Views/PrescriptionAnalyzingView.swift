@@ -1,10 +1,3 @@
-//
-//  PrescriptionAnalyzingView.swift
-//  PillPath — OCR Module
-//
-//  Step 2: Animated loading screen shown during OCR + FDA validation.
-//  Matches Figma: spinning ring, document icon, "Analyzing prescription..." text.
-//
 
 import SwiftUI
 
@@ -17,7 +10,6 @@ struct PrescriptionAnalyzingView: View {
         VStack(spacing: AppSpacing.xl) {
             Spacer()
 
-            // Spinning ring + icon
             ZStack {
                 Circle()
                     .stroke(Color.brandPrimaryLight, lineWidth: 6)
@@ -39,7 +31,6 @@ struct PrescriptionAnalyzingView: View {
                     .foregroundStyle(Color.brandPrimary)
             }
 
-            // Text
             VStack(spacing: AppSpacing.sm) {
                 Text("Analyzing prescription...")
                     .font(AppFont.title())
@@ -49,7 +40,6 @@ struct PrescriptionAnalyzingView: View {
                     .font(AppFont.body())
                     .foregroundStyle(Color.textSecondary)
 
-                // Animated dots
                 HStack(spacing: 6) {
                     ForEach(0..<3, id: \.self) { i in
                         Circle()

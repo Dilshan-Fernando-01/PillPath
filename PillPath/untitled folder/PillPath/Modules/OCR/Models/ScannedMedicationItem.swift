@@ -39,7 +39,7 @@ struct ScannedMedicationItem: Identifiable {
         self.suggestedForm         = suggestedForm
     }
 
-    // MARK: - Nested Enums
+  
 
     enum MatchStatus {
         case exact      

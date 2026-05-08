@@ -492,7 +492,7 @@ struct SettingsView: View {
 
                 Divider().padding(.leading, AppSpacing.md)
 
-                // About App
+             
                 HStack {
                     Text("About App")
                         .font(AppFont.body())
