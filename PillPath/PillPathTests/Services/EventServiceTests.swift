@@ -50,14 +50,14 @@ final class EventServiceTests: XCTestCase {
     }
 
     func test_save_preservesEventType() throws {
-        let event = makeEvent(title: "Appointment", type: .appointment)
+        let event = makeEvent(title: "Appointment", type: .doctorVisit)
         try sut.save(event)
         let result = try sut.fetchAll()
-        XCTAssertEqual(result.first?.type, .appointment)
+        XCTAssertEqual(result.first?.type, .doctorVisit)
     }
 
     func test_save_preservesProvider() throws {
-        let event = MedicalEvent(title: "Visit", provider: "Dr. Smith", date: .now, type: .appointment)
+        let event = MedicalEvent(title: "Visit", provider: "Dr. Smith", date: .now, type: .doctorVisit)
         try sut.save(event)
         let result = try sut.fetchAll()
         XCTAssertEqual(result.first?.provider, "Dr. Smith")

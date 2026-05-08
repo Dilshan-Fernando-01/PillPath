@@ -1,7 +1,4 @@
-//
-//  HomeViewModelTests.swift
-//  PillPathTests
-//
+
 
 import XCTest
 @testable import PillPath
@@ -13,24 +10,28 @@ final class HomeViewModelTests: XCTestCase {
     var mockScheduleService: MockScheduleService!
     var mockDoseTrackingService: MockDoseTrackingService!
     var mockMedicationService: MockMedicationService!
+    var mockNotificationService: MockNotificationService!
 
     override func setUp() {
         super.setUp()
         mockScheduleService      = MockScheduleService()
         mockDoseTrackingService  = MockDoseTrackingService()
         mockMedicationService    = MockMedicationService()
+        mockNotificationService  = MockNotificationService()
         sut = HomeViewModel(
             scheduleService:      mockScheduleService,
             doseTrackingService:  mockDoseTrackingService,
-            medicationService:    mockMedicationService
+            medicationService:    mockMedicationService,
+            notificationService:  mockNotificationService
         )
     }
 
     override func tearDown() {
         sut = nil
-        mockScheduleService     = nil
-        mockDoseTrackingService = nil
-        mockMedicationService   = nil
+        mockScheduleService      = nil
+        mockDoseTrackingService  = nil
+        mockMedicationService    = nil
+        mockNotificationService  = nil
         super.tearDown()
     }
 
