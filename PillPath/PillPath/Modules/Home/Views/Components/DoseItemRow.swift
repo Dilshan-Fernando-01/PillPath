@@ -1,10 +1,3 @@
-//
-//  DoseItemRow.swift
-//  PillPath — Home Module
-//
-//  Single medication row inside a meal-timing card.
-//  Matches Figma: pill icon | name + detail | circle checkbox.
-//
 
 import SwiftUI
 
@@ -24,7 +17,7 @@ struct DoseItemRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Colored left accent bar
+          
             RoundedRectangle(cornerRadius: 2)
                 .fill(accentBarColor)
                 .frame(width: 4)
@@ -32,7 +25,7 @@ struct DoseItemRow: View {
 
             VStack(alignment: .leading, spacing: 0) {
 
-                // Status banner (active time / late)
+               
                 if item.effectiveStatus == .pending && !item.isLate && currentTimeLabel == item.timeLabel {
                     HStack(spacing: 5) {
                         Image(systemName: "bell.fill").font(.system(size: 10))
@@ -198,28 +191,43 @@ struct DoseItemRow: View {
                 .clipShape(Capsule())
 
             case .pending:
-                Button {
-                    if item.isLate {
-                        showLateConfirm = true
-                    } else if currentTimeLabel != item.timeLabel {
-                        showTimingConfirm = true
-                    } else {
-                        onMarkTaken()
-                    }
-                } label: {
+                let isFutureDate = !Calendar.current.isDateInToday(item.scheduledAt) && item.scheduledAt > Date.now
+                if isFutureDate {
                     HStack(spacing: 5) {
-                        Image(systemName: "checkmark")
+                        Image(systemName: "clock")
                             .font(.system(size: 11, weight: .bold))
-                        Text("Take")
+                        Text("Scheduled")
                             .font(.system(size: 12, weight: .semibold))
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.textSecondary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 7)
-                    .background(pendingStrokeColor)
+                    .background(Color.textSecondary.opacity(0.1))
                     .clipShape(Capsule())
+                } else {
+                    Button {
+                        if item.isLate {
+                            showLateConfirm = true
+                        } else if currentTimeLabel != item.timeLabel {
+                            showTimingConfirm = true
+                        } else {
+                            onMarkTaken()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 11, weight: .bold))
+                            Text("Take")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(pendingStrokeColor)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }

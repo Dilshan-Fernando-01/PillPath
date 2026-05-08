@@ -8,7 +8,7 @@ import CoreData
 
 enum ScheduleMapper {
 
-    // MARK: - Entity → Domain
+
 
     static func toDomain(_ entity: ScheduleEntity) -> MedicationSchedule? {
         guard let id = entity.id,
@@ -23,12 +23,15 @@ enum ScheduleMapper {
         let specificDays = entity.specificDaysJSON
             .flatMap { JSONHelper.decodeIntArray($0) } ?? []
 
+        let customDates = JSONHelper.decodeDateArray(entity.customDatesJSON)
+
         return MedicationSchedule(
             id: id,
             medicationId: medicationId,
             frequency: ScheduleFrequency(rawValue: entity.frequency ?? "daily") ?? .daily,
             intervalHours: Int(entity.intervalHours),
             specificDays: specificDays,
+            customDates: customDates,
             scheduleTimes: times,
             mealTiming: MealTiming(rawValue: entity.mealTiming ?? "none") ?? .none,
             startDate: startDate,
@@ -40,7 +43,7 @@ enum ScheduleMapper {
         )
     }
 
-    // MARK: - Domain → Entity (upsert)
+    
 
     static func toEntity(_ schedule: MedicationSchedule, context: NSManagedObjectContext) -> ScheduleEntity {
         let entity = fetchOrCreate(id: schedule.id, context: context)
@@ -48,6 +51,7 @@ enum ScheduleMapper {
         entity.frequency       = schedule.frequency.rawValue
         entity.intervalHours   = Int32(schedule.intervalHours)
         entity.specificDaysJSON = JSONHelper.encodeIntArray(schedule.specificDays)
+        entity.customDatesJSON  = JSONHelper.encodeDateArray(schedule.customDates)
         entity.mealTiming      = schedule.mealTiming.rawValue
         entity.startDate       = schedule.startDate
         entity.endDate         = schedule.endDate
@@ -56,7 +60,6 @@ enum ScheduleMapper {
         entity.notificationOffsetMinutes = Int32(schedule.notificationOffsetMinutes.rawValue)
         entity.isActive        = schedule.isActive
 
-        // Rebuild schedule times
         if let existing = entity.scheduleTimes as? Set<ScheduleTimeEntity> {
             existing.forEach { context.delete($0) }
         }
@@ -80,7 +83,6 @@ enum ScheduleMapper {
     }
 }
 
-// MARK: - ScheduleTime helper
 
 enum ScheduleTimeMapper {
     static func toDomain(_ entity: ScheduleTimeEntity) -> ScheduleTime? {

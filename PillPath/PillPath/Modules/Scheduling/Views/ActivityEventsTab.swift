@@ -1,10 +1,4 @@
-//
-//  ActivityEventsTab.swift
-//  PillPath — Scheduling Module
-//
-//  Tab 3: Medical events grouped by month.
-//  Tap to view detail. "Add New Event" button.
-//
+
 
 import SwiftUI
 
@@ -16,7 +10,7 @@ struct ActivityEventsTab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.md) {
-                // Search bar
+           
                 searchBar
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, AppSpacing.md)
@@ -38,12 +32,13 @@ struct ActivityEventsTab: View {
             .padding(.top, 0)
         }
         .background(Color.appBackground)
+        .onAppear { viewModel.loadEvents() }
         .sheet(item: $selectedEvent) { event in
             EventDetailView(event: event, viewModel: viewModel)
         }
     }
 
-    // MARK: - Search Bar
+
 
     private var searchBar: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -68,7 +63,7 @@ struct ActivityEventsTab: View {
         .overlay(RoundedRectangle(cornerRadius: AppRadius.md).stroke(Color.appBorder, lineWidth: 1))
     }
 
-    // MARK: - Month Section
+   
 
     private func monthSection(month: Date, events: [MedicalEvent]) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -88,7 +83,7 @@ struct ActivityEventsTab: View {
         }
     }
 
-    // MARK: - Empty State
+   
 
     private var emptyState: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -108,7 +103,7 @@ struct ActivityEventsTab: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - No Results State
+    
 
     private var noResultsState: some View {
         VStack(spacing: AppSpacing.sm) {
@@ -126,7 +121,7 @@ struct ActivityEventsTab: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Helper
+   
 
     private func monthHeader(_ date: Date) -> String {
         let formatter = DateFormatter()
@@ -135,7 +130,7 @@ struct ActivityEventsTab: View {
     }
 }
 
-// MARK: - Event Row Card
+
 
 struct EventRowCard: View {
 
@@ -143,7 +138,7 @@ struct EventRowCard: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            // Type icon
+         
             ZStack {
                 RoundedRectangle(cornerRadius: AppRadius.sm)
                     .fill(typeColor.opacity(0.12))

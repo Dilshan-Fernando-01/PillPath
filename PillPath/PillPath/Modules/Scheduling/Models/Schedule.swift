@@ -1,21 +1,14 @@
-//
-//  Schedule.swift
-//  PillPath — Scheduling Module
-//
-//  Pure Swift domain models — no CoreData imports.
-//  Matches the full Add Medication step 4-7 flow.
-//
 
 import Foundation
 
-// MARK: - MedicationSchedule
 
 struct MedicationSchedule: Identifiable, Codable {
     let id: UUID
     var medicationId: UUID
     var frequency: ScheduleFrequency
-    var intervalHours: Int                  // used when frequency == .everyXHours
-    var specificDays: [Int]                 // 0=Sun…6=Sat, used when frequency == .specificDays
+    var intervalHours: Int                  
+    var specificDays: [Int]                 
+    var customDates: [Date]                 
     var scheduleTimes: [ScheduleTime]
     var mealTiming: MealTiming
     var startDate: Date
@@ -31,6 +24,7 @@ struct MedicationSchedule: Identifiable, Codable {
         frequency: ScheduleFrequency = .daily,
         intervalHours: Int = 8,
         specificDays: [Int] = [],
+        customDates: [Date] = [],
         scheduleTimes: [ScheduleTime] = [],
         mealTiming: MealTiming = .none,
         startDate: Date = .now,
@@ -45,6 +39,7 @@ struct MedicationSchedule: Identifiable, Codable {
         self.frequency = frequency
         self.intervalHours = intervalHours
         self.specificDays = specificDays
+        self.customDates = customDates
         self.scheduleTimes = scheduleTimes
         self.mealTiming = mealTiming
         self.startDate = startDate
@@ -55,7 +50,7 @@ struct MedicationSchedule: Identifiable, Codable {
         self.isActive = isActive
     }
 
-    /// Human-readable summary e.g. "2 times daily"
+   
     var frequencySummary: String {
         switch frequency {
         case .daily:
@@ -73,7 +68,7 @@ struct MedicationSchedule: Identifiable, Codable {
     }
 }
 
-// MARK: - ScheduleTime
+
 
 struct ScheduleTime: Codable, Identifiable, Hashable {
     var id: UUID = .init()
@@ -113,14 +108,14 @@ struct DoseLog: Identifiable, Codable {
     var isMissed: Bool { status == .missed }
 }
 
-// MARK: - MedicalEvent
+
 
 struct MedicalEvent: Identifiable, Codable {
     let id: UUID
     var title: String
     var notes: String?
-    var provider: String?           // Doctor / provider name
-    var medicationIds: [UUID]       // Linked medications
+    var provider: String?           
+    var medicationIds: [UUID]       
     var date: Date
     var type: MedicalEventType
     let createdAt: Date
@@ -146,7 +141,7 @@ struct MedicalEvent: Identifiable, Codable {
     }
 }
 
-// MARK: - Enums
+
 
 enum ScheduleFrequency: String, Codable, CaseIterable, Identifiable {
     case daily        = "daily"
@@ -207,7 +202,7 @@ enum DoseTimeLabel: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Friendly label designed for elderly users
+   
     var elderlyDisplayName: String {
         switch self {
         case .morning: return "Morning Medications"
@@ -290,10 +285,10 @@ enum DoseStatus: String, Codable {
     }
 }
 
-// MARK: - DoseTimeLabel helpers
+
 
 extension DoseTimeLabel {
-    /// Derives the time-of-day bucket from a calendar hour (0–23).
+   
     static func from(hour: Int) -> DoseTimeLabel {
         switch hour {
         case 6..<12:  return .morning

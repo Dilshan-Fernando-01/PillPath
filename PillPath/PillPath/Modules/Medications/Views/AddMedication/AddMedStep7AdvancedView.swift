@@ -1,17 +1,14 @@
-//
-//  AddMedStep7AdvancedView.swift
-//  PillPath — Medications Module
-//
-//  Step 7: Advanced options — dates, reminders, event, photo, display name, inventory.
-//
+
 
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct AddMedStep7AdvancedView: View {
 
     @ObservedObject var viewModel: AddMedicationViewModel
     @State private var photoPickerItem: PhotosPickerItem?
+    @State private var selectedImage: UIImage?
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xl) {
@@ -21,32 +18,32 @@ struct AddMedStep7AdvancedView: View {
                 subtitle: "All fields are optional — fill in as needed."
             )
 
-            // Dates section
+       
             datesSection
 
-            // Reminders section
+         
             remindersSection
 
-            // Medical event link
+         
             eventSection
 
-            // Photo
+            
             photoSection
 
-            // Display name
+           
             displayNameSection
 
-            // Notes
+           
             notesSection
 
-            // Inventory
+           
             inventorySection
 
             Spacer()
         }
     }
 
-    // MARK: - Dates
+   
 
     private var datesSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -94,7 +91,7 @@ struct AddMedStep7AdvancedView: View {
         }
     }
 
-    // MARK: - Reminders
+   
 
     private var remindersSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -135,7 +132,7 @@ struct AddMedStep7AdvancedView: View {
         }
     }
 
-    // MARK: - Event
+  
 
     private var eventSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -187,7 +184,7 @@ struct AddMedStep7AdvancedView: View {
         return event.title
     }
 
-    // MARK: - Photo
+  
 
     private var photoSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -199,15 +196,21 @@ struct AddMedStep7AdvancedView: View {
                         RoundedRectangle(cornerRadius: AppRadius.sm)
                             .fill(Color.brandPrimaryLight)
                             .frame(width: 52, height: 52)
-                        if let urlString = viewModel.photoURL, let url = URL(string: urlString) {
-                            AsyncImage(url: url) { img in
-                                img.resizable().scaledToFill()
-                            } placeholder: {
-                                Image(systemName: "photo")
-                                    .foregroundStyle(Color.brandPrimary)
-                            }
-                            .frame(width: 52, height: 52)
-                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+                        if let image = selectedImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 52, height: 52)
+                                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+                        } else if let urlString = viewModel.photoURL,
+                                  let url = URL(string: urlString),
+                                  let data = try? Data(contentsOf: url),
+                                  let img = UIImage(data: data) {
+                            Image(uiImage: img)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 52, height: 52)
+                                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
                         } else {
                             Image(systemName: "camera.fill")
                                 .foregroundStyle(Color.brandPrimary)
@@ -215,7 +218,7 @@ struct AddMedStep7AdvancedView: View {
                         }
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(viewModel.photoURL == nil ? "Add Photo" : "Change Photo")
+                        Text(viewModel.photoURL == nil && selectedImage == nil ? "Add Photo" : "Change Photo")
                             .font(AppFont.subheadline())
                             .fontWeight(.semibold)
                             .foregroundStyle(Color.brandPrimary)
@@ -235,16 +238,25 @@ struct AddMedStep7AdvancedView: View {
             }
             .onChange(of: photoPickerItem) { _, newItem in
                 Task {
-                    // Store as a local identifier — in production replace with file save
-                    if let item = newItem {
-                        viewModel.photoURL = item.itemIdentifier
+                    guard let item = newItem,
+                          let data = try? await item.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else { return }
+                    selectedImage = image
+                   
+                    if let jpeg = image.jpegData(compressionQuality: 0.8) {
+                        let fileName = "med_photo_\(UUID().uuidString).jpg"
+                        let url = FileManager.default
+                            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+                            .appendingPathComponent(fileName)
+                        try? jpeg.write(to: url)
+                        viewModel.photoURL = url.absoluteString
                     }
                 }
             }
         }
     }
 
-    // MARK: - Display Name
+
 
     private var displayNameSection: some View {
         FieldCard(label: "Display Name (optional)") {
@@ -265,7 +277,7 @@ struct AddMedStep7AdvancedView: View {
         }
     }
 
-    // MARK: - Notes
+
 
     private var notesSection: some View {
         FieldCard(label: "Notes (optional)") {
@@ -282,14 +294,14 @@ struct AddMedStep7AdvancedView: View {
         }
     }
 
-    // MARK: - Inventory
+   
 
     private var inventorySection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             SectionLabel(text: "Inventory Tracking")
 
             HStack(spacing: AppSpacing.sm) {
-                // Current quantity
+             
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Current Qty")
                         .font(AppFont.caption())
@@ -306,7 +318,7 @@ struct AddMedStep7AdvancedView: View {
                         )
                 }
 
-                // Low threshold
+               
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Alert Below")
                         .font(AppFont.caption())

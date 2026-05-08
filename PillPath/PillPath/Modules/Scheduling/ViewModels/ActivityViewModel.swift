@@ -1,12 +1,3 @@
-//
-//  ActivityViewModel.swift
-//  PillPath — Scheduling Module
-//
-//  Drives the 3-tab Activity screen:
-//    Tab 1 — Schedule  (week calendar + dose list)
-//    Tab 2 — Medications (active / stopped lists)
-//    Tab 3 — Events    (CRUD for MedicalEvent)
-//
 
 import Foundation
 import Combine
@@ -14,15 +5,15 @@ import Combine
 @MainActor
 final class ActivityViewModel: ObservableObject {
 
-    // MARK: - Schedule tab
+   
 
-    @Published var weekOffset: Int = 0           // 0 = current week, -1 = last week, etc.
+    @Published var weekOffset: Int = 0          
     @Published var selectedDate: Date = Calendar.current.startOfDay(for: .now)
     @Published var dayStatuses: [Date: DayStatus] = [:]
     @Published var selectedDayDoses: [DoseDisplayItem] = []
     @Published var scheduleFilter: ScheduleFilter = .today
 
-    // MARK: - Medications tab
+   
 
     @Published var activeMedications: [Medication] = []
     @Published var stoppedMedications: [Medication] = []
@@ -38,7 +29,7 @@ final class ActivityViewModel: ObservableObject {
         return stoppedMedications.filter { $0.name.localizedCaseInsensitiveContains(medicationSearch) }
     }
 
-    // MARK: - Events tab
+  
 
     @Published var allEvents: [MedicalEvent] = []
     @Published var eventsByMonth: [(month: Date, events: [MedicalEvent])] = []
@@ -55,7 +46,7 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Schedule tab search
+  
 
     @Published var scheduleSearch: String = ""
 
@@ -64,16 +55,16 @@ final class ActivityViewModel: ObservableObject {
         return selectedDayDoses.filter { $0.medicationName.localizedCaseInsensitiveContains(scheduleSearch) }
     }
 
-    // MARK: - Shared state
+   
 
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    // MARK: - History tab
+   
 
     @Published var historyItems: [DoseHistoryItem] = []
 
-    // MARK: - Supporting types
+   
 
     enum DayStatus { case allTaken, hasMissed, hasPending, noData }
 
@@ -87,8 +78,7 @@ final class ActivityViewModel: ObservableObject {
         let scheduledLabel: DoseTimeLabel
         let takenLabel: DoseTimeLabel?
 
-        /// True when the dose was confirmed in a different time-of-day window than scheduled
-        var isOutOfWindow: Bool {
+      var isOutOfWindow: Bool {
             guard status == .taken, let tl = takenLabel else { return false }
             return tl != scheduledLabel
         }
@@ -105,14 +95,14 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Services
+   
 
     private let scheduleService: ScheduleServiceProtocol
     private let doseTrackingService: DoseTrackingServiceProtocol
     private let medicationService: MedicationServiceProtocol
     private let eventService: EventServiceProtocol
 
-    // MARK: - Init
+   
 
     init(
         scheduleService: ScheduleServiceProtocol? = nil,
@@ -126,7 +116,7 @@ final class ActivityViewModel: ObservableObject {
         self.eventService        = eventService        ?? DIContainer.shared.resolve(EventServiceProtocol.self)
     }
 
-    // MARK: - Public: Load All
+ 
 
     func loadAll() {
         loadScheduleData()
@@ -134,15 +124,11 @@ final class ActivityViewModel: ObservableObject {
         loadEvents()
     }
 
-    // MARK: - Schedule Tab
-
-    /// Returns the 7 dates of the week at `weekOffset` from today (Mon–Sun).
-    var weekDays: [Date] {
+  var weekDays: [Date] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: .now)
-        // Find start of the ISO week (Monday = 2 in Gregorian)
         let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday + 5) % 7  // Mon=0 … Sun=6
+        let daysFromMonday = (weekday + 5) % 7 
         guard let monday = calendar.date(byAdding: .day, value: -daysFromMonday + weekOffset * 7, to: today) else { return [] }
         return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: monday) }
     }
@@ -197,7 +183,8 @@ final class ActivityViewModel: ObservableObject {
             for schedule in schedules {
                 guard let med = medMap[schedule.medicationId],
                       med.isActive else { continue }
-                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 1)
+                let daysAhead = max(2, (calendar.dateComponents([.day], from: calendar.startOfDay(for: .now), to: selectedDate).day ?? 0) + 2)
+                let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: daysAhead)
                     .filter { calendar.isDate($0, inSameDayAs: selectedDate) }
 
                 for doseTime in doseTimes {
@@ -236,7 +223,7 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Medications Tab
+
 
     func loadMedications() {
         do {
@@ -269,7 +256,7 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Events Tab
+   
 
     func loadEvents() {
         do {
@@ -299,7 +286,7 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
-    // MARK: - History
+  
 
     func loadHistory(from start: Date, to end: Date) {
         do {
@@ -334,12 +321,12 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Private helpers
+  
 
     private func groupByMonth(_ events: [MedicalEvent]) -> [(month: Date, events: [MedicalEvent])] {
         let calendar = Calendar.current
         var groups: [(month: Date, events: [MedicalEvent])] = []
-        var seen: [Date: Int] = [:]  // month start → index in groups
+        var seen: [Date: Int] = [:]  
         for event in events {
             let comps  = calendar.dateComponents([.year, .month], from: event.date)
             let month  = calendar.date(from: comps)!

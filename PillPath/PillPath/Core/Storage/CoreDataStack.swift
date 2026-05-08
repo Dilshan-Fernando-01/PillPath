@@ -1,10 +1,4 @@
-//
-//  CoreDataStack.swift
-//  PillPath
-//
-//  Replaces the default Persistence.swift with a named, injectable stack.
-//  Use CoreDataStack.shared in production; inject an in-memory stack in tests.
-//
+
 
 import CoreData
 
@@ -23,11 +17,14 @@ final class CoreDataStack {
 
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+            container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
         }
 
         container.loadPersistentStores { _, error in
             if let error {
-                // TODO: Replace with proper error handling before App Store submission.
+               
                 fatalError("CoreData load failed: \(error.localizedDescription)")
             }
         }
@@ -35,7 +32,7 @@ final class CoreDataStack {
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 
-    // MARK: - Save Helper
+
 
     func save() {
         let context = container.viewContext
@@ -43,12 +40,12 @@ final class CoreDataStack {
         do {
             try context.save()
         } catch {
-            // TODO: Surface this error to the user via an alert.
+         
             print("CoreData save error: \(error.localizedDescription)")
         }
     }
 
-    // MARK: - Background Context
+   
 
     func newBackgroundContext() -> NSManagedObjectContext {
         container.newBackgroundContext()

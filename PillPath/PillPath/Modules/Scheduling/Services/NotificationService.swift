@@ -1,10 +1,3 @@
-//
-//  NotificationService.swift
-//  PillPath — Scheduling Module
-//
-//  Wraps UNUserNotificationCenter.
-//  Scheduling is triggered by ScheduleService after saving a schedule.
-//
 
 import Foundation
 import UserNotifications
@@ -12,6 +5,7 @@ import UserNotifications
 protocol NotificationServiceProtocol {
     func requestPermission() async -> Bool
     func scheduleNotifications(for schedule: MedicationSchedule, medication: Medication)
+    func scheduleLowQuantityAlert(for medication: Medication)
     func cancelNotifications(for scheduleId: UUID)
     func cancelAll()
 }
@@ -20,7 +14,6 @@ final class NotificationService: NotificationServiceProtocol {
 
     private let center = UNUserNotificationCenter.current()
 
-    // MARK: - Permission
 
     func requestPermission() async -> Bool {
         do {
@@ -30,10 +23,10 @@ final class NotificationService: NotificationServiceProtocol {
         }
     }
 
-    // MARK: - Schedule Notifications
+ 
 
     func scheduleNotifications(for schedule: MedicationSchedule, medication: Medication) {
-        // Generate dose times for next 7 days and create a notification per dose
+      
         let doseTimes = ScheduleCalculator.upcomingDoseTimes(for: schedule, days: 7)
 
         for doseTime in doseTimes {
@@ -59,7 +52,26 @@ final class NotificationService: NotificationServiceProtocol {
         }
     }
 
-    // MARK: - Cancel
+
+    func scheduleLowQuantityAlert(for medication: Medication) {
+        let content = UNMutableNotificationContent()
+        content.title = "Low Supply: \(medication.name)"
+        content.body  = "You have \(medication.currentQuantity) \(medication.dosageUnit.displayName) remaining. Time to refill."
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "low_qty_\(medication.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+        center.removePendingNotificationRequests(withIdentifiers: ["low_qty_\(medication.id.uuidString)"])
+        center.add(request) { error in
+            if let error { print("Low quantity notification error: \(error)") }
+        }
+    }
+
+   
 
     func cancelNotifications(for scheduleId: UUID) {
         center.getPendingNotificationRequests { requests in

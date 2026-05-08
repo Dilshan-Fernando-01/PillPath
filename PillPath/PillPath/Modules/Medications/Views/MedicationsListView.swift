@@ -1,9 +1,4 @@
-//
-//  MedicationsListView.swift
-//  PillPath — Medications Module
-//
-//  Medications list with Add Medication flow triggered via the + button.
-//
+
 
 import SwiftUI
 
@@ -21,12 +16,11 @@ struct MedicationsListView: View {
                 Color.appBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Search bar
+                    
                     searchBar
                         .padding(.horizontal, AppSpacing.md)
                         .padding(.vertical, AppSpacing.sm)
 
-                    // Content
                     if viewModel.isLoading {
                         LoadingView(message: "Loading medications...")
                             .frame(maxHeight: .infinity)
@@ -79,9 +73,10 @@ struct MedicationsListView: View {
                 medication: med,
                 onViewDetails: {
                     let captured = med
+                    let schedule = viewModel.schedule(for: captured.id)
                     selectedMedication = nil
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        editViewModel = AddMedicationViewModel.editing(medication: captured)
+                        editViewModel = AddMedicationViewModel.editing(medication: captured, schedule: schedule)
                     }
                 },
                 onToggleActive: { change in
@@ -103,7 +98,7 @@ struct MedicationsListView: View {
         .onAppear { viewModel.loadMedications() }
     }
 
-    // MARK: - Search Bar
+
 
     private var searchBar: some View {
         HStack(spacing: AppSpacing.sm) {
@@ -127,7 +122,7 @@ struct MedicationsListView: View {
         )
     }
 
-    // MARK: - Filtered List
+
 
     private var filteredMedications: [Medication] {
         guard !searchText.isEmpty else { return viewModel.medications }
@@ -137,7 +132,6 @@ struct MedicationsListView: View {
         }
     }
 
-    // MARK: - Empty State
 
     private var emptyState: some View {
         EmptyStateView(
@@ -151,7 +145,6 @@ struct MedicationsListView: View {
     }
 }
 
-// MARK: - Medication Row Card
 
 struct MedicationRowCard: View {
 
@@ -160,7 +153,7 @@ struct MedicationRowCard: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            // Form icon
+       
             ZStack {
                 Circle()
                     .fill(Color.brandPrimaryLight)
@@ -193,7 +186,7 @@ struct MedicationRowCard: View {
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
                 }
-                // Status change details for inactive medications
+              
                 if !medication.isActive, let sc = medication.statusChange {
                     HStack(spacing: AppSpacing.xs) {
                         Image(systemName: "pause.circle.fill")
@@ -209,7 +202,7 @@ struct MedicationRowCard: View {
 
             Spacer()
 
-            // Active indicator
+        
             Circle()
                 .fill(medication.isActive ? Color.semanticSuccess : Color.appBorder)
                 .frame(width: 8, height: 8)
