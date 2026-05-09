@@ -340,6 +340,7 @@ final class ActivityViewModel: ObservableObject {
     func saveEvent(_ event: MedicalEvent) {
         do {
             try eventService.save(event)
+            EventKitService.shared.requestAccessAndSync(medicalEvent: event)
             loadEvents()
         } catch {
             errorMessage = error.localizedDescription

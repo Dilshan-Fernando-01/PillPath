@@ -23,13 +23,14 @@ struct PillPathApp: App {
     init() {
         AppDependencies.register()
         DataSeeder.seedIfNeeded()
-
+       
         let center = UNUserNotificationCenter.current()
         center.delegate = notificationDelegate
         Task {
             try? await center.requestAuthorization(options: [.alert, .badge, .sound])
         }
     }
+
 
     var body: some Scene {
         WindowGroup {
