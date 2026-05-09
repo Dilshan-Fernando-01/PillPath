@@ -97,6 +97,35 @@ final class EventKitService: ObservableObject {
         store.calendars(for: .event).first { $0.title == "PillPath Medications" }
     }
 
+    func syncMedicalEvent(_ event: MedicalEvent) {
+        guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return }
+
+        let ekEvent = EKEvent(eventStore: store)
+        ekEvent.title = event.title
+        var noteParts: [String] = []
+        if let provider = event.provider, !provider.isEmpty { noteParts.append(provider) }
+        if let notes = event.notes, !notes.isEmpty { noteParts.append(notes) }
+        ekEvent.notes = noteParts.isEmpty ? nil : noteParts.joined(separator: "\n")
+        ekEvent.startDate = event.date
+        ekEvent.endDate   = event.date.addingTimeInterval(3600)
+        ekEvent.calendar  = existingPillPathCalendar() ?? store.defaultCalendarForNewEvents
+
+        let alarm = EKAlarm(relativeOffset: -60 * 60)
+        ekEvent.addAlarm(alarm)
+
+        try? store.save(ekEvent, span: .thisEvent, commit: true)
+    }
+
+    func requestAccessAndSync(medicalEvent: MedicalEvent) {
+        if authorizationStatus == .fullAccess || authorizationStatus == .writeOnly {
+            syncMedicalEvent(medicalEvent)
+        } else if authorizationStatus == .notDetermined {
+            requestAccess { [weak self] granted in
+                if granted { self?.syncMedicalEvent(medicalEvent) }
+            }
+        }
+    }
+
     func createPillPathCalendarIfNeeded() {
         guard existingPillPathCalendar() == nil else { return }
         guard let source = store.defaultCalendarForNewEvents?.source else { return }

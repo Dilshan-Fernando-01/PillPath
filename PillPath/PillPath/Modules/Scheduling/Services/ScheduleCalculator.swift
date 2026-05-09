@@ -178,9 +178,8 @@ enum ScheduleCalculator {
 
     private static func isWithinScheduleRange(_ date: Date, schedule: MedicationSchedule, calendar: Calendar) -> Bool {
         let startOfDate = calendar.startOfDay(for: date)
-        let startOfSchedule = calendar.startOfDay(for: schedule.startDate)
-        guard startOfDate >= startOfSchedule else { return false }
-        if !schedule.isOngoing, let endDate = schedule.endDate {
+        guard startOfDate >= calendar.startOfDay(for: schedule.startDate) else { return false }
+        if let endDate = schedule.endDate {
             return startOfDate <= calendar.startOfDay(for: endDate)
         }
         return true
