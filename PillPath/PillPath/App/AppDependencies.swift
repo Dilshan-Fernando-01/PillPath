@@ -41,9 +41,8 @@ struct AppDependencies {
             AnalyticsService(coreData: c.resolve(CoreDataStack.self))
         }
 
-        c.registerSingleton(AuthServiceProtocol.self)       { AuthService() }
+        c.registerSingleton(AuthServiceProtocol.self)          { FirebaseAuthService() }
         c.registerSingleton(BiometricAuthServiceProtocol.self) { BiometricAuthService() }
-        c.registerSingleton(GoogleSSOServiceProtocol.self)   { GoogleSSOService() }
 
 
         c.registerSingleton(OCRServiceProtocol.self) { OCRService() }

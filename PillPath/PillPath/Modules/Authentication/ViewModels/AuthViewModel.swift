@@ -1,8 +1,8 @@
 
-
 import Foundation
 import Combine
 import LocalAuthentication
+import UIKit
 
 @MainActor
 final class AuthViewModel: ObservableObject {
@@ -11,7 +11,17 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var hasCachedSession: Bool = false
+
+    // Registration flow state
     @Published var registrationSuccess = false
+    @Published var pendingVerificationEmail: String = ""
+
+    // Phone auth state
+    @Published var phoneVerificationID: String = ""
+    @Published var phoneVerificationSent = false
+
+    // Forgot password state
+    @Published var passwordResetSent = false
 
     private let authService: AuthServiceProtocol
     private let biometricService: BiometricAuthServiceProtocol
@@ -28,15 +38,15 @@ final class AuthViewModel: ObservableObject {
 
     var isAuthenticated: Bool { currentUser != nil }
 
-   
     var isBiometryAvailable: Bool {
         biometricService.isBiometryAvailable()
-            && UserDefaults.standard.data(forKey: "pp_cachedUser") != nil
+            && authService.hasCachedSession()
             && UserDefaults.standard.bool(forKey: "pp_biometric_lock")
     }
 
     var biometryType: LABiometryType { biometricService.biometryType }
 
+    // MARK: - Email / Password
 
     func signIn(email: String, password: String) async {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty, !password.isEmpty else {
@@ -47,6 +57,9 @@ final class AuthViewModel: ObservableObject {
         errorMessage = nil
         do {
             currentUser = try await authService.signIn(email: email, password: password)
+        } catch let authErr as AuthError where authErr == .emailNotVerified {
+            pendingVerificationEmail = email
+            errorMessage = authErr.localizedDescription
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -75,6 +88,7 @@ final class AuthViewModel: ObservableObject {
                 email: email.trimmingCharacters(in: .whitespaces),
                 password: password
             )
+            pendingVerificationEmail = email.trimmingCharacters(in: .whitespaces)
             registrationSuccess = true
         } catch {
             errorMessage = error.localizedDescription
@@ -82,6 +96,127 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    // MARK: - Email Verification
+
+    func resendVerificationEmail() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            try await authService.resendVerificationEmail()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    func checkEmailVerified() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let verified = try await authService.refreshEmailVerificationStatus()
+            if verified {
+                currentUser = authService.currentUser
+            } else {
+                errorMessage = "Email not verified yet. Please check your inbox and click the link."
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    // MARK: - Forgot Password
+
+    func sendPasswordReset(email: String) async {
+        guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Please enter your email address."
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        do {
+            try await authService.sendPasswordReset(email: email.trimmingCharacters(in: .whitespaces))
+            passwordResetSent = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    // MARK: - Phone OTP
+
+    func sendPhoneOTP(phoneNumber: String) async {
+        guard !phoneNumber.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Please enter a phone number."
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        do {
+            phoneVerificationID = try await authService.sendPhoneVerification(phoneNumber: phoneNumber)
+            phoneVerificationSent = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    func verifyPhoneOTP(code: String) async {
+        guard !phoneVerificationID.isEmpty else {
+            errorMessage = "Session expired. Please request a new code."
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        do {
+            currentUser = try await authService.signInWithPhoneCredential(
+                verificationID: phoneVerificationID,
+                code: code
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    // MARK: - Google SSO
+
+    func signInWithGoogle() async {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.keyWindow?.rootViewController else {
+            errorMessage = "Unable to present Google sign-in."
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        do {
+            currentUser = try await authService.signInWithGoogle(presenting: rootVC)
+        } catch let authErr as AuthError where authErr == .unknown("Sign-in cancelled.") {
+            // User cancelled — no error shown
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    // MARK: - Apple SSO
+
+    func signInWithApple(idToken: String, nonce: String, fullName: PersonNameComponents?) async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            currentUser = try await authService.signInWithAppleCredential(
+                idToken: idToken,
+                nonce: nonce,
+                fullName: fullName
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    // MARK: - Biometrics
 
     func signInWithBiometrics() async {
         guard isBiometryAvailable && !isLoading else { return }
@@ -106,37 +241,7 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
-
-
-    func signInWithApple(idToken: String, nonce: String, fullName: PersonNameComponents?) async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            currentUser = try await authService.signInWithAppleCredential(
-                idToken: idToken,
-                nonce: nonce,
-                fullName: fullName
-            )
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-
-
-
-    func signInWithGoogle() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            currentUser = try await authService.signInWithGoogle()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-
-
+    // MARK: - Sign Out
 
     func signOut() {
         authService.signOut()
@@ -144,5 +249,16 @@ final class AuthViewModel: ObservableObject {
         hasCachedSession = false
         errorMessage = nil
         registrationSuccess = false
+        pendingVerificationEmail = ""
+        phoneVerificationID = ""
+        phoneVerificationSent = false
+        passwordResetSent = false
+    }
+}
+
+// MARK: - AuthError Equatable
+extension AuthError: Equatable {
+    static func == (lhs: AuthError, rhs: AuthError) -> Bool {
+        lhs.errorDescription == rhs.errorDescription
     }
 }

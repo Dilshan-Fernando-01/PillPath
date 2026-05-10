@@ -7,11 +7,13 @@ struct User: Identifiable, Codable {
     var name: String
     var email: String
     var createdAt: Date
+    var firebaseUID: String
 
-    init(id: UUID = .init(), name: String, email: String, createdAt: Date = .now) {
+    init(id: UUID = .init(), name: String, email: String, createdAt: Date = .now, firebaseUID: String = "") {
         self.id = id
         self.name = name
         self.email = email
         self.createdAt = createdAt
+        self.firebaseUID = firebaseUID
     }
 }

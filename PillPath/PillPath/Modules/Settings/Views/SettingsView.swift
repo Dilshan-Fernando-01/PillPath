@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var guardians: [GuardianContact] = [.empty(), .empty(), .empty()]
     @State private var showGuardianHelp = false
     @State private var showSavedBanner = false
+    @State private var showSignOutModal = false
 
     var body: some View {
         NavigationStack {
@@ -31,8 +32,7 @@ struct SettingsView: View {
                         generalSection
 
                         Button {
-                            authViewModel.signOut()
-                            dismiss()
+                            showSignOutModal = true
                         } label: {
                             HStack(spacing: AppSpacing.sm) {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -86,6 +86,17 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .onAppear { prefillContact() }
+        .appModal(
+            isPresented: $showSignOutModal,
+            icon: .signOut,
+            title: "Sign Out",
+            message: "Are you sure you want to sign out? You'll need to sign in again to access your medications.",
+            primaryButton: .destructive("Sign Out") {
+                authViewModel.signOut()
+                dismiss()
+            },
+            secondaryButton: .cancel()
+        )
     }
 
    

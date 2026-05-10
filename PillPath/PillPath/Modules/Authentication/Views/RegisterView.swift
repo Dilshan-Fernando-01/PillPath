@@ -1,5 +1,4 @@
 
-
 import SwiftUI
 
 struct RegisterView: View {
@@ -14,6 +13,8 @@ struct RegisterView: View {
     @State private var showPassword = false
     @State private var showConfirmPassword = false
     @State private var agreedToTerms = false
+    @State private var navigateToVerification = false
+    @State private var navigateToLogin = false
 
     private var isFormValid: Bool {
         !fullName.isEmpty &&
@@ -36,11 +37,9 @@ struct RegisterView: View {
                             .font(.system(size: 34))
                             .foregroundStyle(Color.brandPrimary)
                     }
-
                     Text("Create Account")
                         .font(AppFont.largeTitle())
                         .foregroundStyle(Color.textPrimary)
-
                     Text("Start managing your medications today")
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.textSecondary)
@@ -48,7 +47,6 @@ struct RegisterView: View {
                 }
                 .padding(.top, AppSpacing.lg)
 
-              
                 VStack(spacing: AppSpacing.md) {
                     AuthTextField(
                         placeholder: "Full name",
@@ -101,12 +99,11 @@ struct RegisterView: View {
                     }
                 }
 
-               
-                if !password.isEmpty {
-                    PasswordStrengthIndicator(password: password)
-                }
+                PasswordStrengthIndicator(password: password)
+                    .opacity(password.isEmpty ? 0 : 1)
+                    .frame(height: password.isEmpty ? 0 : nil)
+                    .clipped()
 
-               
                 Button {
                     agreedToTerms.toggle()
                 } label: {
@@ -125,7 +122,6 @@ struct RegisterView: View {
                                     .foregroundStyle(.white)
                             }
                         }
-
                         Text("I agree to the ")
                             .foregroundStyle(Color.textSecondary)
                         + Text("Terms of Service")
@@ -141,12 +137,10 @@ struct RegisterView: View {
                     .multilineTextAlignment(.leading)
                 }
 
-               
                 if let error = authViewModel.errorMessage {
                     AuthErrorBanner(message: error)
                 }
 
-                
                 PrimaryButton(
                     title: "Create Account",
                     icon: "arrow.right",
@@ -163,28 +157,40 @@ struct RegisterView: View {
                     }
                 }
 
-                
+                DividerWithLabel(label: "or continue with")
+
+                GoogleSignInRegisterButton {
+                    Task { await authViewModel.signInWithGoogle() }
+                }
+
                 HStack(spacing: 4) {
                     Text("Already have an account?")
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.textSecondary)
-                    Button("Sign In") {
-                        dismiss()
-                    }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.brandPrimary)
+                    Button("Sign In") { navigateToLogin = true }
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.brandPrimary)
                 }
                 .padding(.bottom, AppSpacing.xl)
+
+                Spacer().frame(height: 320)
             }
             .padding(.horizontal, AppSpacing.lg)
         }
         .background(Color.appBackground.ignoresSafeArea())
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationTitle("Register")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $navigateToVerification) {
+            EmailVerificationPendingView(email: authViewModel.pendingVerificationEmail)
+        }
+        .navigationDestination(isPresented: $navigateToLogin) {
+            LoginView()
+        }
         .onChange(of: authViewModel.registrationSuccess) { _, success in
             if success {
                 authViewModel.registrationSuccess = false
-                dismiss()
+                navigateToVerification = true
             }
         }
         .onDisappear {
@@ -193,6 +199,28 @@ struct RegisterView: View {
     }
 }
 
+
+private struct GoogleSignInRegisterButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: "globe")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(Color.textPrimary)
+                Text("Continue with Google")
+                    .font(AppFont.headline())
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(Color.appSurface)
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(Color.appBorder, lineWidth: 1.5))
+        }
+    }
+}
 
 private struct PasswordStrengthIndicator: View {
     let password: String

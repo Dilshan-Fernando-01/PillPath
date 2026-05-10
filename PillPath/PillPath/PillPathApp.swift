@@ -1,7 +1,8 @@
 
-
 import SwiftUI
 import UserNotifications
+import FirebaseCore
+import GoogleSignIn
 
 
 final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
@@ -21,16 +22,16 @@ struct PillPathApp: App {
     private let notificationDelegate = NotificationDelegate()
 
     init() {
+        FirebaseApp.configure()
         AppDependencies.register()
         DataSeeder.seedIfNeeded()
-       
+
         let center = UNUserNotificationCenter.current()
         center.delegate = notificationDelegate
         Task {
             try? await center.requestAuthorization(options: [.alert, .badge, .sound])
         }
     }
-
 
     var body: some Scene {
         WindowGroup {
@@ -39,6 +40,9 @@ struct PillPathApp: App {
                 .environment(\.managedObjectContext, CoreDataStack.shared.viewContext)
                 .preferredColorScheme(settings.colorScheme.colorScheme)
                 .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in }
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                }
         }
     }
 }

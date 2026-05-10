@@ -40,20 +40,4 @@ final class BiometricAuthService: BiometricAuthServiceProtocol {
 
 
 
-protocol GoogleSSOServiceProtocol {
-    func signIn() async throws -> User
-    func signOut()
-}
-
-
-final class GoogleSSOService: GoogleSSOServiceProtocol {
-    func signIn() async throws -> User {
-        throw AuthError.notImplemented
-    }
-
-    func signOut() {
-      
-    }
-}
-
 

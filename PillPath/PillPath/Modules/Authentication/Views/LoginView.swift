@@ -1,5 +1,4 @@
 
-
 import SwiftUI
 import AuthenticationServices
 import CryptoKit
@@ -15,13 +14,15 @@ struct LoginView: View {
     @State private var showPassword = false
     @State private var currentNonce = ""
     @State private var navigateToRegister = false
-    @State private var showBiometricError = false
+    @State private var navigateToPhone = false
+    @State private var showForgotPassword = false
+    @State private var showVerificationPending = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: AppSpacing.xl) {
 
-                
+                // Header
                 VStack(spacing: AppSpacing.sm) {
                     ZStack {
                         Circle()
@@ -31,11 +32,9 @@ struct LoginView: View {
                             .font(.system(size: 36))
                             .foregroundStyle(Color.brandPrimary)
                     }
-
                     Text("Welcome Back")
                         .font(AppFont.largeTitle())
                         .foregroundStyle(Color.textPrimary)
-
                     Text("Sign in to continue your medication journey")
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.textSecondary)
@@ -43,7 +42,7 @@ struct LoginView: View {
                 }
                 .padding(.top, AppSpacing.lg)
 
-               
+                // Biometric card
                 if authViewModel.isBiometryAvailable {
                     BiometricSignInCard(
                         biometryType: authViewModel.biometryType,
@@ -53,7 +52,7 @@ struct LoginView: View {
                     }
                 }
 
-                
+                // Email / Password fields
                 VStack(spacing: AppSpacing.md) {
                     AuthTextField(
                         placeholder: "Email address",
@@ -72,19 +71,30 @@ struct LoginView: View {
                     HStack {
                         Spacer()
                         Button("Forgot Password?") {
-                           
+                            authViewModel.errorMessage = nil
+                            showForgotPassword = true
                         }
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.brandPrimary)
                     }
                 }
 
-               
+                // Error banner
                 if let error = authViewModel.errorMessage {
-                    AuthErrorBanner(message: error)
+                    VStack(spacing: AppSpacing.sm) {
+                        AuthErrorBanner(message: error)
+                        // If email not verified, show link to verification screen
+                        if error == AuthError.emailNotVerified.localizedDescription {
+                            Button("Go to email verification") {
+                                showVerificationPending = true
+                            }
+                            .font(AppFont.subheadline())
+                            .foregroundStyle(Color.brandPrimary)
+                        }
+                    }
                 }
 
-               
+                // Sign In button
                 PrimaryButton(
                     title: "Sign In",
                     isLoading: authViewModel.isLoading,
@@ -93,12 +103,36 @@ struct LoginView: View {
                     Task { await authViewModel.signIn(email: email, password: password) }
                 }
 
-               
+                // Divider
                 DividerWithLabel(label: "or continue with")
 
-                
+                // SSO buttons
                 VStack(spacing: AppSpacing.md) {
-                
+                    // Phone login
+                    Button {
+                        navigateToPhone = true
+                    } label: {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(Color.textPrimary)
+                            Text("Sign in with Phone")
+                                .font(AppFont.headline())
+                                .foregroundStyle(Color.textPrimary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.appSurface)
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Color.appBorder, lineWidth: 1.5))
+                    }
+
+                    // Google Sign-In
+                    GoogleSignInButton {
+                        Task { await authViewModel.signInWithGoogle() }
+                    }
+
+                    // Apple Sign-In (UI only — requires paid developer account)
                     SignInWithAppleButton(.signIn) { request in
                         let nonce = randomNonceString()
                         currentNonce = nonce
@@ -127,39 +161,46 @@ struct LoginView: View {
                     .frame(height: 56)
                     .clipShape(Capsule())
                     .overlay(Capsule().stroke(Color.appBorder, lineWidth: 1.5))
-
-    
-                    GoogleSignInButton {
-                        Task { await authViewModel.signInWithGoogle() }
-                    }
                 }
 
-               
+                // Register link
                 HStack(spacing: 4) {
                     Text("Don't have an account?")
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.textSecondary)
-                    Button("Register") {
-                        navigateToRegister = true
-                    }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.brandPrimary)
+                    Button("Register") { navigateToRegister = true }
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.brandPrimary)
                 }
                 .padding(.bottom, AppSpacing.xl)
+
+                Spacer().frame(height: 320)
             }
             .padding(.horizontal, AppSpacing.lg)
         }
         .background(Color.appBackground.ignoresSafeArea())
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(false)
         .navigationDestination(isPresented: $navigateToRegister) {
             RegisterView()
         }
+        .navigationDestination(isPresented: $navigateToPhone) {
+            PhoneLoginView()
+        }
+        .navigationDestination(isPresented: $showVerificationPending) {
+            EmailVerificationPendingView(email: authViewModel.pendingVerificationEmail)
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView()
+        }
         .task {
-          
             if authViewModel.isBiometryAvailable {
                 await authViewModel.signInWithBiometrics()
             }
+        }
+        .onDisappear {
+            authViewModel.errorMessage = nil
         }
     }
 }
@@ -193,7 +234,6 @@ private struct BiometricSignInCard: View {
                             .foregroundStyle(Color.brandPrimary)
                     }
                 }
-
                 VStack(alignment: .leading, spacing: 2) {
                     Text(label)
                         .font(AppFont.headline())
@@ -202,9 +242,7 @@ private struct BiometricSignInCard: View {
                         .font(AppFont.subheadline())
                         .foregroundStyle(Color.textSecondary)
                 }
-
                 Spacer()
-
                 Image(systemName: "chevron.right")
                     .foregroundStyle(Color.textDisabled)
                     .font(.system(size: 14))
@@ -221,7 +259,6 @@ private struct BiometricSignInCard: View {
         .disabled(isLoading)
     }
 }
-
 
 private struct GoogleSignInButton: View {
     let action: () -> Void
@@ -245,7 +282,6 @@ private struct GoogleSignInButton: View {
     }
 }
 
-
 struct AuthTextField: View {
     let placeholder: String
     let icon: String
@@ -258,7 +294,6 @@ struct AuthTextField: View {
             Image(systemName: icon)
                 .foregroundStyle(Color.textSecondary)
                 .frame(width: 20)
-
             TextField(placeholder, text: $text)
                 .keyboardType(keyboardType)
                 .textContentType(textContentType)
@@ -287,7 +322,6 @@ struct AuthSecureField: View {
             Image(systemName: "lock")
                 .foregroundStyle(Color.textSecondary)
                 .frame(width: 20)
-
             Group {
                 if showPassword {
                     TextField(placeholder, text: $text)
@@ -300,7 +334,6 @@ struct AuthSecureField: View {
             .textInputAutocapitalization(.never)
             .font(AppFont.body())
             .foregroundStyle(Color.textPrimary)
-
             Button {
                 showPassword.toggle()
             } label: {
@@ -341,16 +374,12 @@ struct DividerWithLabel: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            Rectangle()
-                .fill(Color.appBorder)
-                .frame(height: 1)
+            Rectangle().fill(Color.appBorder).frame(height: 1)
             Text(label)
                 .font(AppFont.caption())
                 .foregroundStyle(Color.textSecondary)
                 .fixedSize()
-            Rectangle()
-                .fill(Color.appBorder)
-                .frame(height: 1)
+            Rectangle().fill(Color.appBorder).frame(height: 1)
         }
     }
 }
