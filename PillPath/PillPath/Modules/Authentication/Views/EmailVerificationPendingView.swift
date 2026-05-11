@@ -10,6 +10,7 @@ struct EmailVerificationPendingView: View {
     let email: String
 
     @State private var resendCooldown = 0
+    @State private var navigateToLogin = false
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -18,7 +19,6 @@ struct EmailVerificationPendingView: View {
 
                 Spacer().frame(height: AppSpacing.lg)
 
-                // Icon
                 ZStack {
                     Circle()
                         .fill(Color.brandPrimaryLight)
@@ -28,7 +28,6 @@ struct EmailVerificationPendingView: View {
                         .foregroundStyle(Color.brandPrimary)
                 }
 
-                // Title
                 VStack(spacing: AppSpacing.sm) {
                     Text("Check Your Email")
                         .font(AppFont.largeTitle())
@@ -44,7 +43,6 @@ struct EmailVerificationPendingView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                // Instructions card
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     InstructionRow(number: "1", text: "Open the email from PillPath")
                     InstructionRow(number: "2", text: "Click the verification link")
@@ -54,12 +52,10 @@ struct EmailVerificationPendingView: View {
                 .background(Color.appSurface)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
 
-                // Error
                 if let error = authViewModel.errorMessage {
                     AuthErrorBanner(message: error)
                 }
 
-                // Check verified button
                 PrimaryButton(
                     title: "I've Verified My Email",
                     icon: "checkmark.circle",
@@ -68,7 +64,6 @@ struct EmailVerificationPendingView: View {
                     Task { await authViewModel.checkEmailVerified() }
                 }
 
-                // Resend button
                 Button {
                     Task {
                         await authViewModel.resendVerificationEmail()
@@ -85,7 +80,6 @@ struct EmailVerificationPendingView: View {
                 }
                 .disabled(resendCooldown > 0 || authViewModel.isLoading)
 
-                // Back to login
                 Button("Back to Sign In") {
                     authViewModel.errorMessage = nil
                     dismiss()
@@ -100,11 +94,20 @@ struct EmailVerificationPendingView: View {
         .navigationTitle("Verify Email")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $navigateToLogin) {
+            LoginView()
+        }
         .onReceive(timer) { _ in
             if resendCooldown > 0 { resendCooldown -= 1 }
         }
         .onAppear {
             authViewModel.errorMessage = nil
+        }
+        .onChange(of: authViewModel.emailJustVerified) { _, verified in
+            if verified {
+                authViewModel.emailJustVerified = false
+                navigateToLogin = true
+            }
         }
     }
 }

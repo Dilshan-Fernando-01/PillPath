@@ -27,6 +27,7 @@ extension MedicationEntity {
     @NSManaged public var sideEffectsJSON: String?
     @NSManaged public var interactionsJSON: String?
     @NSManaged public var statusInfoJSON: String?
+    @NSManaged public var userId: String?
     @NSManaged public var schedules: NSSet?
     @NSManaged public var doseLogs: NSSet?
 }
