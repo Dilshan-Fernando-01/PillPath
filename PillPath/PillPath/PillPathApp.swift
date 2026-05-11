@@ -49,4 +49,5 @@ struct PillPathApp: App {
 
 extension Notification.Name {
     static let languageDidChange = Notification.Name("pillpath_language_did_change")
+    static let dataRestored      = Notification.Name("pillpath_data_restored")
 }

@@ -5,6 +5,7 @@ struct SettingsView: View {
 
     @EnvironmentObject private var settings: SettingsViewModel
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @StateObject private var backupVM = BackupViewModel()
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
@@ -24,6 +25,7 @@ struct SettingsView: View {
                     VStack(spacing: AppSpacing.lg) {
 
                         securitySection
+                        cloudBackupSection
                         notificationsSection
                         emergencyContactSection
                         guardianSection
@@ -113,7 +115,110 @@ struct SettingsView: View {
         }
     }
 
-    
+    private var cloudBackupSection: some View {
+        settingsSection(title: "CLOUD BACKUP", trailingIcon: "icloud.fill", trailingIconColor: Color.brandPrimary) {
+            VStack(spacing: 0) {
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Last Backup")
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.textPrimary)
+                        if let date = backupVM.lastBackupDate {
+                            Text(date.formatted(.dateTime.day().month().year().hour().minute()))
+                                .font(AppFont.caption())
+                                .foregroundStyle(Color.textSecondary)
+                        } else {
+                            Text("Never backed up")
+                                .font(AppFont.caption())
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                    }
+                    Spacer()
+                    if case .loading = backupVM.state {
+                        ProgressView()
+                            .tint(Color.brandPrimary)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.md)
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                Button {
+                    Task { await backupVM.backup() }
+                } label: {
+                    HStack {
+                        Text("Back Up Now")
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.brandPrimary)
+                        Spacer()
+                        Image(systemName: "icloud.and.arrow.up")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.brandPrimary)
+                    }
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.md)
+                }
+                .buttonStyle(.plain)
+                .disabled(backupVM.state == .loading)
+
+                Divider().padding(.leading, AppSpacing.md)
+
+                Button {
+                    backupVM.showRestoreConfirm = true
+                } label: {
+                    HStack {
+                        Text("Restore from Cloud")
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.semanticWarning)
+                        Spacer()
+                        Image(systemName: "icloud.and.arrow.down")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.semanticWarning)
+                    }
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.md)
+                }
+                .buttonStyle(.plain)
+                .disabled(backupVM.state == .loading)
+            }
+        }
+        .task { await backupVM.checkCloudBackup() }
+        .onChange(of: backupVM.state) { _, newState in
+            switch newState {
+            case .success:
+                withAnimation { showSavedBanner = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation { showSavedBanner = false }
+                    backupVM.dismissState()
+                }
+            case .failure(let msg):
+                backupVM.errorMessage = msg
+                backupVM.dismissState()
+            default:
+                break
+            }
+        }
+        .alert("Backup Error", isPresented: Binding(
+            get: { backupVM.errorMessage != nil },
+            set: { if !$0 { backupVM.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { backupVM.errorMessage = nil }
+        } message: {
+            Text(backupVM.errorMessage ?? "")
+        }
+        .appModal(
+            isPresented: $backupVM.showRestoreConfirm,
+            icon: .warning,
+            title: "Restore from Cloud",
+            message: "This will replace all current local data with your cloud backup. This cannot be undone.",
+            primaryButton: .destructive("Restore") {
+                Task { await backupVM.restore() }
+            },
+            secondaryButton: .cancel()
+        )
+    }
 
     private var notificationsSection: some View {
         settingsSection(title: "NOTIFICATIONS") {

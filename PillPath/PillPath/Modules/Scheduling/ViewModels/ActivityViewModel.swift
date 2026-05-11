@@ -115,6 +115,10 @@ final class ActivityViewModel: ObservableObject {
         self.doseTrackingService = doseTrackingService ?? DIContainer.shared.resolve(DoseTrackingServiceProtocol.self)
         self.medicationService   = medicationService   ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
         self.eventService        = eventService        ?? DIContainer.shared.resolve(EventServiceProtocol.self)
+
+        NotificationCenter.default.addObserver(
+            forName: .dataRestored, object: nil, queue: .main
+        ) { [weak self] _ in self?.loadAll() }
     }
 
  

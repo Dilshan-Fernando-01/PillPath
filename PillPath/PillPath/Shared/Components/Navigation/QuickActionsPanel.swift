@@ -78,6 +78,8 @@ struct MainTabContainer: View {
 
     @EnvironmentObject private var settings: SettingsViewModel
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @StateObject private var backupVM = BackupViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab: AppTab = .home
     @State private var isQuickActionsOpen = false
     @State private var showLookup = false
@@ -89,11 +91,9 @@ struct MainTabContainer: View {
     var body: some View {
         ZStack(alignment: .bottom) {
 
-          
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-       
             if isQuickActionsOpen {
                 Color.black.opacity(0.35)
                     .ignoresSafeArea()
@@ -124,6 +124,14 @@ struct MainTabContainer: View {
             }
             .background(Color.clear)
         }
+        .task {
+            await backupVM.checkRestorePromptNeeded()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                Task { await backupVM.autoBackupIfNeeded() }
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .switchToHomeTab)) { _ in
             withAnimation { selectedTab = .home }
         }
@@ -149,6 +157,16 @@ struct MainTabContainer: View {
         .sheet(isPresented: $showHelp) {
             HelpView()
         }
+        .appModal(
+            isPresented: $backupVM.showRestorePrompt,
+            icon: .info,
+            title: "Cloud Backup Found",
+            message: "A backup was found in the cloud for your account. Would you like to restore it now?",
+            primaryButton: .primary("Restore") {
+                Task { await backupVM.restore() }
+            },
+            secondaryButton: .cancel()
+        )
     }
 
   

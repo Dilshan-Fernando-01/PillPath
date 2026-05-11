@@ -41,6 +41,13 @@ final class HomeViewModel: ObservableObject {
                 self?.loadDoses(for: date)
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.addObserver(
+            forName: .dataRestored, object: nil, queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            self.loadDoses(for: self.selectedDate)
+        }
     }
 
     

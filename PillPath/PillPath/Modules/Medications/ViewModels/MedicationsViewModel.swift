@@ -17,6 +17,9 @@ final class MedicationsViewModel: ObservableObject {
     init(service: MedicationServiceProtocol? = nil, scheduleService: ScheduleServiceProtocol? = nil) {
         self.service = service ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
         self.scheduleService = scheduleService ?? DIContainer.shared.resolve(ScheduleServiceProtocol.self)
+        NotificationCenter.default.addObserver(
+            forName: .dataRestored, object: nil, queue: .main
+        ) { [weak self] _ in self?.loadMedications() }
     }
 
     func schedule(for medicationId: UUID) -> MedicationSchedule? {
