@@ -41,6 +41,10 @@ struct AppDependencies {
             AnalyticsService(coreData: c.resolve(CoreDataStack.self))
         }
 
+        c.registerSingleton(BackupServiceProtocol.self) {
+            BackupService(coreData: c.resolve(CoreDataStack.self))
+        }
+
         c.registerSingleton(AuthServiceProtocol.self)          { FirebaseAuthService() }
         c.registerSingleton(BiometricAuthServiceProtocol.self) { BiometricAuthService() }
 
