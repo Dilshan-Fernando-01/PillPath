@@ -23,7 +23,10 @@ final class ScheduleService: ScheduleServiceProtocol {
 
 
     func fetchAll() throws -> [MedicationSchedule] {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return [] }
         let request = ScheduleEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "medication.userId == %@", uid)
         request.sortDescriptors = [NSSortDescriptor(key: "startDate", ascending: true)]
         let entities = try coreData.viewContext.fetch(request)
         return entities.compactMap { ScheduleMapper.toDomain($0) }

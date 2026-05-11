@@ -17,7 +17,10 @@ final class EventService: EventServiceProtocol {
     }
 
     func fetchAll() throws -> [MedicalEvent] {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return [] }
         let request = MedicalEventEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "userId == %@", uid)
         request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
         let entities = try coreData.viewContext.fetch(request)
         return entities.compactMap { MedicalEventMapper.toDomain($0) }
