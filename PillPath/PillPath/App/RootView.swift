@@ -21,6 +21,12 @@ private struct AuthGateView: View {
             if authViewModel.isAuthenticated {
                 MainTabContainer()
                     .transition(.opacity)
+            } else if authViewModel.isLocked {
+                NavigationStack {
+                    LoginView()
+                        .navigationBarBackButtonHidden(true)
+                }
+                .transition(.opacity)
             } else {
                 WelcomeView()
                     .transition(.opacity)
@@ -28,6 +34,7 @@ private struct AuthGateView: View {
         }
         .environmentObject(authViewModel)
         .animation(.easeInOut(duration: 0.3), value: authViewModel.isAuthenticated)
+        .animation(.easeInOut(duration: 0.3), value: authViewModel.isLocked)
     }
 }
 

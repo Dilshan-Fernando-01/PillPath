@@ -14,7 +14,6 @@ final class FirebaseAuthService: AuthServiceProtocol {
         }
     }
 
-    // MARK: - Session
 
     func hasCachedSession() -> Bool {
         guard let fbUser = Auth.auth().currentUser else { return false }
@@ -30,7 +29,6 @@ final class FirebaseAuthService: AuthServiceProtocol {
         return user
     }
 
-    // MARK: - Email / Password
 
     func signIn(email: String, password: String) async throws -> User {
         do {
@@ -56,14 +54,12 @@ final class FirebaseAuthService: AuthServiceProtocol {
             changeRequest.displayName = name
             try await changeRequest.commitChanges()
             try await result.user.sendEmailVerification()
-            // Return user but do NOT set currentUser — must verify email first
             return map(result.user, displayName: name)
         } catch let error as NSError {
             throw mapFirebaseError(error)
         }
     }
 
-    // MARK: - Email Verification
 
     func resendVerificationEmail() async throws {
         guard let fbUser = Auth.auth().currentUser else { throw AuthError.sessionExpired }
@@ -80,7 +76,6 @@ final class FirebaseAuthService: AuthServiceProtocol {
         return fbUser.isEmailVerified
     }
 
-    // MARK: - Forgot Password
 
     func sendPasswordReset(email: String) async throws {
         do {
@@ -90,7 +85,6 @@ final class FirebaseAuthService: AuthServiceProtocol {
         }
     }
 
-    // MARK: - Phone OTP
 
     func sendPhoneVerification(phoneNumber: String) async throws -> String {
         do {
@@ -115,7 +109,6 @@ final class FirebaseAuthService: AuthServiceProtocol {
         }
     }
 
-    // MARK: - Google SSO
 
     func signInWithGoogle(presenting: UIViewController) async throws -> User {
         guard let clientID = FirebaseApp.app()?.options.clientID else {
@@ -140,29 +133,24 @@ final class FirebaseAuthService: AuthServiceProtocol {
         } catch let error as AuthError {
             throw error
         } catch let nsError as NSError where nsError.domain == "com.google.GIDSignIn" && nsError.code == -5 {
-            // User cancelled the Google sign-in sheet — not an error
             throw AuthError.unknown("Sign-in cancelled.")
         } catch let error as NSError {
             throw mapFirebaseError(error)
         }
     }
 
-    // MARK: - Apple SSO (not required — paid developer account needed)
 
     func signInWithAppleCredential(idToken: String, nonce: String, fullName: PersonNameComponents?) async throws -> User {
         throw AuthError.notImplemented
     }
 
-    // MARK: - Sign Out
 
     func signOut() {
-        try? Auth.auth().signOut()
         currentUser = nil
     }
 
     func isAuthenticated() -> Bool { currentUser != nil }
 
-    // MARK: - Helpers
 
     private func map(_ fbUser: FirebaseAuth.User, displayName: String? = nil) -> User {
         User(

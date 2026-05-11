@@ -7,20 +7,21 @@ import UIKit
 @MainActor
 final class AuthViewModel: ObservableObject {
 
-    @Published var currentUser: User?
+    @Published var currentUser: User? {
+        didSet { AppSession.shared.currentUserId = currentUser?.firebaseUID ?? "" }
+    }
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var hasCachedSession: Bool = false
+    @Published var isLocked: Bool = false
 
-    // Registration flow state
     @Published var registrationSuccess = false
     @Published var pendingVerificationEmail: String = ""
+    @Published var emailJustVerified: Bool = false
 
-    // Phone auth state
     @Published var phoneVerificationID: String = ""
     @Published var phoneVerificationSent = false
 
-    // Forgot password state
     @Published var passwordResetSent = false
 
     private let authService: AuthServiceProtocol
@@ -32,8 +33,15 @@ final class AuthViewModel: ObservableObject {
     ) {
         self.authService = authService ?? DIContainer.shared.resolve(AuthServiceProtocol.self)
         self.biometricService = biometricService ?? DIContainer.shared.resolve(BiometricAuthServiceProtocol.self)
-        self.currentUser = self.authService.currentUser
-        self.hasCachedSession = self.authService.hasCachedSession()
+        let hasSession = self.authService.hasCachedSession()
+        let biometricEnabled = UserDefaults.standard.bool(forKey: "pp_biometric_lock")
+        if hasSession && biometricEnabled {
+            self.isLocked = true
+        } else {
+            self.currentUser = self.authService.currentUser
+            AppSession.shared.currentUserId = self.authService.currentUser?.firebaseUID ?? ""
+        }
+        self.hasCachedSession = hasSession
     }
 
     var isAuthenticated: Bool { currentUser != nil }
@@ -46,7 +54,6 @@ final class AuthViewModel: ObservableObject {
 
     var biometryType: LABiometryType { biometricService.biometryType }
 
-    // MARK: - Email / Password
 
     func signIn(email: String, password: String) async {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty, !password.isEmpty else {
@@ -55,6 +62,7 @@ final class AuthViewModel: ObservableObject {
         }
         isLoading = true
         errorMessage = nil
+        emailJustVerified = false
         do {
             currentUser = try await authService.signIn(email: email, password: password)
         } catch let authErr as AuthError where authErr == .emailNotVerified {
@@ -96,7 +104,6 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Email Verification
 
     func resendVerificationEmail() async {
         isLoading = true
@@ -115,7 +122,9 @@ final class AuthViewModel: ObservableObject {
         do {
             let verified = try await authService.refreshEmailVerificationStatus()
             if verified {
-                currentUser = authService.currentUser
+                authService.signOut()
+                currentUser = nil
+                emailJustVerified = true
             } else {
                 errorMessage = "Email not verified yet. Please check your inbox and click the link."
             }
@@ -125,7 +134,6 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Forgot Password
 
     func sendPasswordReset(email: String) async {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
@@ -143,7 +151,6 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Phone OTP
 
     func sendPhoneOTP(phoneNumber: String) async {
         guard !phoneNumber.trimmingCharacters(in: .whitespaces).isEmpty else {
@@ -179,7 +186,6 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Google SSO
 
     func signInWithGoogle() async {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -192,14 +198,12 @@ final class AuthViewModel: ObservableObject {
         do {
             currentUser = try await authService.signInWithGoogle(presenting: rootVC)
         } catch let authErr as AuthError where authErr == .unknown("Sign-in cancelled.") {
-            // User cancelled — no error shown
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoading = false
     }
 
-    // MARK: - Apple SSO
 
     func signInWithApple(idToken: String, nonce: String, fullName: PersonNameComponents?) async {
         isLoading = true
@@ -216,7 +220,6 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Biometrics
 
     func signInWithBiometrics() async {
         guard isBiometryAvailable && !isLoading else { return }
@@ -227,6 +230,7 @@ final class AuthViewModel: ObservableObject {
             let success = try await biometricService.authenticate(reason: "Sign in to PillPath")
             if success {
                 currentUser = try await authService.restoreSession()
+                isLocked = false
             } else {
                 errorMessage = AuthError.biometryFailed.localizedDescription
             }
@@ -241,22 +245,22 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Sign Out
 
     func signOut() {
         authService.signOut()
         currentUser = nil
+        isLocked = false
         hasCachedSession = false
         errorMessage = nil
         registrationSuccess = false
         pendingVerificationEmail = ""
+        emailJustVerified = false
         phoneVerificationID = ""
         phoneVerificationSent = false
         passwordResetSent = false
     }
 }
 
-// MARK: - AuthError Equatable
 extension AuthError: Equatable {
     static func == (lhs: AuthError, rhs: AuthError) -> Bool {
         lhs.errorDescription == rhs.errorDescription

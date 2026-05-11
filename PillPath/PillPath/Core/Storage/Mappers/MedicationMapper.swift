@@ -44,6 +44,7 @@ enum MedicationMapper {
     static func toEntity(_ medication: Medication, context: NSManagedObjectContext) -> MedicationEntity {
         let entity = fetchOrCreate(id: medication.id, context: context)
         entity.id             = medication.id
+        entity.userId         = AppSession.shared.currentUserId.isEmpty ? nil : AppSession.shared.currentUserId
         entity.name           = medication.name
         entity.genericName    = medication.genericName
         entity.displayName    = medication.displayName

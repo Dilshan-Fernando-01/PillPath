@@ -15,6 +15,7 @@ extension MedicalEventEntity {
     @NSManaged public var date: Date?
     @NSManaged public var type: String?
     @NSManaged public var createdAt: Date?
+    @NSManaged public var userId: String?
 }
 
 extension MedicalEventEntity: Identifiable {}

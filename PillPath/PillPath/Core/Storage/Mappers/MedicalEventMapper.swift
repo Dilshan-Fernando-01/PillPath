@@ -30,6 +30,7 @@ enum MedicalEventMapper {
     static func toEntity(_ event: MedicalEvent, context: NSManagedObjectContext) -> MedicalEventEntity {
         let entity = fetchOrCreate(id: event.id, context: context)
         entity.id               = event.id
+        entity.userId           = AppSession.shared.currentUserId.isEmpty ? nil : AppSession.shared.currentUserId
         entity.title            = event.title
         entity.eventDescription = pack(provider: event.provider,
                                        description: event.notes,

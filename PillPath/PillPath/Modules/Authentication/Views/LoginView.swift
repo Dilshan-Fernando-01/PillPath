@@ -22,7 +22,6 @@ struct LoginView: View {
         ScrollView {
             VStack(spacing: AppSpacing.xl) {
 
-                // Header
                 VStack(spacing: AppSpacing.sm) {
                     ZStack {
                         Circle()
@@ -42,7 +41,20 @@ struct LoginView: View {
                 }
                 .padding(.top, AppSpacing.lg)
 
-                // Biometric card
+                if authViewModel.emailJustVerified {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(Color.semanticSuccess)
+                        Text("Email verified! Please sign in.")
+                            .font(AppFont.subheadline())
+                            .foregroundStyle(Color.semanticSuccess)
+                        Spacer()
+                    }
+                    .padding(AppSpacing.md)
+                    .background(Color.semanticSuccess.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                }
+
                 if authViewModel.isBiometryAvailable {
                     BiometricSignInCard(
                         biometryType: authViewModel.biometryType,
@@ -52,7 +64,6 @@ struct LoginView: View {
                     }
                 }
 
-                // Email / Password fields
                 VStack(spacing: AppSpacing.md) {
                     AuthTextField(
                         placeholder: "Email address",
@@ -79,11 +90,9 @@ struct LoginView: View {
                     }
                 }
 
-                // Error banner
                 if let error = authViewModel.errorMessage {
                     VStack(spacing: AppSpacing.sm) {
                         AuthErrorBanner(message: error)
-                        // If email not verified, show link to verification screen
                         if error == AuthError.emailNotVerified.localizedDescription {
                             Button("Go to email verification") {
                                 showVerificationPending = true
@@ -94,7 +103,6 @@ struct LoginView: View {
                     }
                 }
 
-                // Sign In button
                 PrimaryButton(
                     title: "Sign In",
                     isLoading: authViewModel.isLoading,
@@ -103,12 +111,9 @@ struct LoginView: View {
                     Task { await authViewModel.signIn(email: email, password: password) }
                 }
 
-                // Divider
                 DividerWithLabel(label: "or continue with")
 
-                // SSO buttons
                 VStack(spacing: AppSpacing.md) {
-                    // Phone login
                     Button {
                         navigateToPhone = true
                     } label: {
@@ -127,12 +132,10 @@ struct LoginView: View {
                         .overlay(Capsule().stroke(Color.appBorder, lineWidth: 1.5))
                     }
 
-                    // Google Sign-In
                     GoogleSignInButton {
                         Task { await authViewModel.signInWithGoogle() }
                     }
 
-                    // Apple Sign-In (UI only — requires paid developer account)
                     SignInWithAppleButton(.signIn) { request in
                         let nonce = randomNonceString()
                         currentNonce = nonce
@@ -163,7 +166,6 @@ struct LoginView: View {
                     .overlay(Capsule().stroke(Color.appBorder, lineWidth: 1.5))
                 }
 
-                // Register link
                 HStack(spacing: 4) {
                     Text("Don't have an account?")
                         .font(AppFont.subheadline())
@@ -195,7 +197,7 @@ struct LoginView: View {
             ForgotPasswordView()
         }
         .task {
-            if authViewModel.isBiometryAvailable {
+            if authViewModel.isBiometryAvailable && authViewModel.isLocked {
                 await authViewModel.signInWithBiometrics()
             }
         }
