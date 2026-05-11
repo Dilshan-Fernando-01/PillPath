@@ -41,23 +41,27 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
     }
 
     func fetchLogs(on date: Date) throws -> [DoseLog] {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return [] }
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: date)
         let end   = calendar.date(byAdding: .day, value: 1, to: start)!
         let request = DoseLogEntity.fetchRequest()
         request.predicate = NSPredicate(
-            format: "scheduledAt >= %@ AND scheduledAt < %@",
-            start as CVarArg, end as CVarArg
+            format: "scheduledAt >= %@ AND scheduledAt < %@ AND medication.userId == %@",
+            start as CVarArg, end as CVarArg, uid
         )
         request.sortDescriptors = [NSSortDescriptor(key: "scheduledAt", ascending: true)]
         return try coreData.viewContext.fetch(request).compactMap { DoseLogMapper.toDomain($0) }
     }
 
     func fetchLogs(from startDate: Date, to endDate: Date) throws -> [DoseLog] {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return [] }
         let request = DoseLogEntity.fetchRequest()
         request.predicate = NSPredicate(
-            format: "scheduledAt >= %@ AND scheduledAt < %@",
-            startDate as CVarArg, endDate as CVarArg
+            format: "scheduledAt >= %@ AND scheduledAt < %@ AND medication.userId == %@",
+            startDate as CVarArg, endDate as CVarArg, uid
         )
         request.sortDescriptors = [NSSortDescriptor(key: "scheduledAt", ascending: true)]
         return try coreData.viewContext.fetch(request).compactMap { DoseLogMapper.toDomain($0) }
@@ -95,11 +99,13 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
 
 
     func detectAndMarkMissed() throws {
-        let cutoff = Date.now.addingTimeInterval(-3600) 
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return }
+        let cutoff = Date.now.addingTimeInterval(-3600)
         let request = DoseLogEntity.fetchRequest()
         request.predicate = NSPredicate(
-            format: "status == %@ AND scheduledAt < %@",
-            DoseStatus.pending.rawValue, cutoff as CVarArg
+            format: "status == %@ AND scheduledAt < %@ AND medication.userId == %@",
+            DoseStatus.pending.rawValue, cutoff as CVarArg, uid
         )
         let entities = try coreData.viewContext.fetch(request)
         entities.forEach { $0.status = DoseStatus.missed.rawValue }

@@ -25,23 +25,30 @@ final class MedicationService: MedicationServiceProtocol {
 
 
     func fetchAll() throws -> [Medication] {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return [] }
         let request = MedicationEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "userId == %@", uid)
         request.sortDescriptors = [NSSortDescriptor(key: "addedAt", ascending: false)]
         let entities = try coreData.viewContext.fetch(request)
         return entities.compactMap { MedicationMapper.toDomain($0) }
     }
 
     func fetchActive() throws -> [Medication] {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return [] }
         let request = MedicationEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "isActive == YES")
+        request.predicate = NSPredicate(format: "isActive == YES AND userId == %@", uid)
         request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
         let entities = try coreData.viewContext.fetch(request)
         return entities.compactMap { MedicationMapper.toDomain($0) }
     }
 
     func fetch(id: UUID) throws -> Medication? {
+        let uid = AppSession.shared.currentUserId
+        guard !uid.isEmpty else { return nil }
         let request = MedicationEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.predicate = NSPredicate(format: "id == %@ AND userId == %@", id as CVarArg, uid)
         request.fetchLimit = 1
         return try coreData.viewContext.fetch(request).first.flatMap { MedicationMapper.toDomain($0) }
     }
