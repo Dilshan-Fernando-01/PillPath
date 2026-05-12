@@ -105,12 +105,9 @@ final class BackupService: BackupServiceProtocol {
         schedReq.predicate = NSPredicate(format: "medication.userId == %@", userId)
         let scheds = try ctx.fetch(schedReq)
 
-        let schedIds = scheds.compactMap(\.id)
-        let timeReq = ScheduleTimeEntity.fetchRequest()
-        timeReq.predicate = schedIds.isEmpty
-            ? NSPredicate(value: false)
-            : NSPredicate(format: "schedule.id IN %@", schedIds as CVarArg)
-        let times = try ctx.fetch(timeReq)
+        let times: [ScheduleTimeEntity] = scheds.flatMap {
+            ($0.scheduleTimes as? Set<ScheduleTimeEntity>) ?? []
+        }
 
         let logReq = DoseLogEntity.fetchRequest()
         logReq.predicate = NSPredicate(format: "medication.userId == %@", userId)
@@ -215,10 +212,16 @@ final class BackupService: BackupServiceProtocol {
             schedMap[s.id] = e
         }
 
+        var timesBySchedule: [UUID: [ScheduleTimeEntity]] = [:]
         for t in backup.scheduleTimes {
             let e = ScheduleTimeEntity(context: ctx)
             e.id = t.id;  e.hour = t.hour;  e.minute = t.minute;  e.label = t.label
-            e.schedule = schedMap[t.scheduleId]
+            timesBySchedule[t.scheduleId, default: []].append(e)
+        }
+        for (schedId, times) in timesBySchedule {
+            guard let sched = schedMap[schedId] else { continue }
+            sched.scheduleTimes = NSSet(array: times)
+            times.forEach { $0.schedule = sched }
         }
 
         for l in backup.doseLogs {
@@ -237,5 +240,7 @@ final class BackupService: BackupServiceProtocol {
         }
 
         if ctx.hasChanges { try ctx.save() }
+
+        ctx.refreshAllObjects()
     }
 }
