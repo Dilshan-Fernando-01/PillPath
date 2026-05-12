@@ -212,8 +212,10 @@ struct SettingsView: View {
             isPresented: $backupVM.showRestoreConfirm,
             icon: .warning,
             title: "Restore from Cloud",
-            message: "This will replace all current local data with your cloud backup. This cannot be undone.",
-            primaryButton: .destructive("Restore") {
+            message: backupVM.hasLocalData
+                ? "You currently have \(backupVM.localMedicationCount) medication(s) saved locally. Restoring will replace all of them with the cloud backup. This cannot be undone."
+                : "This will restore your medications, schedules, and events from the cloud backup.",
+            primaryButton: .destructive("Replace & Restore") {
                 Task { await backupVM.restore() }
             },
             secondaryButton: .cancel()

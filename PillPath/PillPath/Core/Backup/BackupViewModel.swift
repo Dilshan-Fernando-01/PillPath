@@ -19,6 +19,9 @@ final class BackupViewModel: ObservableObject {
     @Published var showRestorePrompt = false
     @Published var errorMessage: String?
 
+    var localMedicationCount: Int { service.localMedicationCount() }
+    var hasLocalData: Bool { localMedicationCount > 0 }
+
     private let service: BackupServiceProtocol
 
     init(service: BackupServiceProtocol = BackupService()) {

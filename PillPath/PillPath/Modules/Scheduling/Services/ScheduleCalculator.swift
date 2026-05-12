@@ -67,7 +67,7 @@ enum ScheduleCalculator {
             }
             for time in schedule.scheduleTimes {
                 if let doseDate = calendar.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: current) {
-                    if doseDate > start && doseDate <= end {
+                    if doseDate >= start && doseDate <= end {
                         results.append(doseDate)
                     }
                 }
@@ -115,7 +115,7 @@ enum ScheduleCalculator {
                isWithinScheduleRange(current, schedule: schedule, calendar: calendar) {
                 for time in schedule.scheduleTimes {
                     if let doseDate = calendar.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: current) {
-                        if doseDate > start && doseDate <= end {
+                        if doseDate >= start && doseDate <= end {
                             results.append(doseDate)
                         }
                     }
@@ -142,7 +142,7 @@ enum ScheduleCalculator {
             if dayOffset % 2 == 0 && isWithinScheduleRange(current, schedule: schedule, calendar: calendar) {
                 for time in schedule.scheduleTimes {
                     if let doseDate = calendar.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: current) {
-                        if doseDate > start && doseDate <= end {
+                        if doseDate >= start && doseDate <= end {
                             results.append(doseDate)
                         }
                     }
