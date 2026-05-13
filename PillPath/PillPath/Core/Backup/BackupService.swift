@@ -42,7 +42,7 @@ final class BackupService: BackupServiceProtocol {
         let uid = AppSession.shared.currentUserId
         guard !uid.isEmpty else { throw BackupError.notAuthenticated }
 
-        let snapshot = try buildSnapshot(userId: uid)
+        let snapshot = try await MainActor.run { try buildSnapshot(userId: uid) }
         let data = try encode(snapshot)
         guard let json = String(data: data, encoding: .utf8) else { throw BackupError.encodingFailed }
         try await upload(json: json, userId: uid)
@@ -105,9 +105,9 @@ final class BackupService: BackupServiceProtocol {
         schedReq.predicate = NSPredicate(format: "medication.userId == %@", userId)
         let scheds = try ctx.fetch(schedReq)
 
-        let times: [ScheduleTimeEntity] = scheds.flatMap {
-            ($0.scheduleTimes as? Set<ScheduleTimeEntity>) ?? []
-        }
+        let timeReq = ScheduleTimeEntity.fetchRequest()
+        timeReq.predicate = NSPredicate(format: "schedule.medication.userId == %@", userId)
+        let times = try ctx.fetch(timeReq)
 
         let logReq = DoseLogEntity.fetchRequest()
         logReq.predicate = NSPredicate(format: "medication.userId == %@", userId)
@@ -176,19 +176,14 @@ final class BackupService: BackupServiceProtocol {
     private func apply(_ backup: AppBackup, userId: String) throws {
         let ctx = coreData.viewContext
 
-        let medReq = MedicationEntity.fetchRequest()
-        medReq.predicate = NSPredicate(format: "userId == %@", userId)
-        try ctx.fetch(medReq).forEach { ctx.delete($0) }
-
-        let evtReq = MedicalEventEntity.fetchRequest()
-        evtReq.predicate = NSPredicate(format: "userId == %@", userId)
-        try ctx.fetch(evtReq).forEach { ctx.delete($0) }
-
-        if ctx.hasChanges { try ctx.save() }
+        func upsertMed(id: UUID)    -> MedicationEntity   { fetch(MedicationEntity.self, id: id, ctx: ctx)   ?? MedicationEntity(context: ctx) }
+        func upsertSched(id: UUID)  -> ScheduleEntity     { fetch(ScheduleEntity.self,   id: id, ctx: ctx)   ?? ScheduleEntity(context: ctx) }
+        func upsertLog(id: UUID)    -> DoseLogEntity       { fetch(DoseLogEntity.self,    id: id, ctx: ctx)   ?? DoseLogEntity(context: ctx) }
+        func upsertEvent(id: UUID)  -> MedicalEventEntity  { fetch(MedicalEventEntity.self, id: id, ctx: ctx) ?? MedicalEventEntity(context: ctx) }
 
         var medMap: [UUID: MedicationEntity] = [:]
         for m in backup.medications {
-            let e = MedicationEntity(context: ctx)
+            let e = upsertMed(id: m.id)
             e.id = m.id;  e.userId = userId;  e.name = m.name
             e.genericName = m.genericName;  e.displayName = m.displayName
             e.form = m.form;  e.dosageAmount = m.dosageAmount;  e.dosageUnit = m.dosageUnit
@@ -202,13 +197,14 @@ final class BackupService: BackupServiceProtocol {
 
         var schedMap: [UUID: ScheduleEntity] = [:]
         for s in backup.schedules {
-            let e = ScheduleEntity(context: ctx)
+            let e = upsertSched(id: s.id)
             e.id = s.id;  e.frequency = s.frequency;  e.intervalHours = s.intervalHours
             e.specificDaysJSON = s.specificDaysJSON;  e.customDatesJSON = s.customDatesJSON
             e.mealTiming = s.mealTiming;  e.startDate = s.startDate;  e.endDate = s.endDate
             e.isOngoing = s.isOngoing;  e.doseReminders = s.doseReminders
             e.notificationOffsetMinutes = s.notificationOffsetMinutes;  e.isActive = s.isActive
             e.medication = medMap[s.medicationId]
+            if let old = e.scheduleTimes as? Set<ScheduleTimeEntity> { old.forEach { ctx.delete($0) } }
             schedMap[s.id] = e
         }
 
@@ -225,7 +221,7 @@ final class BackupService: BackupServiceProtocol {
         }
 
         for l in backup.doseLogs {
-            let e = DoseLogEntity(context: ctx)
+            let e = upsertLog(id: l.id)
             e.id = l.id;  e.scheduledAt = l.scheduledAt;  e.takenAt = l.takenAt
             e.status = l.status;  e.notes = l.notes
             e.medication = medMap[l.medicationId]
@@ -233,14 +229,20 @@ final class BackupService: BackupServiceProtocol {
         }
 
         for ev in backup.medicalEvents {
-            let e = MedicalEventEntity(context: ctx)
+            let e = upsertEvent(id: ev.id)
             e.id = ev.id;  e.userId = userId;  e.title = ev.title
             e.eventDescription = ev.eventDescription;  e.date = ev.date
             e.type = ev.type;  e.createdAt = ev.createdAt
         }
 
         if ctx.hasChanges { try ctx.save() }
-
         ctx.refreshAllObjects()
+    }
+
+    private func fetch<T: NSManagedObject>(_ type: T.Type, id: UUID, ctx: NSManagedObjectContext) -> T? {
+        let req = NSFetchRequest<T>(entityName: String(describing: type))
+        req.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        req.fetchLimit = 1
+        return try? ctx.fetch(req).first
     }
 }

@@ -12,10 +12,9 @@ enum ScheduleMapper {
               let medicationId = entity.medication?.id,
               let startDate = entity.startDate else { return nil }
 
-        let times = (entity.scheduleTimes as? Set<ScheduleTimeEntity>)?
+        let times = (entity.scheduleTimes?.allObjects as? [ScheduleTimeEntity] ?? [])
             .compactMap { ScheduleTimeMapper.toDomain($0) }
             .sorted { $0.hour * 60 + $0.minute < $1.hour * 60 + $1.minute }
-            ?? []
 
         let specificDays = entity.specificDaysJSON
             .flatMap { JSONHelper.decodeIntArray($0) } ?? []
@@ -62,15 +61,14 @@ enum ScheduleMapper {
         entity.notificationOffsetMinutes = Int32(schedule.notificationOffsetMinutes.rawValue)
         entity.isActive        = schedule.isActive
 
-        if let existing = entity.scheduleTimes as? Set<ScheduleTimeEntity> {
-            existing.forEach { context.delete($0) }
-        }
+        (entity.scheduleTimes?.allObjects as? [ScheduleTimeEntity])?.forEach { context.delete($0) }
         let timeEntities = schedule.scheduleTimes.map { time -> ScheduleTimeEntity in
             let t = ScheduleTimeEntity(context: context)
-            t.id     = time.id
-            t.hour   = Int32(time.hour)
-            t.minute = Int32(time.minute)
-            t.label  = time.label.rawValue
+            t.id       = time.id
+            t.hour     = Int32(time.hour)
+            t.minute   = Int32(time.minute)
+            t.label    = time.label.rawValue
+            t.schedule = entity
             return t
         }
         entity.scheduleTimes = NSSet(array: timeEntities)
