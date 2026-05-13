@@ -85,7 +85,7 @@ final class HomeViewModel: ObservableObject {
                     .filter { calendar.isDate($0, inSameDayAs: date) }
 
                 for doseTime in doseTimes {
-                    guard doseTime >= schedule.startDate else { continue }
+                    guard calendar.startOfDay(for: doseTime) >= calendar.startOfDay(for: schedule.startDate) else { continue }
 
                     let hour = calendar.component(.hour, from: doseTime)
                     let timeLabel = DoseTimeLabel.from(hour: hour)

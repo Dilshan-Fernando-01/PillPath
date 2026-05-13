@@ -87,6 +87,7 @@ struct MainTabContainer: View {
     @State private var showInsights = false
     @State private var showDoseHistory = false
     @State private var showHelp = false
+    @State private var restoreToken = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -132,6 +133,9 @@ struct MainTabContainer: View {
                 Task { await backupVM.autoBackupIfNeeded() }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .dataRestored)) { _ in
+            restoreToken += 1
+        }
         .onReceive(NotificationCenter.default.publisher(for: .switchToHomeTab)) { _ in
             withAnimation { selectedTab = .home }
         }
@@ -174,10 +178,10 @@ struct MainTabContainer: View {
     @ViewBuilder
     private var tabContent: some View {
         switch selectedTab {
-        case .home:        HomeView()
+        case .home:        HomeView()     .id("home-\(restoreToken)")
         case .medications: MedicationsListView()
         case .scan:        OCRScanView()
-        case .activity:    ScheduleView()
+        case .activity:    ScheduleView() .id("schedule-\(restoreToken)")
         }
     }
 
