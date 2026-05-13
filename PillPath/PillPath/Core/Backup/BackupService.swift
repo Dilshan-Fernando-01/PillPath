@@ -1,6 +1,7 @@
 
 import Foundation
 import CoreData
+import Combine
 import FirebaseFirestore
 
 enum BackupError: LocalizedError {

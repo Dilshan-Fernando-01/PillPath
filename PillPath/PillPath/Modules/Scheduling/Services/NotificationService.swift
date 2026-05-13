@@ -6,6 +6,8 @@ protocol NotificationServiceProtocol {
     func requestPermission() async -> Bool
     func scheduleNotifications(for schedule: MedicationSchedule, medication: Medication)
     func scheduleLowQuantityAlert(for medication: Medication)
+    func scheduleEventReminder(for event: MedicalEvent)
+    func cancelEventReminder(for eventId: UUID)
     func cancelNotifications(for scheduleId: UUID)
     func cancelAll()
 }
@@ -72,6 +74,30 @@ final class NotificationService: NotificationServiceProtocol {
     }
 
    
+
+    func scheduleEventReminder(for event: MedicalEvent) {
+        let identifier = "event_\(event.id.uuidString)"
+        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        let fireDate = event.date.addingTimeInterval(-86_400)
+        guard fireDate > .now else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Upcoming: \(event.title)"
+        content.body  = "Your \(event.type.displayName) is scheduled for \(event.date.formatted(.dateTime.day().month().hour().minute()))."
+        content.sound = .default
+        content.userInfo = ["type": "eventReminder", "eventId": event.id.uuidString]
+
+        let comps   = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        center.add(request) { error in
+            if let error { print("Event reminder error: \(error)") }
+        }
+    }
+
+    func cancelEventReminder(for eventId: UUID) {
+        center.removePendingNotificationRequests(withIdentifiers: ["event_\(eventId.uuidString)"])
+    }
 
     func cancelNotifications(for scheduleId: UUID) {
         center.getPendingNotificationRequests { requests in

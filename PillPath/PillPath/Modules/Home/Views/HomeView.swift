@@ -5,6 +5,7 @@ import SwiftUI
 struct HomeView: View {
 
     @StateObject private var viewModel = HomeViewModel()
+    @StateObject private var bellVM = NotificationBellViewModel()
     @EnvironmentObject private var settings: SettingsViewModel
 
     @State private var showFullSchedule = false
@@ -167,17 +168,20 @@ struct HomeView: View {
 
             Spacer()
 
- 
-            if let contact = settings.emergencyContact {
-                emergencyCallButton(contact: contact)
-            } else {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandPrimaryLight)
-                        .frame(width: 42, height: 42)
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.brandPrimary)
+            HStack(spacing: AppSpacing.sm) {
+                NotificationBellView(viewModel: bellVM)
+
+                if let contact = settings.emergencyContact {
+                    emergencyCallButton(contact: contact)
+                } else {
+                    ZStack {
+                        Circle()
+                            .fill(Color.brandPrimaryLight)
+                            .frame(width: 42, height: 42)
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.brandPrimary)
+                    }
                 }
             }
         }

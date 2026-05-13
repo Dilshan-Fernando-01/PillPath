@@ -20,6 +20,7 @@ final class HomeViewModel: ObservableObject {
     private let doseTrackingService: DoseTrackingServiceProtocol
     private let medicationService: MedicationServiceProtocol
     private let notificationService: NotificationServiceProtocol
+    private let inAppService: InAppNotificationServiceProtocol
     private var cancellables = Set<AnyCancellable>()
 
 
@@ -33,6 +34,7 @@ final class HomeViewModel: ObservableObject {
         self.doseTrackingService = doseTrackingService ?? DIContainer.shared.resolve(DoseTrackingServiceProtocol.self)
         self.medicationService   = medicationService   ?? DIContainer.shared.resolve(MedicationServiceProtocol.self)
         self.notificationService = notificationService ?? DIContainer.shared.resolve(NotificationServiceProtocol.self)
+        self.inAppService        = DIContainer.shared.resolve(InAppNotificationServiceProtocol.self)
 
         
         $selectedDate
@@ -189,6 +191,14 @@ final class HomeViewModel: ObservableObject {
         try? medicationService.save(med)
         if med.lowQuantityAlert && med.currentQuantity <= med.lowQuantityThreshold {
             notificationService.scheduleLowQuantityAlert(for: med)
+            let weekOfYear = Calendar.current.component(.weekOfYear, from: .now)
+            let deepLink = "lowstock_\(med.id.uuidString)_\(weekOfYear)"
+            try? inAppService.create(
+                type: .lowStock,
+                title: "Low Stock: \(med.name)",
+                body: "Only \(med.currentQuantity) \(med.dosageUnit.displayName) remaining. Time to refill.",
+                deepLink: deepLink
+            )
         }
     }
 

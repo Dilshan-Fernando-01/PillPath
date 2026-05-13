@@ -19,9 +19,12 @@ protocol DoseTrackingServiceProtocol {
 final class DoseTrackingService: DoseTrackingServiceProtocol {
 
     private let coreData: CoreDataStack
+    private let inAppService: InAppNotificationServiceProtocol
 
-    init(coreData: CoreDataStack = .shared) {
+    init(coreData: CoreDataStack = .shared,
+         inAppService: InAppNotificationServiceProtocol = DIContainer.shared.resolve(InAppNotificationServiceProtocol.self)) {
         self.coreData = coreData
+        self.inAppService = inAppService
     }
 
   
@@ -108,8 +111,22 @@ final class DoseTrackingService: DoseTrackingServiceProtocol {
             DoseStatus.pending.rawValue, cutoff as CVarArg, uid
         )
         let entities = try coreData.viewContext.fetch(request)
-        entities.forEach { $0.status = DoseStatus.missed.rawValue }
-        coreData.save()
+        for entity in entities {
+            entity.status = DoseStatus.missed.rawValue
+            if let logId = entity.id,
+               let medName = entity.medication?.name,
+               let scheduledAt = entity.scheduledAt {
+                let deepLink = "missed_\(logId.uuidString)"
+                let timeStr  = scheduledAt.formatted(.dateTime.hour().minute())
+                try? inAppService.create(
+                    type: .missedDose,
+                    title: "Missed Dose: \(medName)",
+                    body: "You missed your \(timeStr) dose of \(medName).",
+                    deepLink: deepLink
+                )
+            }
+        }
+        if !entities.isEmpty { coreData.save() }
     }
 
 
