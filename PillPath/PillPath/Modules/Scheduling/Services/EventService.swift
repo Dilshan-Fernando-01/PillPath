@@ -11,9 +11,15 @@ protocol EventServiceProtocol {
 final class EventService: EventServiceProtocol {
 
     private let coreData: CoreDataStack
+    private let notificationService: NotificationServiceProtocol
+    private let inAppService: InAppNotificationServiceProtocol
 
-    init(coreData: CoreDataStack = .shared) {
+    init(coreData: CoreDataStack = .shared,
+         notificationService: NotificationServiceProtocol = DIContainer.shared.resolve(NotificationServiceProtocol.self),
+         inAppService: InAppNotificationServiceProtocol = DIContainer.shared.resolve(InAppNotificationServiceProtocol.self)) {
         self.coreData = coreData
+        self.notificationService = notificationService
+        self.inAppService = inAppService
     }
 
     func fetchAll() throws -> [MedicalEvent] {
@@ -29,9 +35,23 @@ final class EventService: EventServiceProtocol {
     func save(_ event: MedicalEvent) throws {
         _ = MedicalEventMapper.toEntity(event, context: coreData.viewContext)
         coreData.save()
+
+        notificationService.scheduleEventReminder(for: event)
+
+        let hoursUntil = event.date.timeIntervalSinceNow / 3600
+        if hoursUntil > 0 && hoursUntil <= 24 {
+            let deepLink = "event_\(event.id.uuidString)"
+            try? inAppService.create(
+                type: .eventReminder,
+                title: "Upcoming: \(event.title)",
+                body: "Your \(event.type.displayName) is scheduled for \(event.date.formatted(.dateTime.day().month().hour().minute())).",
+                deepLink: deepLink
+            )
+        }
     }
 
     func delete(_ event: MedicalEvent) throws {
+        notificationService.cancelEventReminder(for: event.id)
         let request = MedicalEventEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", event.id as CVarArg)
         request.fetchLimit = 1

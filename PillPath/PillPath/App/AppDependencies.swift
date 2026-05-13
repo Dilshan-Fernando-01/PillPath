@@ -1,6 +1,7 @@
 
 
 import Foundation
+import Combine
 
 struct AppDependencies {
 
@@ -12,6 +13,10 @@ struct AppDependencies {
         c.registerSingleton(NetworkClientProtocol.self) { NetworkClient.shared }
 
         c.registerSingleton(NotificationServiceProtocol.self) { NotificationService() }
+
+        c.registerSingleton(InAppNotificationServiceProtocol.self) {
+            InAppNotificationService(coreData: c.resolve(CoreDataStack.self))
+        }
 
         c.registerSingleton(MedicationServiceProtocol.self) {
             MedicationService(
@@ -30,10 +35,17 @@ struct AppDependencies {
             )
         }
         c.registerSingleton(DoseTrackingServiceProtocol.self) {
-            DoseTrackingService(coreData: c.resolve(CoreDataStack.self))
+            DoseTrackingService(
+                coreData:     c.resolve(CoreDataStack.self),
+                inAppService: c.resolve(InAppNotificationServiceProtocol.self)
+            )
         }
         c.registerSingleton(EventServiceProtocol.self) {
-            EventService(coreData: c.resolve(CoreDataStack.self))
+            EventService(
+                coreData:            c.resolve(CoreDataStack.self),
+                notificationService: c.resolve(NotificationServiceProtocol.self),
+                inAppService:        c.resolve(InAppNotificationServiceProtocol.self)
+            )
         }
 
       

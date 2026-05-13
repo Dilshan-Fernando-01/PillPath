@@ -87,11 +87,23 @@
         <attribute name="createdAt"        attributeType="Date"   usesScalarValueType="NO"/>
     </entity>
 
+    <entity name="NotificationEntity" representedClassName="NotificationEntity" syncable="YES">
+        <attribute name="id"             attributeType="UUID"      usesScalarValueType="NO"/>
+        <attribute name="userId"         optional="YES" attributeType="String"/>
+        <attribute name="title"          attributeType="String"    defaultValueString=""/>
+        <attribute name="body"           attributeType="String"    defaultValueString=""/>
+        <attribute name="type"           attributeType="String"    defaultValueString="doseReminder"/>
+        <attribute name="isRead"         attributeType="Boolean"   defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt"      attributeType="Date"      usesScalarValueType="NO"/>
+        <attribute name="deepLinkTarget" optional="YES" attributeType="String"/>
+    </entity>
+
     <elements>
-        <element name="MedicationEntity"   positionX="0"   positionY="0"   width="128" height="314"/>
-        <element name="ScheduleEntity"     positionX="200" positionY="0"   width="128" height="254"/>
-        <element name="ScheduleTimeEntity" positionX="400" positionY="0"   width="128" height="89"/>
-        <element name="DoseLogEntity"      positionX="200" positionY="300" width="128" height="134"/>
-        <element name="MedicalEventEntity" positionX="0"   positionY="340" width="128" height="134"/>
+        <element name="MedicationEntity"    positionX="0"   positionY="0"   width="128" height="314"/>
+        <element name="ScheduleEntity"      positionX="200" positionY="0"   width="128" height="254"/>
+        <element name="ScheduleTimeEntity"  positionX="400" positionY="0"   width="128" height="89"/>
+        <element name="DoseLogEntity"       positionX="200" positionY="300" width="128" height="134"/>
+        <element name="MedicalEventEntity"  positionX="0"   positionY="340" width="128" height="134"/>
+        <element name="NotificationEntity"  positionX="400" positionY="300" width="128" height="164"/>
     </elements>
 </model>
