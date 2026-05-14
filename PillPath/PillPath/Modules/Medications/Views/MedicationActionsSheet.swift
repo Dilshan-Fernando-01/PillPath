@@ -8,10 +8,12 @@ struct MedicationActionsSheet: View {
     var onViewDetails: () -> Void = {}
     var onToggleActive: (MedicationStatusChange) -> Void = { _ in }
     var onDelete: () -> Void = {}
+    var onRestock: (Int) -> Void = { _ in }
     var onDismiss: () -> Void = {}
 
     @State private var showDeleteConfirm = false
     @State private var showStatusSheet = false
+    @State private var showRestockSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +53,16 @@ struct MedicationActionsSheet: View {
                     title: medication.isActive ? "Mark as Inactive" : "Mark as Active",
                     subtitle: medication.isActive ? "Set a date and reason for stopping" : "Resume taking this medication",
                     action: { showStatusSheet = true }
+                )
+                Divider().padding(.leading, 72)
+
+                actionRow(
+                    icon: "shippingbox.fill",
+                    iconColor: Color.semanticInfo,
+                    title: "Restock",
+                    subtitle: "Add to current \(medication.currentQuantity) \(medication.dosageUnit.displayName)",
+                    iconBg: Color.semanticInfo.opacity(0.12),
+                    action: { showRestockSheet = true }
                 )
                 Divider().padding(.leading, 72)
 
@@ -110,6 +122,18 @@ struct MedicationActionsSheet: View {
                 },
                 onDismiss: { showStatusSheet = false }
             )
+        }
+        .sheet(isPresented: $showRestockSheet) {
+            RestockSheet(
+                medication: medication,
+                onConfirm: { amount in
+                    showRestockSheet = false
+                    onRestock(amount)
+                    onDismiss()
+                },
+                onDismiss: { showRestockSheet = false }
+            )
+            .presentationDetents([.medium])
         }
     }
 

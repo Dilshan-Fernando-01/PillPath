@@ -23,6 +23,7 @@ struct MedicationBackup: Codable {
     let instructions: String?
     let notes: String?
     let photoURL: String?
+    let photoData: String?
     let currentQuantity: Int32
     let lowQuantityAlert: Bool
     let lowQuantityThreshold: Int32
@@ -44,6 +45,11 @@ struct MedicationBackup: Codable {
         self.instructions = entity.instructions
         self.notes = entity.notes
         self.photoURL = entity.photoURL
+        if let thumb = PhotoStorage.thumbnailData(from: entity.photoURL) {
+            self.photoData = thumb.base64EncodedString()
+        } else {
+            self.photoData = nil
+        }
         self.currentQuantity = entity.currentQuantity
         self.lowQuantityAlert = entity.lowQuantityAlert
         self.lowQuantityThreshold = entity.lowQuantityThreshold

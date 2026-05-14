@@ -14,6 +14,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
     @Published var saveError: String?
     @Published var didSave: Bool = false
     @Published var savedMedication: Medication?
+    @Published var savedSchedule: MedicationSchedule?
     var isEditing: Bool = false
     private var editingMedicationId: UUID?
 
@@ -134,6 +135,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         vm.currentQuantity = medication.currentQuantity > 0 ? String(medication.currentQuantity) : ""
         vm.lowQuantityAlert     = medication.lowQuantityAlert
         vm.lowQuantityThreshold = String(medication.lowQuantityThreshold)
+        vm.photoURL             = medication.photoURL
 
         if let s = schedule {
             vm.frequency        = s.frequency
@@ -386,6 +388,7 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             }
 
             savedMedication = medication
+            savedSchedule = schedule
             didSave = true
         } catch {
             saveError = error.localizedDescription

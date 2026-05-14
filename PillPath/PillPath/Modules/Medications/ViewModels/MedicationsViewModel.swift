@@ -64,6 +64,20 @@ final class MedicationsViewModel: ObservableObject {
         }
     }
 
+    func restockMedication(_ medication: Medication, amount: Int) {
+        guard amount > 0 else { return }
+        var updated = medication
+        updated.currentQuantity += amount
+        do {
+            try service.save(updated)
+            if let idx = medications.firstIndex(where: { $0.id == medication.id }) {
+                medications[idx] = updated
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func searchOpenFDA(query: String) async {
         guard !query.isEmpty else { return }
         isLoading = true
