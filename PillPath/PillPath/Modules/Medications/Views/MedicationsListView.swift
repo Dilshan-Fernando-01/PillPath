@@ -158,10 +158,7 @@ struct MedicationRowCard: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.brandPrimaryLight)
                     .frame(width: 48, height: 48)
-                if let urlStr = medication.photoURL,
-                   let url = URL(string: urlStr),
-                   let data = try? Data(contentsOf: url),
-                   let img = UIImage(data: data) {
+                if let img = PhotoStorage.load(medication.photoURL) {
                     Image(uiImage: img)
                         .resizable()
                         .scaledToFill()

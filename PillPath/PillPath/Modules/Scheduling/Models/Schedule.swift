@@ -112,10 +112,12 @@ struct MedicalEvent: Identifiable, Codable {
     let id: UUID
     var title: String
     var notes: String?
-    var provider: String?           
-    var medicationIds: [UUID]       
+    var provider: String?
+    var medicationIds: [UUID]
     var date: Date
     var type: MedicalEventType
+    var attachmentFilename: String?
+    var attachmentDisplayName: String?
     let createdAt: Date
 
     init(
@@ -126,6 +128,8 @@ struct MedicalEvent: Identifiable, Codable {
         medicationIds: [UUID] = [],
         date: Date,
         type: MedicalEventType = .note,
+        attachmentFilename: String? = nil,
+        attachmentDisplayName: String? = nil,
         createdAt: Date = .now
     ) {
         self.id = id
@@ -135,6 +139,8 @@ struct MedicalEvent: Identifiable, Codable {
         self.medicationIds = medicationIds
         self.date = date
         self.type = type
+        self.attachmentFilename = attachmentFilename
+        self.attachmentDisplayName = attachmentDisplayName
         self.createdAt = createdAt
     }
 }

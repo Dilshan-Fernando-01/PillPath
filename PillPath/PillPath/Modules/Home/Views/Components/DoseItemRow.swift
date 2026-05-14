@@ -153,9 +153,17 @@ struct DoseItemRow: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(iconBackground)
                 .frame(width: 46, height: 46)
-            Image(systemName: iconName)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(iconForeground)
+            if let img = PhotoStorage.load(item.photoURL) {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 46, height: 46)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            } else {
+                Image(systemName: iconName)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(iconForeground)
+            }
         }
     }
 

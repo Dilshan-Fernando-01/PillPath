@@ -21,11 +21,11 @@ enum MedicalEventMapper {
             medicationIds: payload.medicationIds,
             date: date,
             type: MedicalEventType(rawValue: entity.type ?? "note") ?? .note,
+            attachmentFilename: payload.attachmentFilename,
+            attachmentDisplayName: payload.attachmentDisplayName,
             createdAt: createdAt
         )
     }
-
-  
 
     static func toEntity(_ event: MedicalEvent, context: NSManagedObjectContext) -> MedicalEventEntity {
         let entity = fetchOrCreate(id: event.id, context: context)
@@ -34,42 +34,46 @@ enum MedicalEventMapper {
         entity.title            = event.title
         entity.eventDescription = pack(provider: event.provider,
                                        description: event.notes,
-                                       medicationIds: event.medicationIds)
+                                       medicationIds: event.medicationIds,
+                                       attachmentFilename: event.attachmentFilename,
+                                       attachmentDisplayName: event.attachmentDisplayName)
         entity.date             = event.date
         entity.type             = event.type.rawValue
         entity.createdAt        = event.createdAt
         return entity
     }
 
-   
-
     private struct Payload: Codable {
-        var p: String  
-        var d: String   
-        var m: [String] 
+        var p: String
+        var d: String
+        var m: [String]
+        var a: String?
+        var an: String?
     }
 
-    private static func pack(provider: String?, description: String?, medicationIds: [UUID]) -> String? {
+    private static func pack(provider: String?, description: String?, medicationIds: [UUID],
+                             attachmentFilename: String?, attachmentDisplayName: String?) -> String? {
         let payload = Payload(
             p: provider    ?? "",
             d: description ?? "",
-            m: medicationIds.map(\.uuidString)
+            m: medicationIds.map(\.uuidString),
+            a: attachmentFilename,
+            an: attachmentDisplayName
         )
         guard let data = try? JSONEncoder().encode(payload) else { return nil }
         return String(data: data, encoding: .utf8)
     }
 
-    private static func unpack(_ stored: String?) -> (provider: String?, description: String?, medicationIds: [UUID]) {
-        guard let stored, !stored.isEmpty else { return (nil, nil, []) }
+    private static func unpack(_ stored: String?) -> (provider: String?, description: String?, medicationIds: [UUID], attachmentFilename: String?, attachmentDisplayName: String?) {
+        guard let stored, !stored.isEmpty else { return (nil, nil, [], nil, nil) }
         if let data = stored.data(using: .utf8),
            let payload = try? JSONDecoder().decode(Payload.self, from: data) {
             let provider      = payload.p.isEmpty ? nil : payload.p
             let description   = payload.d.isEmpty ? nil : payload.d
             let medicationIds = payload.m.compactMap { UUID(uuidString: $0) }
-            return (provider, description, medicationIds)
+            return (provider, description, medicationIds, payload.a, payload.an)
         }
-
-        return (nil, stored, [])
+        return (nil, stored, [], nil, nil)
     }
 
     private static func fetchOrCreate(id: UUID, context: NSManagedObjectContext) -> MedicalEventEntity {

@@ -57,6 +57,8 @@ struct PillPathApp: App {
                 .environmentObject(settings)
                 .environment(\.managedObjectContext, CoreDataStack.shared.viewContext)
                 .preferredColorScheme(settings.colorScheme.colorScheme)
+                .environment(\.legibilityWeight, settings.highContrastMode ? .bold : nil)
+                .tint(settings.highContrastMode ? Color(hex: "#1A3FB8") : Color.brandPrimary)
                 .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in }
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)

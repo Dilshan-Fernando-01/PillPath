@@ -198,17 +198,8 @@ struct AddMedStep7AdvancedView: View {
                         RoundedRectangle(cornerRadius: AppRadius.sm)
                             .fill(Color.brandPrimaryLight)
                             .frame(width: 52, height: 52)
-                        if let image = selectedImage {
+                        if let image = selectedImage ?? PhotoStorage.load(viewModel.photoURL) {
                             Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 52, height: 52)
-                                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-                        } else if let urlString = viewModel.photoURL,
-                                  let url = URL(string: urlString),
-                                  let data = try? Data(contentsOf: url),
-                                  let img = UIImage(data: data) {
-                            Image(uiImage: img)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 52, height: 52)
@@ -244,15 +235,7 @@ struct AddMedStep7AdvancedView: View {
                           let data = try? await item.loadTransferable(type: Data.self),
                           let image = UIImage(data: data) else { return }
                     selectedImage = image
-                   
-                    if let jpeg = image.jpegData(compressionQuality: 0.8) {
-                        let fileName = "med_photo_\(UUID().uuidString).jpg"
-                        let url = FileManager.default
-                            .urls(for: .documentDirectory, in: .userDomainMask)[0]
-                            .appendingPathComponent(fileName)
-                        try? jpeg.write(to: url)
-                        viewModel.photoURL = url.absoluteString
-                    }
+                    viewModel.photoURL = PhotoStorage.save(image)
                 }
             }
         }
