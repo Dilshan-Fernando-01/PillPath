@@ -13,6 +13,8 @@ struct SettingsView: View {
     @State private var contactPhone  = ""
     @State private var showSavedBanner = false
     @State private var showSignOutModal = false
+    @State private var showClearCalendarConfirm = false
+    @State private var clearedEventCount: Int? = nil
 
     private var resolvedColorScheme: ColorScheme? {
         if let explicit = settings.colorScheme.colorScheme { return explicit }
@@ -34,6 +36,7 @@ struct SettingsView: View {
                         emergencyContactSection
                         accessibilitySection
                         appearanceSection
+                        calendarSection
                         generalSection
 
                         Button {
@@ -353,6 +356,54 @@ struct SettingsView: View {
         }
     }
 
+
+    private var calendarSection: some View {
+        settingsSection(title: "CALENDAR SYNC", trailingIcon: "calendar", trailingIconColor: Color.brandPrimary) {
+            Button {
+                showClearCalendarConfirm = true
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Clear PillPath Calendar Events")
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.semanticError)
+                        Text("Remove all medication & event entries synced to Apple Calendar")
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.textSecondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    Spacer()
+                    Image(systemName: "trash")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.semanticError)
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.md)
+            }
+            .buttonStyle(.plain)
+        }
+        .confirmationDialog(
+            "Clear all PillPath calendar events?",
+            isPresented: $showClearCalendarConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Clear All", role: .destructive) {
+                let removed = EventKitService.shared.removeAllPillPathEvents()
+                clearedEventCount = removed
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes only events synced by PillPath. Your other calendar events are untouched.")
+        }
+        .alert("Calendar Cleared", isPresented: Binding(
+            get: { clearedEventCount != nil },
+            set: { if !$0 { clearedEventCount = nil } }
+        )) {
+            Button("OK", role: .cancel) { clearedEventCount = nil }
+        } message: {
+            Text("Removed \(clearedEventCount ?? 0) event(s) from your calendar.")
+        }
+    }
 
     private var appearanceSection: some View {
         settingsSection(title: "APPEARANCE") {

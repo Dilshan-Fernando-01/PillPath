@@ -5,6 +5,7 @@ import EventKit
 struct MedicationSavedSuccessView: View {
 
     let medication: Medication
+    let schedule: MedicationSchedule?
     let reviewItems: [ReviewItem]
     var onDone: () -> Void = {}
     var onAddAnother: () -> Void = {}
@@ -220,14 +221,57 @@ struct MedicationSavedSuccessView: View {
 
     private func performSync() {
         eventKit.createPillPathCalendarIfNeeded()
-        let morning = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
 
-        let count = eventKit.syncMedicationToCalendar(
-            medicationName: medication.name,
-            dosageDisplay: medication.dosageDisplay,
-            doseTimes: [morning],
-            notes: medication.notes
-        )
+        guard let schedule else {
+            calendarSyncState = .idle
+            return
+        }
+
+        let useRecurrence = schedule.frequency != .everyXHours && schedule.frequency != .custom
+        let count: Int
+
+        if useRecurrence {
+            let cal = Calendar.current
+            let times = schedule.scheduleTimes
+            let doseTimes: [Date] = times.isEmpty
+                ? [cal.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now]
+                : times.compactMap { t in
+                    cal.date(bySettingHour: t.hour, minute: t.minute, second: 0, of: .now)
+                }
+            count = eventKit.syncMedicationToCalendar(
+                medicationName: medication.name,
+                dosageDisplay: medication.dosageDisplay,
+                doseTimes: doseTimes,
+                startDate: schedule.startDate,
+                endDate: schedule.endDate,
+                notes: medication.notes,
+                recurring: true
+            )
+        } else {
+            let windowDays = min(30, daysUntilEnd(schedule) ?? 30)
+            let allTimes = ScheduleCalculator.upcomingDoseTimes(
+                for: schedule,
+                days: windowDays,
+                from: schedule.startDate
+            )
+            let cappedTimes = Array(allTimes.prefix(500))
+            count = eventKit.syncMedicationToCalendar(
+                medicationName: medication.name,
+                dosageDisplay: medication.dosageDisplay,
+                doseTimes: cappedTimes,
+                startDate: schedule.startDate,
+                endDate: schedule.endDate,
+                notes: medication.notes,
+                recurring: false
+            )
+        }
+
         calendarSyncState = count > 0 ? .synced : .idle
+    }
+
+    private func daysUntilEnd(_ schedule: MedicationSchedule) -> Int? {
+        guard let endDate = schedule.endDate else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: .now, to: endDate).day ?? 0
+        return max(1, days)
     }
 }

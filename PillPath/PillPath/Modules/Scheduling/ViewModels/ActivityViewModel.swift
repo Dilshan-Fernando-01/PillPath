@@ -329,6 +329,18 @@ final class ActivityViewModel: ObservableObject {
         }
     }
 
+    func restockMedication(_ medication: Medication, amount: Int) {
+        guard amount > 0 else { return }
+        var updated = medication
+        updated.currentQuantity += amount
+        do {
+            try medicationService.save(updated)
+            loadMedications()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
    
 
     func loadEvents() {

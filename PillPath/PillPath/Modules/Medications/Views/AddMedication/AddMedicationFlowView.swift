@@ -61,6 +61,7 @@ struct AddMedicationFlowView: View {
                 if let med = viewModel.savedMedication {
                     MedicationSavedSuccessView(
                         medication: med,
+                        schedule: viewModel.savedSchedule,
                         reviewItems: viewModel.reviewItems,
                         onDone: { dismiss() },
                         onAddAnother: {

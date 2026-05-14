@@ -188,7 +188,13 @@ final class BackupService: BackupServiceProtocol {
             e.id = m.id;  e.userId = userId;  e.name = m.name
             e.genericName = m.genericName;  e.displayName = m.displayName
             e.form = m.form;  e.dosageAmount = m.dosageAmount;  e.dosageUnit = m.dosageUnit
-            e.instructions = m.instructions;  e.notes = m.notes;  e.photoURL = m.photoURL
+            e.instructions = m.instructions;  e.notes = m.notes
+            if let encoded = m.photoData, let data = Data(base64Encoded: encoded),
+               let filename = m.photoURL {
+                e.photoURL = PhotoStorage.writeData(data, filename: filename)
+            } else {
+                e.photoURL = m.photoURL
+            }
             e.currentQuantity = m.currentQuantity;  e.lowQuantityAlert = m.lowQuantityAlert
             e.lowQuantityThreshold = m.lowQuantityThreshold;  e.isActive = m.isActive
             e.addedAt = m.addedAt;  e.sideEffectsJSON = m.sideEffectsJSON

@@ -87,6 +87,10 @@ struct MedicationsListView: View {
                     viewModel.deleteMedication(med)
                     selectedMedication = nil
                 },
+                onRestock: { amount in
+                    viewModel.restockMedication(med, amount: amount)
+                    selectedMedication = nil
+                },
                 onDismiss: { selectedMedication = nil }
             )
             .presentationDetents([.medium])

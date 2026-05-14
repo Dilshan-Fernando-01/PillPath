@@ -59,6 +59,10 @@ struct ActivityMedicationsTab: View {
                     viewModel.deleteMedication(med)
                     sheetMedication = nil
                 },
+                onRestock: { amount in
+                    viewModel.restockMedication(med, amount: amount)
+                    sheetMedication = nil
+                },
                 onDismiss: { sheetMedication = nil }
             )
             .presentationDetents([.medium])

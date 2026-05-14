@@ -41,13 +41,14 @@ final class EventKitService: ObservableObject {
         dosageDisplay: String,
         doseTimes: [Date],
         startDate: Date = .now,
-        notes: String? = nil
+        endDate: Date? = nil,
+        notes: String? = nil,
+        recurring: Bool = true
     ) -> Int {
         guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return 0 }
 
-        let calendar = EKCalendar.init(for: .event, eventStore: store)
-
         let targetCalendar = existingPillPathCalendar() ?? store.defaultCalendarForNewEvents
+        let recurrenceEnd: EKRecurrenceEnd? = endDate.map { EKRecurrenceEnd(end: $0) }
 
         var created = 0
         for time in doseTimes {
@@ -55,25 +56,48 @@ final class EventKitService: ObservableObject {
             event.title    = "💊 \(medicationName)"
             event.notes    = [dosageDisplay, notes].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " — ")
             event.calendar = targetCalendar
-            event.startDate = alignToToday(time: time, from: startDate)
-            event.endDate   = event.startDate.addingTimeInterval(15 * 60) 
+            event.startDate = recurring ? alignToToday(time: time, from: startDate) : time
+            event.endDate   = event.startDate.addingTimeInterval(15 * 60)
 
             let alarm = EKAlarm(relativeOffset: -10 * 60)
             event.addAlarm(alarm)
 
-            let rule = EKRecurrenceRule(
-                recurrenceWith: .daily,
-                interval: 1,
-                end: nil
-            )
-            event.addRecurrenceRule(rule)
+            if recurring {
+                let rule = EKRecurrenceRule(
+                    recurrenceWith: .daily,
+                    interval: 1,
+                    end: recurrenceEnd
+                )
+                event.addRecurrenceRule(rule)
+            }
 
             if (try? store.save(event, span: .futureEvents)) != nil {
                 created += 1
             }
         }
-        _ = calendar 
         return created
+    }
+
+    func removeAllPillPathEvents() -> Int {
+        guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return 0 }
+
+        let targetCalendar = existingPillPathCalendar()
+        let predicate = store.predicateForEvents(
+            withStart: Date().addingTimeInterval(-365 * 24 * 3600),
+            end: Date().addingTimeInterval(2 * 365 * 24 * 3600),
+            calendars: targetCalendar.map { [$0] } ?? nil
+        )
+        let events = store.events(matching: predicate).filter {
+            $0.title?.hasPrefix("💊") == true || $0.calendar?.title == "PillPath Medications"
+        }
+        var removed = 0
+        for event in events {
+            if (try? store.remove(event, span: .futureEvents, commit: false)) != nil {
+                removed += 1
+            }
+        }
+        try? store.commit()
+        return removed
     }
 
 
