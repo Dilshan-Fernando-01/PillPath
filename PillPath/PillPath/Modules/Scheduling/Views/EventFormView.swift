@@ -1,6 +1,7 @@
 
 import SwiftUI
 import UserNotifications
+import UniformTypeIdentifiers
 
 struct EventFormView: View {
 
@@ -17,6 +18,9 @@ struct EventFormView: View {
     @State private var selectedMedIds  = Set<UUID>()
     @State private var isSaving        = false
     @State private var validationError: String?
+    @State private var attachmentFilename: String? = nil
+    @State private var attachmentDisplayName: String? = nil
+    @State private var showDocPicker = false
 
     private var isEditing: Bool { existingEvent != nil }
     private var allMeds: [Medication] {
@@ -66,6 +70,8 @@ struct EventFormView: View {
                             .foregroundStyle(Color.textPrimary)
                     }
 
+                    attachmentSection
+
                     if date > .now {
                         upcomingNoticeRow
                     }
@@ -104,6 +110,76 @@ struct EventFormView: View {
         .onAppear {
             viewModel.loadMedications()
             prefill()
+        }
+        .fileImporter(
+            isPresented: $showDocPicker,
+            allowedContentTypes: [.pdf, .image, .text, .plainText, .data],
+            allowsMultipleSelection: false
+        ) { result in
+            if case .success(let urls) = result, let url = urls.first {
+                if let stored = DocumentStorage.save(from: url) {
+                    DocumentStorage.delete(attachmentFilename)
+                    attachmentFilename = stored
+                    attachmentDisplayName = url.lastPathComponent
+                }
+            }
+        }
+    }
+
+    private var attachmentSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("Attachment (optional)")
+                .font(AppFont.caption())
+                .foregroundStyle(Color.textSecondary)
+
+            if let filename = attachmentFilename {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "doc.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color.brandPrimary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(attachmentDisplayName ?? filename)
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.textPrimary)
+                            .lineLimit(1)
+                        Text("Attached")
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.semanticSuccess)
+                    }
+                    Spacer()
+                    Button {
+                        DocumentStorage.delete(attachmentFilename)
+                        attachmentFilename = nil
+                        attachmentDisplayName = nil
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.semanticError)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(AppSpacing.md)
+                .background(Color.appSurface)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                .overlay(RoundedRectangle(cornerRadius: AppRadius.md).stroke(Color.appBorder, lineWidth: 1))
+            } else {
+                Button { showDocPicker = true } label: {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "paperclip")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.brandPrimary)
+                        Text("Attach a file")
+                            .font(AppFont.body())
+                            .foregroundStyle(Color.brandPrimary)
+                        Spacer()
+                    }
+                    .padding(AppSpacing.md)
+                    .background(Color.appSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                    .overlay(RoundedRectangle(cornerRadius: AppRadius.md).stroke(Color.appBorder, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 
@@ -202,12 +278,14 @@ struct EventFormView: View {
 
     private func prefill() {
         guard let ev = existingEvent else { return }
-        title          = ev.title
-        provider       = ev.provider ?? ""
-        date           = ev.date
-        type           = ev.type
-        notes          = ev.notes ?? ""
-        selectedMedIds = Set(ev.medicationIds)
+        title                 = ev.title
+        provider              = ev.provider ?? ""
+        date                  = ev.date
+        type                  = ev.type
+        notes                 = ev.notes ?? ""
+        selectedMedIds        = Set(ev.medicationIds)
+        attachmentFilename    = ev.attachmentFilename
+        attachmentDisplayName = ev.attachmentDisplayName
     }
 
     private func save() {
@@ -228,6 +306,8 @@ struct EventFormView: View {
             medicationIds: Array(selectedMedIds),
             date: date,
             type: type,
+            attachmentFilename: attachmentFilename,
+            attachmentDisplayName: attachmentDisplayName,
             createdAt: existingEvent?.createdAt ?? .now
         )
 

@@ -9,14 +9,15 @@ struct NotificationBellView: View {
         Button {
             viewModel.showInbox = true
         } label: {
-            ZStack(alignment: .topTrailing) {
+            ZStack {
                 Circle()
                     .fill(Color.brandPrimaryLight)
                     .frame(width: 42, height: 42)
                 Image(systemName: viewModel.hasUnread ? "bell.badge.fill" : "bell.fill")
                     .font(.system(size: 18))
                     .foregroundStyle(Color.brandPrimary)
-
+            }
+            .overlay(alignment: .topTrailing) {
                 if viewModel.unreadCount > 0 {
                     ZStack {
                         Circle()
@@ -26,7 +27,7 @@ struct NotificationBellView: View {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.white)
                     }
-                    .offset(x: 6, y: -6)
+                    .offset(x: 4, y: -4)
                 }
             }
         }

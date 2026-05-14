@@ -8,6 +8,7 @@ struct LoginView: View {
 
     @EnvironmentObject private var authViewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var email = ""
     @State private var password = ""
@@ -27,9 +28,11 @@ struct LoginView: View {
                         Circle()
                             .fill(Color.brandPrimaryLight)
                             .frame(width: 80, height: 80)
-                        Image(systemName: "pills.fill")
-                            .font(.system(size: 36))
-                            .foregroundStyle(Color.brandPrimary)
+                        Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 52, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
                     }
                     Text("Welcome Back")
                         .font(AppFont.largeTitle())
@@ -160,10 +163,9 @@ struct LoginView: View {
                             authViewModel.errorMessage = error.localizedDescription
                         }
                     }
-                    .signInWithAppleButtonStyle(.whiteOutline)
+                    .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
                     .frame(height: 56)
                     .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Color.appBorder, lineWidth: 1.5))
                 }
 
                 HStack(spacing: 4) {

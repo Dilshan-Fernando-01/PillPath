@@ -1,5 +1,6 @@
 
 import SwiftUI
+import QuickLook
 
 struct EventDetailView: View {
 
@@ -9,6 +10,7 @@ struct EventDetailView: View {
 
     @State private var showEditForm  = false
     @State private var showDeleteConfirm = false
+    @State private var quickLookURL: URL? = nil
 
     var body: some View {
         NavigationStack {
@@ -21,6 +23,10 @@ struct EventDetailView: View {
 
                     if let desc = event.notes, !desc.isEmpty {
                         notesCard(desc)
+                    }
+
+                    if event.attachmentFilename != nil {
+                        attachmentCard
                     }
 
                     if !linkedMedications.isEmpty {
@@ -79,6 +85,54 @@ struct EventDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This event will be permanently removed.")
+        }
+        .quickLookPreview($quickLookURL)
+    }
+
+    private var attachmentCard: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: "paperclip")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.brandPrimary)
+                Text("Attachment")
+                    .font(AppFont.headline())
+                    .foregroundStyle(Color.textPrimary)
+            }
+
+            Button {
+                quickLookURL = DocumentStorage.url(for: event.attachmentFilename)
+            } label: {
+                HStack(spacing: AppSpacing.md) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: AppRadius.sm)
+                            .fill(Color.brandPrimaryLight)
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "doc.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.brandPrimary)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(event.attachmentDisplayName ?? event.attachmentFilename ?? "Document")
+                            .font(AppFont.body())
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.textPrimary)
+                            .lineLimit(1)
+                        Text("Tap to preview")
+                            .font(AppFont.caption())
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .padding(AppSpacing.md)
+                .background(Color.appSurface)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                .appCardShadow()
+            }
+            .buttonStyle(.plain)
         }
     }
 

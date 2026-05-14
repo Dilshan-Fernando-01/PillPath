@@ -52,6 +52,7 @@ final class EventService: EventServiceProtocol {
 
     func delete(_ event: MedicalEvent) throws {
         notificationService.cancelEventReminder(for: event.id)
+        DocumentStorage.delete(event.attachmentFilename)
         let request = MedicalEventEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", event.id as CVarArg)
         request.fetchLimit = 1

@@ -45,9 +45,17 @@ struct NextDoseCard: View {
                     Circle()
                         .fill(Color.brandPrimaryLight)
                         .frame(width: 56, height: 56)
-                    Image(systemName: "pills.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(Color.brandPrimary)
+                    if let img = PhotoStorage.load(item.photoURL) {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 56, height: 56)
+                            .clipShape(Circle())
+                    } else {
+                        Image(systemName: "pills.fill")
+                            .font(.system(size: 24))
+                            .foregroundStyle(Color.brandPrimary)
+                    }
                 }
 
           
