@@ -87,7 +87,7 @@ final class HomeViewModel: ObservableObject {
                     .filter { calendar.isDate($0, inSameDayAs: date) }
 
                 for doseTime in doseTimes {
-                    guard calendar.startOfDay(for: doseTime) >= calendar.startOfDay(for: schedule.startDate) else { continue }
+                    guard doseTime >= schedule.startDate else { continue }
 
                     let hour = calendar.component(.hour, from: doseTime)
                     let timeLabel = DoseTimeLabel.from(hour: hour)
@@ -196,7 +196,7 @@ final class HomeViewModel: ObservableObject {
             try? inAppService.create(
                 type: .lowStock,
                 title: "Low Stock: \(med.name)",
-                body: "Only \(med.currentQuantity) \(med.dosageUnit.displayName) remaining. Time to refill.",
+                body: "Only \(med.stockTrackingSummary) remaining. Time to refill.",
                 deepLink: deepLink
             )
         }
@@ -238,27 +238,34 @@ final class HomeViewModel: ObservableObject {
 
     private func buildGroups(from items: [DoseDisplayItem]) -> [TimeOfDayGroup] {
         let order: [DoseTimeLabel] = [.morning, .noon, .evening, .night]
-        let mealOrder: [MealTiming] = [.before, .with, .after, .none]
+
+        func mealRank(_ timing: MealTiming) -> Int {
+            switch timing {
+            case .before: return 0
+            case .with:   return 1
+            case .after:  return 2
+            case .none:   return 3
+            }
+        }
 
         return order.map { timeLabel in
             let slotItems = items.filter { $0.timeLabel == timeLabel }
-                                 .sorted { $0.scheduledAt < $1.scheduledAt }
+                                 .sorted { a, b in
+                                     if a.scheduledAt != b.scheduledAt {
+                                         return a.scheduledAt < b.scheduledAt
+                                     }
+                                     let ra = mealRank(a.mealTiming)
+                                     let rb = mealRank(b.mealTiming)
+                                     if ra != rb { return ra < rb }
+                                     return a.medicationName.lowercased() < b.medicationName.lowercased()
+                                 }
 
-            let mealGroups: [MealTimingGroup] = mealOrder.map { timing in
-                MealTimingGroup(
-                    id: timing,
-                    timing: timing,
-                    items: slotItems.filter { $0.mealTiming == timing }
-                )
-            }
-          
-            let nonEmpty = mealGroups.filter { !$0.isEmpty }
-            let displayed = nonEmpty.isEmpty ? mealGroups.filter { $0.timing == .none } : mealGroups
+            let merged = MealTimingGroup(id: .none, timing: .none, items: slotItems)
 
             return TimeOfDayGroup(
                 id: timeLabel,
                 label: timeLabel,
-                mealGroups: displayed
+                mealGroups: [merged]
             )
         }
     }

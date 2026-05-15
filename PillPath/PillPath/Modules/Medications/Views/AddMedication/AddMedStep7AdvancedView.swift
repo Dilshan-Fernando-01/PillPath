@@ -285,10 +285,14 @@ struct AddMedStep7AdvancedView: View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             SectionLabel(text: "Inventory Tracking")
 
+            Text("Use dosage for how much is taken each time, and stock for the total amount you currently have.")
+                .font(AppFont.caption())
+                .foregroundStyle(Color.textSecondary)
+
             HStack(spacing: AppSpacing.sm) {
              
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Current Qty")
+                    Text(viewModel.inventoryFieldLabel)
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
                     TextField("0", text: $viewModel.currentQuantity)
@@ -305,7 +309,7 @@ struct AddMedStep7AdvancedView: View {
 
                
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Alert Below")
+                    Text("Alert Below (\(viewModel.inventoryUnitDisplayName))")
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
                     TextField("5", text: $viewModel.lowQuantityThreshold)

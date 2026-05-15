@@ -13,7 +13,7 @@ struct NextDoseCard: View {
     }
 
     private var isCorrectTimePeriod: Bool {
-        currentTimeLabel == item.timeLabel
+        item.isScheduledForToday && currentTimeLabel == item.timeLabel
     }
 
     var body: some View {
@@ -28,6 +28,20 @@ struct NextDoseCard: View {
                     .font(.system(size: 12, weight: .black))
                     .foregroundStyle(.white)
                     .kerning(0.5)
+                if item.mealTiming != .none {
+                    HStack(spacing: 4) {
+                        Image(systemName: item.mealTiming.systemIcon)
+                            .font(.system(size: 9, weight: .bold))
+                        Text(item.mealTiming.displayName.uppercased())
+                            .font(.system(size: 10, weight: .bold))
+                            .kerning(0.3)
+                    }
+                    .foregroundStyle(Color.brandPrimary)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(.white)
+                    .clipShape(Capsule())
+                }
                 Spacer()
                 Text(item.timeRemainingDisplay)
                     .font(.system(size: 12, weight: .semibold))

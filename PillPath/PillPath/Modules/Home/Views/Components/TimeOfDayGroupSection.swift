@@ -10,7 +10,7 @@ struct TimeOfDayGroupSection: View {
 
     private var isCurrentPeriod: Bool {
         let hour = Calendar.current.component(.hour, from: .now)
-        return DoseTimeLabel.from(hour: hour) == group.label
+        return DoseTimeLabel.from(hour: hour) == group.label && group.allItems.contains { $0.isScheduledForToday }
     }
 
     var body: some View {

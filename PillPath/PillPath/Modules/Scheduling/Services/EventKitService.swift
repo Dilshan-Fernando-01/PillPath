@@ -18,7 +18,7 @@ final class EventKitService: ObservableObject {
 
     func requestAccess(completion: @escaping (Bool) -> Void) {
         if #available(iOS 17.0, *) {
-            store.requestWriteOnlyAccessToEvents { [weak self] granted, _ in
+            store.requestFullAccessToEvents { [weak self] granted, _ in
                 DispatchQueue.main.async {
                     self?.authorizationStatus = EKEventStore.authorizationStatus(for: .event)
                     completion(granted)
@@ -45,10 +45,11 @@ final class EventKitService: ObservableObject {
         notes: String? = nil,
         recurring: Bool = true
     ) -> Int {
-        guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return 0 }
-
-        let targetCalendar = existingPillPathCalendar() ?? store.defaultCalendarForNewEvents
+        guard hasReadableCalendarAccess else { return 0 }
+        guard let targetCalendar = existingPillPathCalendar() ?? store.defaultCalendarForNewEvents else { return 0 }
         let recurrenceEnd: EKRecurrenceEnd? = endDate.map { EKRecurrenceEnd(end: $0) }
+
+        removeMedicationEvents(medicationName: medicationName)
 
         var created = 0
         for time in doseTimes {
@@ -71,28 +72,51 @@ final class EventKitService: ObservableObject {
                 event.addRecurrenceRule(rule)
             }
 
-            if (try? store.save(event, span: .futureEvents)) != nil {
+            if (try? store.save(event, span: .thisEvent, commit: false)) != nil {
                 created += 1
             }
+        }
+        if created > 0 {
+            try? store.commit()
         }
         return created
     }
 
     func removeAllPillPathEvents() -> Int {
-        guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return 0 }
+        guard hasReadableCalendarAccess else { return 0 }
 
-        let targetCalendar = existingPillPathCalendar()
+        if let calendar = existingPillPathCalendar() {
+            let events = store.events(matching: store.predicateForEvents(
+                withStart: calendarWindowStart,
+                end: calendarWindowEnd,
+                calendars: [calendar]
+            ))
+            let removed = events.count
+            do {
+                try store.removeCalendar(calendar, commit: true)
+                return removed
+            } catch {
+                for event in events {
+                    let span: EKSpan = event.hasRecurrenceRules ? .futureEvents : .thisEvent
+                    try? store.remove(event, span: span, commit: false)
+                }
+                try? store.commit()
+                return removed
+            }
+        }
+
         let predicate = store.predicateForEvents(
-            withStart: Date().addingTimeInterval(-365 * 24 * 3600),
-            end: Date().addingTimeInterval(2 * 365 * 24 * 3600),
-            calendars: targetCalendar.map { [$0] } ?? nil
+            withStart: calendarWindowStart,
+            end: calendarWindowEnd,
+            calendars: nil
         )
         let events = store.events(matching: predicate).filter {
             $0.title?.hasPrefix("💊") == true || $0.calendar?.title == "PillPath Medications"
         }
         var removed = 0
         for event in events {
-            if (try? store.remove(event, span: .futureEvents, commit: false)) != nil {
+            let span: EKSpan = event.hasRecurrenceRules ? .futureEvents : .thisEvent
+            if (try? store.remove(event, span: span, commit: false)) != nil {
                 removed += 1
             }
         }
@@ -102,18 +126,20 @@ final class EventKitService: ObservableObject {
 
 
     func removeMedicationEvents(medicationName: String) {
-        guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return }
+        guard hasReadableCalendarAccess else { return }
 
         let title = "💊 \(medicationName)"
         let predicate = store.predicateForEvents(
-            withStart: Date().addingTimeInterval(-365 * 24 * 3600),
-            end: Date().addingTimeInterval(365 * 24 * 3600),
+            withStart: calendarWindowStart,
+            end: calendarWindowEnd,
             calendars: nil
         )
         let events = store.events(matching: predicate).filter { $0.title == title }
         for event in events {
-            try? store.remove(event, span: .futureEvents)
+            let span: EKSpan = event.hasRecurrenceRules ? .futureEvents : .thisEvent
+            try? store.remove(event, span: span, commit: false)
         }
+        try? store.commit()
     }
 
 
@@ -122,7 +148,7 @@ final class EventKitService: ObservableObject {
     }
 
     func syncMedicalEvent(_ event: MedicalEvent) {
-        guard authorizationStatus == .fullAccess || authorizationStatus == .writeOnly else { return }
+        guard hasReadableCalendarAccess else { return }
 
         let ekEvent = EKEvent(eventStore: store)
         ekEvent.title = event.title
@@ -141,9 +167,9 @@ final class EventKitService: ObservableObject {
     }
 
     func requestAccessAndSync(medicalEvent: MedicalEvent) {
-        if authorizationStatus == .fullAccess || authorizationStatus == .writeOnly {
+        if hasReadableCalendarAccess {
             syncMedicalEvent(medicalEvent)
-        } else if authorizationStatus == .notDetermined {
+        } else if authorizationStatus == .notDetermined || authorizationStatus == .writeOnly {
             requestAccess { [weak self] granted in
                 if granted { self?.syncMedicalEvent(medicalEvent) }
             }
@@ -167,5 +193,22 @@ final class EventKitService: ObservableObject {
         let h   = cal.component(.hour,   from: time)
         let m   = cal.component(.minute, from: time)
         return cal.date(bySettingHour: h, minute: m, second: 0, of: base) ?? base
+    }
+
+    private var hasReadableCalendarAccess: Bool {
+        switch authorizationStatus {
+        case .authorized, .fullAccess:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var calendarWindowStart: Date {
+        Calendar.current.date(from: DateComponents(year: 2000, month: 1, day: 1)) ?? .distantPast
+    }
+
+    private var calendarWindowEnd: Date {
+        Calendar.current.date(from: DateComponents(year: 2100, month: 1, day: 1)) ?? .distantFuture
     }
 }

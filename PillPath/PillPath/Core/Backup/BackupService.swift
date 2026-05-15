@@ -33,6 +33,7 @@ final class BackupService: BackupServiceProtocol {
     private let coreData: CoreDataStack
     private static let lastBackupKey = "pp_last_backup_date"
     private static let autoBackupThreshold: TimeInterval = 3600
+    private static let maxFirestorePayloadBytes = 900_000
 
     init(coreData: CoreDataStack = .shared) {
         self.coreData = coreData
@@ -43,10 +44,8 @@ final class BackupService: BackupServiceProtocol {
         let uid = AppSession.shared.currentUserId
         guard !uid.isEmpty else { throw BackupError.notAuthenticated }
 
-        let snapshot = try await MainActor.run { try buildSnapshot(userId: uid) }
-        let data = try encode(snapshot)
-        guard let json = String(data: data, encoding: .utf8) else { throw BackupError.encodingFailed }
-        try await upload(json: json, userId: uid)
+        let payload = try await MainActor.run { try buildUploadPayload(userId: uid) }
+        try await upload(payload: payload, userId: uid)
 
         let now = Date.now
         UserDefaults.standard.set(now, forKey: Self.lastBackupKey)
@@ -95,7 +94,7 @@ final class BackupService: BackupServiceProtocol {
     }
 
 
-    private func buildSnapshot(userId: String) throws -> AppBackup {
+    private func buildSnapshot(userId: String, includePhotoData: Bool) throws -> AppBackup {
         let ctx = coreData.viewContext
 
         let medReq = MedicationEntity.fetchRequest()
@@ -122,12 +121,27 @@ final class BackupService: BackupServiceProtocol {
             version: 1,
             exportedAt: .now,
             userId: userId,
-            medications:   meds.compactMap  { MedicationBackup(from: $0) },
+            medications:   meds.compactMap  { MedicationBackup(from: $0, includePhotoData: includePhotoData) },
             schedules:     scheds.compactMap { ScheduleBackup(from: $0) },
             scheduleTimes: times.compactMap  { ScheduleTimeBackup(from: $0) },
             doseLogs:      logs.compactMap   { DoseLogBackup(from: $0) },
             medicalEvents: evts.compactMap   { MedicalEventBackup(from: $0) }
         )
+    }
+
+    private func buildUploadPayload(userId: String) throws -> BackupUploadPayload {
+        let snapshotWithPhotos = try buildSnapshot(userId: userId, includePhotoData: true)
+        let primary = try makeUploadPayload(from: snapshotWithPhotos)
+        if primary.encodedLength <= Self.maxFirestorePayloadBytes {
+            return primary
+        }
+
+        let snapshotWithoutPhotos = try buildSnapshot(userId: userId, includePhotoData: false)
+        let fallback = try makeUploadPayload(from: snapshotWithoutPhotos)
+        guard fallback.encodedLength <= Self.maxFirestorePayloadBytes else {
+            throw BackupError.encodingFailed
+        }
+        return fallback
     }
 
 
@@ -152,20 +166,34 @@ final class BackupService: BackupServiceProtocol {
         Firestore.firestore().collection("backups").document(userId)
     }
 
-    private func upload(json: String, userId: String) async throws {
+    private func upload(payload: BackupUploadPayload, userId: String) async throws {
         try await docRef(userId: userId).setData([
-            "data": json,
-            "updatedAt": Timestamp(date: .now)
-        ])
+            "payload": payload.encoded,
+            "payloadEncoding": payload.encoding,
+            "includesPhotos": payload.includesPhotos,
+            "updatedAt": Timestamp(date: .now),
+            "data": FieldValue.delete(),
+            "chunkCount": FieldValue.delete(),
+            "storageFormat": FieldValue.delete()
+        ], merge: true)
     }
 
     private func download(userId: String) async throws -> String {
         do {
             let doc = try await docRef(userId: userId).getDocument()
-            guard doc.exists, let json = doc.get("data") as? String else {
+            guard doc.exists else {
                 throw BackupError.noBackupFound
             }
-            return json
+
+            if let payload = doc.get("payload") as? String {
+                let encoding = doc.get("payloadEncoding") as? String ?? BackupUploadPayload.Encoding.plain.rawValue
+                return try decodeUploadPayload(payload, encoding: encoding)
+            }
+
+            if let json = doc.get("data") as? String {
+                return json
+            }
+            throw BackupError.noBackupFound
         } catch let e as BackupError {
             throw e
         } catch {
@@ -252,4 +280,63 @@ final class BackupService: BackupServiceProtocol {
         req.fetchLimit = 1
         return try? ctx.fetch(req).first
     }
+
+    private func makeUploadPayload(from backup: AppBackup) throws -> BackupUploadPayload {
+        let data = try encode(backup)
+        let compressed = try compress(data)
+        let encoded = compressed.base64EncodedString()
+        return BackupUploadPayload(
+            encoded: encoded,
+            encoding: BackupUploadPayload.Encoding.lzfseBase64.rawValue,
+            includesPhotos: backup.medications.contains { $0.photoData != nil },
+            encodedLength: encoded.lengthOfBytes(using: .utf8)
+        )
+    }
+
+    private func decodeUploadPayload(_ payload: String, encoding: String) throws -> String {
+        guard let data = Data(base64Encoded: payload) else {
+            throw BackupError.decodingFailed
+        }
+
+        if encoding == BackupUploadPayload.Encoding.lzfseBase64.rawValue {
+            let decompressed = try decompress(data)
+            guard let json = String(data: decompressed, encoding: .utf8) else {
+                throw BackupError.decodingFailed
+            }
+            return json
+        }
+
+        guard let json = String(data: data, encoding: .utf8) else {
+            throw BackupError.decodingFailed
+        }
+        return json
+    }
+
+    private func compress(_ data: Data) throws -> Data {
+        do {
+            return try (data as NSData).compressed(using: .lzfse) as Data
+        } catch {
+            throw BackupError.encodingFailed
+        }
+    }
+
+    private func decompress(_ data: Data) throws -> Data {
+        do {
+            return try (data as NSData).decompressed(using: .lzfse) as Data
+        } catch {
+            throw BackupError.decodingFailed
+        }
+    }
+}
+
+private struct BackupUploadPayload {
+    enum Encoding: String {
+        case plain
+        case lzfseBase64 = "lzfse-base64"
+    }
+
+    let encoded: String
+    let encoding: String
+    let includesPhotos: Bool
+    let encodedLength: Int
 }

@@ -31,9 +31,11 @@ struct WelcomeView: View {
                             Circle()
                                 .fill(.white.opacity(0.12))
                                 .frame(width: 112, height: 112)
-                            Image(systemName: "pills.fill")
-                                .font(.system(size: 62, weight: .medium))
-                                .foregroundStyle(.white)
+                             Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 52, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
                         }
 
                         VStack(spacing: AppSpacing.sm) {

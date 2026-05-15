@@ -58,7 +58,7 @@ final class NotificationService: NotificationServiceProtocol {
     func scheduleLowQuantityAlert(for medication: Medication) {
         let content = UNMutableNotificationContent()
         content.title = "Low Supply: \(medication.name)"
-        content.body  = "You have \(medication.currentQuantity) \(medication.dosageUnit.displayName) remaining. Time to refill."
+        content.body  = "You have \(medication.stockTrackingSummary) remaining. Time to refill."
         content.sound = .default
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)

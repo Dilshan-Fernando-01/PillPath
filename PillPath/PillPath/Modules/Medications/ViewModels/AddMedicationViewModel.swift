@@ -37,8 +37,6 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             switch selectedForm {
             case .liquid, .injection:
                 if dosageUnit == .pills { dosageUnit = .ml }
-            case .patch, .inhaler:
-                if dosageUnit == .pills { dosageUnit = .mg }
             default:
                 break
             }
@@ -416,7 +414,8 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
             items.append(ReviewItem(label: "Display Name", value: displayName))
         }
         if let qty = Int(currentQuantity), qty > 0 {
-            items.append(ReviewItem(label: "Quantity", value: "\(qty) \(dosageUnit.displayName)"))
+            items.append(ReviewItem(label: "Uses Per Dose", value: dosageDisplay))
+            items.append(ReviewItem(label: "Total Stock", value: "\(qty) \(inventoryUnitDisplayName)"))
         }
         return items
     }
@@ -432,11 +431,29 @@ final class AddMedicationViewModel: ObservableObject, Identifiable {
         switch selectedForm {
         case .liquid, .injection:
             return [.ml, .mg]
-        case .patch, .inhaler:
-            return [.mg, .ml]
+        case .patch, .inhaler, .other:
+            return [.pills, .mg, .ml]
         default:
             return DosageUnit.allCases
         }
+    }
+
+    var inventoryUnitDisplayName: String {
+        Medication(
+            name: medicationName,
+            form: selectedForm,
+            dosageAmount: dosageAmount,
+            dosageUnit: dosageUnit
+        ).inventoryUnitDisplayName
+    }
+
+    var inventoryFieldLabel: String {
+        Medication(
+            name: medicationName,
+            form: selectedForm,
+            dosageAmount: dosageAmount,
+            dosageUnit: dosageUnit
+        ).inventoryInputLabel
     }
 
     var timeSummary: String {
