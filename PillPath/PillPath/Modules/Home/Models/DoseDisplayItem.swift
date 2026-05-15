@@ -34,6 +34,10 @@ struct DoseDisplayItem: Identifiable, Equatable {
         Date.now < scheduledAt
     }
 
+    var isScheduledForToday: Bool {
+        Calendar.current.isDateInToday(scheduledAt)
+    }
+
     var isLate: Bool {
         guard status == .pending else { return false }
         let lateThreshold = scheduledAt.addingTimeInterval(15 * 60)

@@ -88,7 +88,7 @@ struct AddMedStep8ReviewView: View {
         if hasAdvanced {
             reviewSection(title: "Advanced", step: 7) {
                 if qty > 0 {
-                    reviewRow(icon: "shippingbox", label: "Qty", value: "\(qty) \(viewModel.dosageUnit.displayName)")
+                    reviewRow(icon: "shippingbox", label: "Total Stock", value: "\(qty) \(viewModel.inventoryUnitDisplayName)")
                 }
                 if !viewModel.notes.isEmpty {
                     if qty > 0 { Divider().padding(.leading, 44) }

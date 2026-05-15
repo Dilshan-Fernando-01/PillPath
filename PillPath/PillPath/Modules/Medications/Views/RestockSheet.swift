@@ -14,18 +14,17 @@ struct RestockSheet: View {
     private var newTotal: Int { medication.currentQuantity + amount }
 
     private var unitName: String {
-        let units = medication.dosageUnit.displayName
-        if medication.dosageUnit == .pills {
-            return amount == 1 ? "pill" : "pills"
-        }
-        return units
+        medication.inventoryUnitDisplayName
     }
 
     private var formIcon: String {
-        switch medication.dosageUnit {
-        case .pills: return "pills.fill"
-        case .ml:    return "drop.fill"
-        case .mg:    return "capsule.fill"
+        switch medication.form {
+        case .tablet, .capsule: return "pills.fill"
+        case .liquid: return "drop.fill"
+        case .injection: return "syringe.fill"
+        case .patch: return "bandage.fill"
+        case .inhaler: return "wind"
+        case .other: return "shippingbox.fill"
         }
     }
 
@@ -63,7 +62,7 @@ struct RestockSheet: View {
                         Text("Current Stock")
                             .font(AppFont.caption())
                             .foregroundStyle(Color.textSecondary)
-                        Text("\(medication.currentQuantity) \(medication.dosageUnit.displayName)")
+                        Text(medication.stockTrackingSummary)
                             .font(AppFont.body())
                             .fontWeight(.semibold)
                             .foregroundStyle(Color.textPrimary)
@@ -75,7 +74,7 @@ struct RestockSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Add Quantity")
+                    Text("Add Stock")
                         .font(AppFont.caption())
                         .foregroundStyle(Color.textSecondary)
                     HStack(spacing: AppSpacing.sm) {
@@ -115,7 +114,7 @@ struct RestockSheet: View {
                     HStack(spacing: AppSpacing.sm) {
                         Image(systemName: "arrow.right.circle.fill")
                             .foregroundStyle(Color.semanticSuccess)
-                        Text("New total: \(newTotal) \(medication.dosageUnit.displayName)")
+                        Text("New total: \(newTotal) \(medication.inventoryUnitDisplayName)")
                             .font(AppFont.body())
                             .fontWeight(.semibold)
                             .foregroundStyle(Color.semanticSuccess)

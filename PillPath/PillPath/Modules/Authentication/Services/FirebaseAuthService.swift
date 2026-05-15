@@ -9,19 +9,18 @@ final class FirebaseAuthService: AuthServiceProtocol {
     private(set) var currentUser: User?
 
     init() {
-        if let fbUser = Auth.auth().currentUser, fbUser.isEmailVerified {
+        if let fbUser = Auth.auth().currentUser {
             currentUser = map(fbUser)
         }
     }
 
 
     func hasCachedSession() -> Bool {
-        guard let fbUser = Auth.auth().currentUser else { return false }
-        return fbUser.isEmailVerified
+        Auth.auth().currentUser != nil
     }
 
     func restoreSession() async throws -> User {
-        guard let fbUser = Auth.auth().currentUser, fbUser.isEmailVerified else {
+        guard let fbUser = Auth.auth().currentUser else {
             throw AuthError.sessionExpired
         }
         let user = map(fbUser)
@@ -34,9 +33,6 @@ final class FirebaseAuthService: AuthServiceProtocol {
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
             try await result.user.reload()
-            guard result.user.isEmailVerified else {
-                throw AuthError.emailNotVerified
-            }
             let user = map(result.user)
             currentUser = user
             return user

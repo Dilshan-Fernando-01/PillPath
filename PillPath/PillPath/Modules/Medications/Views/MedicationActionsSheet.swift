@@ -60,7 +60,7 @@ struct MedicationActionsSheet: View {
                     icon: "shippingbox.fill",
                     iconColor: Color.semanticInfo,
                     title: "Restock",
-                    subtitle: "Add to current \(medication.currentQuantity) \(medication.dosageUnit.displayName)",
+                    subtitle: "Add to current \(medication.stockTrackingSummary)",
                     iconBg: Color.semanticInfo.opacity(0.12),
                     action: { showRestockSheet = true }
                 )

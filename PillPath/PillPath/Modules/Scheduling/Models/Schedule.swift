@@ -198,10 +198,10 @@ enum DoseTimeLabel: String, Codable, CaseIterable, Identifiable {
 
     var timeRange: String {
         switch self {
-        case .morning: return "6 AM – 11 AM"
-        case .noon:    return "11 AM – 4 PM"
-        case .evening: return "4 PM – 9 PM"
-        case .night:   return "9 PM – 6 AM"
+        case .morning: return "Until Noon"
+        case .noon:    return "Noon – 5 PM"
+        case .evening: return "5 PM – 11 PM"
+        case .night:   return "After 11 PM"
         case .custom:  return "Specific / Repeating"
         }
     }
@@ -292,12 +292,12 @@ enum DoseStatus: String, Codable {
 
 
 extension DoseTimeLabel {
-   
+
     static func from(hour: Int) -> DoseTimeLabel {
         switch hour {
-        case 6..<12:  return .morning
+        case 0..<12:  return .morning
         case 12..<17: return .noon
-        case 17..<21: return .evening
+        case 17..<23: return .evening
         default:      return .night
         }
     }

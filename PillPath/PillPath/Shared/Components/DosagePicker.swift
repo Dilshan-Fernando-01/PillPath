@@ -18,7 +18,7 @@ struct DosagePicker: View {
     private var toggleUnits: [DosageUnit] {
         switch form {
         case .liquid, .injection: return [.ml, .mg]
-        case .patch, .inhaler:   return [.mg, .ml]
+        case .patch, .inhaler, .other: return [.pills, .mg, .ml]
         default:                 return [.pills, .mg]
         }
     }
@@ -26,8 +26,10 @@ struct DosagePicker: View {
     private func unitLabel(_ u: DosageUnit) -> String {
         switch (form, u) {
         case (.inhaler, .pills): return "Puffs"
+        case (.patch, .pills):   return "Patch"
         case (.tablet, .pills):  return "Tablet"
         case (.capsule, .pills): return "Capsule"
+        case (.other, .pills):   return "Count"
         case (_, .pills):        return "Count"
         case (_, .mg):           return "mg"
         case (_, .ml):           return "mL"
@@ -106,6 +108,9 @@ struct DosagePicker: View {
     private var displayUnitLabel: String {
         if form == .inhaler && unit == .pills {
             return amount == 1 ? "puff" : "puffs"
+        }
+        if form == .patch && unit == .pills {
+            return amount == 1 ? "patch" : "patches"
         }
         return unit.displayName
     }

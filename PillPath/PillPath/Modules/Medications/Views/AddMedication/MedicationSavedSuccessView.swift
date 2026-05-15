@@ -203,9 +203,9 @@ struct MedicationSavedSuccessView: View {
         calendarSyncState = .syncing
         let status = EKEventStore.authorizationStatus(for: .event)
 
-        if status == .fullAccess || status == .writeOnly {
+        if status == .authorized || status == .fullAccess {
             performSync()
-        } else if status == .notDetermined {
+        } else if status == .notDetermined || status == .writeOnly {
             eventKit.requestAccess { granted in
                 if granted {
                     performSync()

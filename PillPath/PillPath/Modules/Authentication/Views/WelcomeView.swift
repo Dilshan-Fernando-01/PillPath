@@ -25,15 +25,17 @@ struct WelcomeView: View {
                  
                     VStack(spacing: AppSpacing.lg) {
                         ZStack {
-                            Circle()
-                                .fill(.white.opacity(0.15))
-                                .frame(width: 148, height: 148)
+                            // Circle()
+                            //     .fill(.white.opacity(0.15))
+                            //     .frame(width: 148, height: 148)
                             Circle()
                                 .fill(.white.opacity(0.12))
                                 .frame(width: 112, height: 112)
-                            Image(systemName: "pills.fill")
-                                .font(.system(size: 62, weight: .medium))
-                                .foregroundStyle(.white)
+                             Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 52, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
                         }
 
                         VStack(spacing: AppSpacing.sm) {

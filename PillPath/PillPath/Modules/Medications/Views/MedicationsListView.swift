@@ -201,7 +201,7 @@ struct MedicationRowCard: View {
                         Text("•")
                             .font(AppFont.caption())
                             .foregroundStyle(Color.textSecondary)
-                        Text("\(medication.currentQuantity) remaining")
+                        Text("\(medication.stockTrackingSummary) remaining")
                             .font(AppFont.caption())
                             .foregroundStyle(medication.lowQuantityAlert && medication.currentQuantity <= medication.lowQuantityThreshold
                                 ? Color.semanticError : Color.textSecondary)

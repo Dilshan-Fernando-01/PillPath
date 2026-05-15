@@ -33,7 +33,7 @@ struct MedicationBackup: Codable {
     let interactionsJSON: String?
     let statusInfoJSON: String?
 
-    init?(from entity: MedicationEntity) {
+    init?(from entity: MedicationEntity, includePhotoData: Bool = true) {
         guard let id = entity.id, let name = entity.name, let addedAt = entity.addedAt else { return nil }
         self.id = id
         self.name = name
@@ -45,7 +45,7 @@ struct MedicationBackup: Codable {
         self.instructions = entity.instructions
         self.notes = entity.notes
         self.photoURL = entity.photoURL
-        if let thumb = PhotoStorage.thumbnailData(from: entity.photoURL) {
+        if includePhotoData, let thumb = PhotoStorage.thumbnailData(from: entity.photoURL) {
             self.photoData = thumb.base64EncodedString()
         } else {
             self.photoData = nil

@@ -15,18 +15,27 @@ struct DoseItemRow: View {
         DoseTimeLabel.from(hour: Calendar.current.component(.hour, from: .now))
     }
 
+    private var isInCurrentTimePeriodToday: Bool {
+        item.isScheduledForToday && currentTimeLabel == item.timeLabel
+    }
+
     var body: some View {
-        HStack(spacing: 0) {
+        VStack(spacing: 0) {
 
-            RoundedRectangle(cornerRadius: 2)
-                .fill(accentBarColor)
-                .frame(width: 4)
-                .padding(.vertical, 12)
+            if item.mealTiming != .none {
+                mealTimingHeader
+            }
 
-            VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
 
-               
-                if item.effectiveStatus == .pending && !item.isLate && currentTimeLabel == item.timeLabel {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(accentBarColor)
+                    .frame(width: 4)
+                    .padding(.vertical, 12)
+
+                VStack(alignment: .leading, spacing: 0) {
+
+                    if item.effectiveStatus == .pending && !item.isLate && isInCurrentTimePeriodToday {
                     HStack(spacing: 5) {
                         Image(systemName: "bell.fill").font(.system(size: 10))
                         Text("Time to take this medication")
@@ -36,9 +45,7 @@ struct DoseItemRow: View {
                     .padding(.horizontal, AppSpacing.md)
                     .padding(.top, 8)
                     .padding(.bottom, 2)
-                }
-
-                if item.isLate {
+                } else if item.isLate {
                     HStack(spacing: 5) {
                         Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 10))
                         Text("Dose time has passed — scheduled \(scheduledTimeDisplay)")
@@ -111,6 +118,7 @@ struct DoseItemRow: View {
                     .padding(.leading, AppSpacing.md)
                     .padding(.bottom, 8)
                 }
+                }
             }
         }
         .background(Color.appSurface)
@@ -147,6 +155,22 @@ struct DoseItemRow: View {
     }
 
 
+
+    private var mealTimingHeader: some View {
+        HStack(spacing: 6) {
+            Image(systemName: item.mealTiming.systemIcon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(item.mealTiming.displayName.uppercased())
+                .font(.system(size: 10, weight: .bold))
+                .kerning(0.4)
+            Spacer()
+        }
+        .foregroundStyle(Color.brandPrimary)
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.brandPrimaryLight)
+    }
 
     private var pillIcon: some View {
         ZStack {
@@ -242,7 +266,7 @@ struct DoseItemRow: View {
                     Button {
                         if item.isLate {
                             showLateConfirm = true
-                        } else if currentTimeLabel != item.timeLabel {
+                        } else if !isInCurrentTimePeriodToday {
                             showTimingConfirm = true
                         } else {
                             onMarkTaken()
@@ -278,7 +302,7 @@ struct DoseItemRow: View {
         case .taken:   return Color.semanticSuccess
         case .missed:  return Color.semanticError
         case .skipped: return Color.textSecondary.opacity(0.4)
-        case .pending: return currentTimeLabel == item.timeLabel ? Color.brandPrimary : Color.appBorder
+        case .pending: return isInCurrentTimePeriodToday ? Color.brandPrimary : Color.appBorder
         }
     }
 

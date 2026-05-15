@@ -46,7 +46,7 @@ enum PhotoStorage {
         }
     }
 
-    static func thumbnailData(from reference: String?, maxDimension: CGFloat = 512, maxBytes: Int = 700_000) -> Data? {
+    static func thumbnailData(from reference: String?, maxDimension: CGFloat = 320, maxBytes: Int = 180_000) -> Data? {
         guard let image = load(reference) else { return nil }
         let scale = min(maxDimension / image.size.width, maxDimension / image.size.height, 1.0)
         let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
@@ -61,7 +61,7 @@ enum PhotoStorage {
             }
             quality -= 0.15
         }
-        return nil
+        return resized.jpegData(compressionQuality: 0.1)
     }
 
     static func delete(_ reference: String?) {

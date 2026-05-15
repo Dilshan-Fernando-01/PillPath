@@ -85,6 +85,42 @@ struct Medication: Identifiable, Codable, Hashable {
             : String(dosageAmount)
         return "\(amount) \(dosageUnit.displayName)"
     }
+
+    var inventoryUnitDisplayName: String {
+        switch form {
+        case .tablet:
+            return "tablets"
+        case .capsule:
+            return "capsules"
+        case .patch:
+            return "patches"
+        case .inhaler:
+            return dosageUnit == .pills ? "puffs" : dosageUnit.displayName
+        case .liquid, .injection:
+            return dosageUnit.displayName
+        case .other:
+            return dosageUnit == .pills ? "units" : dosageUnit.displayName
+        }
+    }
+
+    var inventoryInputLabel: String {
+        switch form {
+        case .tablet, .capsule:
+            return "Total pills on hand"
+        case .patch:
+            return "Total patches on hand"
+        case .inhaler:
+            return dosageUnit == .pills ? "Total puffs remaining" : "Total amount on hand"
+        case .other:
+            return dosageUnit == .pills ? "Total units on hand" : "Total amount on hand"
+        case .liquid, .injection:
+            return "Total amount on hand"
+        }
+    }
+
+    var stockTrackingSummary: String {
+        "\(currentQuantity) \(inventoryUnitDisplayName)"
+    }
 }
 
 
